@@ -1,10 +1,10 @@
 import Dice from "./dice.js";
+import * as html from "./html.js";
 const MAX_BONUSES = 3;
 export default class Pool {
     constructor() {
-        this.node = document.createElement("div");
+        this.node = html.node("div", { className: "pool" });
         this._dices = [];
-        this.node.classList.add("pool");
     }
     get length() {
         return this._dices.filter(d => !d.disabled).length;

@@ -2,7 +2,11 @@
   box-sizing: border-box;
 }
 body {
+  margin: 0;
   background-image: linear-gradient(135deg, #cde, #def);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 table.board {
   border-collapse: collapse;
@@ -85,6 +89,8 @@ table.board .dummy {
 }
 .pool {
   display: flex;
+  padding: 8px 0;
+  border-bottom: 1px solid #000;
 }
 .pool .dice {
   border: 1px solid #000;
@@ -102,9 +108,6 @@ table.board .dummy {
 }
 .pool button {
   margin-left: auto;
-}
-.pool + .pool {
-  margin-top: 8px;
 }
 .score table {
   border-collapse: collapse;

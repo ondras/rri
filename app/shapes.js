@@ -3,6 +3,7 @@ import { N, E, S, W, all as allDirections } from "./direction.js";
 import { NONE, RAIL, ROAD } from "./edge.js";
 import * as draw from "./draw.js";
 import { TILE } from "./conf.js";
+import * as html from "./html.js";
 const repo = {};
 const templates = {
     "rail-half": {
@@ -102,6 +103,9 @@ const templates = {
         render(ctx) {
             draw.arc(ctx, N, E, -1);
             draw.arc(ctx, N, E, 1);
+            ctx.setLineDash([7, 4]);
+            ctx.lineDashOffset = -3;
+            draw.arc(ctx, N, E, 0);
         }
     },
     "rail-road-l": {
@@ -262,7 +266,7 @@ function getTransforms(edges) {
     return allTransforms.filter(filter);
 }
 function shapeFromTemplate(template) {
-    let canvas = document.createElement("canvas");
+    let canvas = html.node("canvas");
     canvas.width = canvas.height = TILE * devicePixelRatio;
     let ctx = canvas.getContext("2d");
     ctx.scale(devicePixelRatio, devicePixelRatio);

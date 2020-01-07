@@ -1,9 +1,10 @@
 import Pool from "./pool.js";
 import Dice from "./dice.js";
+import * as html from "./html.js";
 export default class Round {
     constructor(num, board, bonusPool) {
         this._pending = null;
-        this._end = document.createElement("button");
+        this._end = html.node("button");
         this._num = num;
         this._board = board;
         this._bonusPool = bonusPool;

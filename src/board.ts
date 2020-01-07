@@ -4,6 +4,7 @@ import { NONE } from "./edge.js";
 import { get as getScore } from "./score.js";
 import { BOARD } from "./conf.js";
 import CellRepo from "./cell-repo.js";
+import * as html from "./html.js";
 
 const DIFFS = [
 	[0, -1],
@@ -21,7 +22,7 @@ export default class Board {
 	node: HTMLTableElement;
 
 	constructor() {
-		this.node = document.createElement("table");
+		this.node = html.node("table", {className:"board"});
 		this.node.className = "board";
 		this.node.addEventListener("pointerdown", this);
 
@@ -53,8 +54,7 @@ export default class Board {
 
 	signalAvailable(tile: Tile | null) {
 		this._cells.forEach(cell => {
-			if (!inBoard(cell.x, cell.y)) { return; }
-			cell.signal = tile ? this.wouldFit(tile, cell.x, cell.y) : false;
+			cell.signal = (tile ? this.wouldFit(tile, cell.x, cell.y) : false);
 		});
 	}
 

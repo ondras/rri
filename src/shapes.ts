@@ -3,6 +3,7 @@ import { N, E, S, W, all as allDirections } from "./direction.js";
 import { Edge, NONE, RAIL, ROAD } from "./edge.js";
 import * as draw from "./draw.js";
 import { TILE } from "./conf.js";
+import * as html from "./html.js";
 
 type Edges = [Edge, Edge, Edge, Edge];
 interface Shape {
@@ -130,6 +131,9 @@ const templates: {[id:string]: ShapeTemplate} = {
 		render(ctx: CanvasRenderingContext2D) {
 			draw.arc(ctx, N, E, -1);
 			draw.arc(ctx, N, E, 1);
+			ctx.setLineDash([7, 4]);
+			ctx.lineDashOffset = -3; 
+			draw.arc(ctx, N, E, 0);
 		}
 	},
 
@@ -308,7 +312,7 @@ function getTransforms(edges: Edges) {
 }
 
 function shapeFromTemplate(template: ShapeTemplate) {
-	let canvas = document.createElement("canvas");
+	let canvas = html.node("canvas");
 	canvas.width = canvas.height = TILE * devicePixelRatio;
 	let ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 	ctx.scale(devicePixelRatio, devicePixelRatio);

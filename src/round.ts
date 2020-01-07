@@ -1,6 +1,7 @@
 import Board from "./board.js";
 import Pool, { BonusPool } from "./pool.js";
 import Dice from "./dice.js";
+import * as html from "./html.js";
 
 export default class Round {
 	node: HTMLElement;
@@ -9,7 +10,7 @@ export default class Round {
 	_pool: Pool;
 	_bonusPool: BonusPool;
 	_board: Board;
-	_end: HTMLButtonElement = document.createElement("button");
+	_end: HTMLButtonElement = html.node("button");
 
 	constructor(num: number, board: Board, bonusPool: BonusPool) {
 		this._num = num;

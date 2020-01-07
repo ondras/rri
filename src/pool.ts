@@ -1,14 +1,11 @@
 import Dice from "./dice.js";
+import * as html from "./html.js";
 
 const MAX_BONUSES = 3;
 
 export default class Pool {
-	node: HTMLElement = document.createElement("div");
+	node: HTMLElement = html.node("div", {className:"pool"});
 	_dices: Dice[] = [];
-
-	constructor() {
-		this.node.classList.add("pool");
-	}
 
 	get length() { 
 		return this._dices.filter(d => !d.disabled).length;

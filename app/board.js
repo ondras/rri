@@ -3,6 +3,7 @@ import { NONE } from "./edge.js";
 import { get as getScore } from "./score.js";
 import { BOARD } from "./conf.js";
 import CellRepo from "./cell-repo.js";
+import * as html from "./html.js";
 const DIFFS = [
     [0, -1],
     [1, 0],
@@ -14,7 +15,7 @@ function inBoard(x, y) {
 }
 export default class Board {
     constructor() {
-        this.node = document.createElement("table");
+        this.node = html.node("table", { className: "board" });
         this.node.className = "board";
         this.node.addEventListener("pointerdown", this);
         this._cells = new CellRepo(this.node);
@@ -47,10 +48,7 @@ export default class Board {
     }
     signalAvailable(tile) {
         this._cells.forEach(cell => {
-            if (!inBoard(cell.x, cell.y)) {
-                return;
-            }
-            cell.signal = tile ? this.wouldFit(tile, cell.x, cell.y) : false;
+            cell.signal = (tile ? this.wouldFit(tile, cell.x, cell.y) : false);
         });
     }
     cycleTransform(x, y) {

@@ -1,4 +1,5 @@
 import Tile from "./tile.js";
+import * as html from "./html.js";
 
 export class Cell {
 	node: HTMLTableCellElement;
@@ -13,8 +14,7 @@ export class Cell {
 		this.node = node;
 		this.x = x;
 		this.y = y;
-		this._round = document.createElement("div");
-		this._round.className = "round";
+		this._round = html.node("div", {className:"round"});
 		this.tile = null;
 
 		this.isCenter && this._markCenter();
@@ -28,9 +28,7 @@ export class Cell {
 			this.node.appendChild(tile.node);
 			this.node.appendChild(this._round);
 		} else {
-			let dummy = document.createElement("div");
-			dummy.className = "dummy";
-			this.node.appendChild(dummy);
+			this.node.appendChild(html.node("div", {className:"dummy"}));
 		}
 	}
 
