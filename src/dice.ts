@@ -3,7 +3,7 @@ import { Transform } from "./transform.js";
 import * as html from "./html.js";
 
 export default class Dice {
-	node = html.node("div", {className:"dice"});
+	node: HTMLElement = html.node("div", {className:"dice"});
 	_tile!: Tile;
 
 	static withTile(name: string, transform: Transform) {

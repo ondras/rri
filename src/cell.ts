@@ -17,7 +17,7 @@ export class Cell {
 		this._round.className = "round";
 		this.tile = null;
 
-		this.isCenter() && this._markCenter();
+		this.isCenter && this._markCenter();
 	}
 
 	get tile() { return this._tile; }
@@ -37,7 +37,7 @@ export class Cell {
 	set signal(signal: boolean) { this.node.classList.toggle("signal", signal); }
 	set round(round: string) { this._round.textContent = round; }
 
-	isCenter() {
+	get isCenter() {
 		if (this.x < 3 || this.x > 5 || this.y < 3 || this.y > 5) { return false; }
 		return true;
 	}

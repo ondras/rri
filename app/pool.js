@@ -43,7 +43,7 @@ export class BonusPool extends Pool {
         this.node.classList.add("bonus");
         this.add(Dice.withTile("cross-road-road-rail-road", "0"));
         this.add(Dice.withTile("cross-road-rail-rail-rail", "0"));
-        //		this.add(new Tile("cross-road", "0"));
+        this.add(Dice.withTile("cross-road", "0"));
         this.add(Dice.withTile("cross-rail", "0"));
         this.add(Dice.withTile("cross-road-rail-rail-road", "0"));
         this.add(Dice.withTile("cross-road-rail-road-rail", "0"));

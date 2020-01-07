@@ -218,6 +218,24 @@ const templates = {
             draw.rail(ctx, W, 0.5);
             draw.railCross(ctx);
         }
+    },
+    "cross-road": {
+        edges: [
+            { type: ROAD, connects: [S, E, W] },
+            { type: ROAD, connects: [N, S, W] },
+            { type: ROAD, connects: [N, E, W] },
+            { type: ROAD, connects: [N, E, S] }
+        ],
+        render(ctx) {
+            draw.arc(ctx, N, E, -1);
+            draw.arc(ctx, N, W, -1);
+            draw.arc(ctx, S, E, -1);
+            draw.arc(ctx, S, W, -1);
+            draw.roadTicks(ctx, N, 0.5);
+            draw.roadTicks(ctx, E, 0.5);
+            draw.roadTicks(ctx, S, 0.5);
+            draw.roadTicks(ctx, W, 0.5);
+        }
     }
 };
 export function get(id) {

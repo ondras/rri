@@ -8,7 +8,7 @@ export class Cell {
         this._round = document.createElement("div");
         this._round.className = "round";
         this.tile = null;
-        this.isCenter() && this._markCenter();
+        this.isCenter && this._markCenter();
     }
     get tile() { return this._tile; }
     set tile(tile) {
@@ -26,7 +26,7 @@ export class Cell {
     }
     set signal(signal) { this.node.classList.toggle("signal", signal); }
     set round(round) { this._round.textContent = round; }
-    isCenter() {
+    get isCenter() {
         if (this.x < 3 || this.x > 5 || this.y < 3 || this.y > 5) {
             return false;
         }
