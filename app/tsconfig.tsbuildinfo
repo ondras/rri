@@ -1,0 +1,384 @@
+{
+  "program": {
+    "fileInfos": {
+      "../node_modules/typescript/lib/lib.es5.d.ts": {
+        "version": "fc43680ad3a1a4ec8c7b8d908af1ec9ddff87845346de5f02c735c9171fa98ea",
+        "signature": "fc43680ad3a1a4ec8c7b8d908af1ec9ddff87845346de5f02c735c9171fa98ea"
+      },
+      "../node_modules/typescript/lib/lib.es2015.d.ts": {
+        "version": "7994d44005046d1413ea31d046577cdda33b8b2470f30281fd9c8b3c99fe2d96",
+        "signature": "7994d44005046d1413ea31d046577cdda33b8b2470f30281fd9c8b3c99fe2d96"
+      },
+      "../node_modules/typescript/lib/lib.es2016.d.ts": {
+        "version": "5f217838d25704474d9ef93774f04164889169ca31475fe423a9de6758f058d1",
+        "signature": "5f217838d25704474d9ef93774f04164889169ca31475fe423a9de6758f058d1"
+      },
+      "../node_modules/typescript/lib/lib.es2017.d.ts": {
+        "version": "459097c7bdd88fc5731367e56591e4f465f2c9de81a35427a7bd473165c34743",
+        "signature": "459097c7bdd88fc5731367e56591e4f465f2c9de81a35427a7bd473165c34743"
+      },
+      "../node_modules/typescript/lib/lib.es2018.d.ts": {
+        "version": "9c67dcc7ca897b61f58d57d487bc9f07950546e5ac8701cbc41a8a4fec48b091",
+        "signature": "9c67dcc7ca897b61f58d57d487bc9f07950546e5ac8701cbc41a8a4fec48b091"
+      },
+      "../node_modules/typescript/lib/lib.es2019.d.ts": {
+        "version": "0fc0f68d3f4d94aa65fab955592e4a9f2066e6f8ee2f66fcc45adf4037fc167b",
+        "signature": "0fc0f68d3f4d94aa65fab955592e4a9f2066e6f8ee2f66fcc45adf4037fc167b"
+      },
+      "../node_modules/typescript/lib/lib.dom.d.ts": {
+        "version": "d93de5e8a7275cb9d47481410e13b3b1debb997e216490954b5d106e37e086de",
+        "signature": "d93de5e8a7275cb9d47481410e13b3b1debb997e216490954b5d106e37e086de"
+      },
+      "../node_modules/typescript/lib/lib.dom.iterable.d.ts": {
+        "version": "8329c3401aa8708426c7760f14219170f69a2cb77e4519758cec6f5027270faf",
+        "signature": "8329c3401aa8708426c7760f14219170f69a2cb77e4519758cec6f5027270faf"
+      },
+      "../node_modules/typescript/lib/lib.webworker.importscripts.d.ts": {
+        "version": "fe4e59403e34c7ff747abe4ff6abbc7718229556d7c1a5b93473fb53156c913b",
+        "signature": "fe4e59403e34c7ff747abe4ff6abbc7718229556d7c1a5b93473fb53156c913b"
+      },
+      "../node_modules/typescript/lib/lib.scripthost.d.ts": {
+        "version": "b9faa17292f17d2ad75e34fac77dd63a6403af1dba02d39cd0cbb9ffdf3de8b9",
+        "signature": "b9faa17292f17d2ad75e34fac77dd63a6403af1dba02d39cd0cbb9ffdf3de8b9"
+      },
+      "../node_modules/typescript/lib/lib.es2015.core.d.ts": {
+        "version": "734ddc145e147fbcd55f07d034f50ccff1086f5a880107665ec326fb368876f6",
+        "signature": "734ddc145e147fbcd55f07d034f50ccff1086f5a880107665ec326fb368876f6"
+      },
+      "../node_modules/typescript/lib/lib.es2015.collection.d.ts": {
+        "version": "4a0862a21f4700de873db3b916f70e41570e2f558da77d2087c9490f5a0615d8",
+        "signature": "4a0862a21f4700de873db3b916f70e41570e2f558da77d2087c9490f5a0615d8"
+      },
+      "../node_modules/typescript/lib/lib.es2015.generator.d.ts": {
+        "version": "765e0e9c9d74cf4d031ca8b0bdb269a853e7d81eda6354c8510218d03db12122",
+        "signature": "765e0e9c9d74cf4d031ca8b0bdb269a853e7d81eda6354c8510218d03db12122"
+      },
+      "../node_modules/typescript/lib/lib.es2015.iterable.d.ts": {
+        "version": "285958e7699f1babd76d595830207f18d719662a0c30fac7baca7df7162a9210",
+        "signature": "285958e7699f1babd76d595830207f18d719662a0c30fac7baca7df7162a9210"
+      },
+      "../node_modules/typescript/lib/lib.es2015.promise.d.ts": {
+        "version": "d4deaafbb18680e3143e8b471acd650ed6f72a408a33137f0a0dd104fbe7f8ca",
+        "signature": "d4deaafbb18680e3143e8b471acd650ed6f72a408a33137f0a0dd104fbe7f8ca"
+      },
+      "../node_modules/typescript/lib/lib.es2015.proxy.d.ts": {
+        "version": "5e72f949a89717db444e3bd9433468890068bb21a5638d8ab15a1359e05e54fe",
+        "signature": "5e72f949a89717db444e3bd9433468890068bb21a5638d8ab15a1359e05e54fe"
+      },
+      "../node_modules/typescript/lib/lib.es2015.reflect.d.ts": {
+        "version": "f5b242136ae9bfb1cc99a5971cccc44e99947ae6b5ef6fd8aa54b5ade553b976",
+        "signature": "f5b242136ae9bfb1cc99a5971cccc44e99947ae6b5ef6fd8aa54b5ade553b976"
+      },
+      "../node_modules/typescript/lib/lib.es2015.symbol.d.ts": {
+        "version": "9ae2860252d6b5f16e2026d8a2c2069db7b2a3295e98b6031d01337b96437230",
+        "signature": "9ae2860252d6b5f16e2026d8a2c2069db7b2a3295e98b6031d01337b96437230"
+      },
+      "../node_modules/typescript/lib/lib.es2015.symbol.wellknown.d.ts": {
+        "version": "3e0a459888f32b42138d5a39f706ff2d55d500ab1031e0988b5568b0f67c2303",
+        "signature": "3e0a459888f32b42138d5a39f706ff2d55d500ab1031e0988b5568b0f67c2303"
+      },
+      "../node_modules/typescript/lib/lib.es2016.array.include.d.ts": {
+        "version": "3f96f1e570aedbd97bf818c246727151e873125d0512e4ae904330286c721bc0",
+        "signature": "3f96f1e570aedbd97bf818c246727151e873125d0512e4ae904330286c721bc0"
+      },
+      "../node_modules/typescript/lib/lib.es2017.object.d.ts": {
+        "version": "c2d60b2e558d44384e4704b00e6b3d154334721a911f094d3133c35f0917b408",
+        "signature": "c2d60b2e558d44384e4704b00e6b3d154334721a911f094d3133c35f0917b408"
+      },
+      "../node_modules/typescript/lib/lib.es2017.sharedmemory.d.ts": {
+        "version": "b8667586a618c5cf64523d4e500ae39e781428abfb28f3de441fc66b56144b6f",
+        "signature": "b8667586a618c5cf64523d4e500ae39e781428abfb28f3de441fc66b56144b6f"
+      },
+      "../node_modules/typescript/lib/lib.es2017.string.d.ts": {
+        "version": "21df2e0059f14dcb4c3a0e125859f6b6ff01332ee24b0065a741d121250bc71c",
+        "signature": "21df2e0059f14dcb4c3a0e125859f6b6ff01332ee24b0065a741d121250bc71c"
+      },
+      "../node_modules/typescript/lib/lib.es2017.intl.d.ts": {
+        "version": "c1759cb171c7619af0d2234f2f8fb2a871ee88e956e2ed91bb61778e41f272c6",
+        "signature": "c1759cb171c7619af0d2234f2f8fb2a871ee88e956e2ed91bb61778e41f272c6"
+      },
+      "../node_modules/typescript/lib/lib.es2017.typedarrays.d.ts": {
+        "version": "28569d59e07d4378cb3d54979c4c60f9f06305c9bb6999ffe6cab758957adc46",
+        "signature": "28569d59e07d4378cb3d54979c4c60f9f06305c9bb6999ffe6cab758957adc46"
+      },
+      "../node_modules/typescript/lib/lib.es2018.asyncgenerator.d.ts": {
+        "version": "2958de3d25bfb0b5cdace0244e11c9637e5988920b99024db705a720ce6348e7",
+        "signature": "2958de3d25bfb0b5cdace0244e11c9637e5988920b99024db705a720ce6348e7"
+      },
+      "../node_modules/typescript/lib/lib.es2018.asynciterable.d.ts": {
+        "version": "85085a0783532dc04b66894748dc4a49983b2fbccb0679b81356947021d7a215",
+        "signature": "85085a0783532dc04b66894748dc4a49983b2fbccb0679b81356947021d7a215"
+      },
+      "../node_modules/typescript/lib/lib.es2018.intl.d.ts": {
+        "version": "5494f46d3a8a0329d13ddc37f8759d5288760febb51c92336608d1c06bb18d29",
+        "signature": "5494f46d3a8a0329d13ddc37f8759d5288760febb51c92336608d1c06bb18d29"
+      },
+      "../node_modules/typescript/lib/lib.es2018.promise.d.ts": {
+        "version": "efe049114bad1035b0aa9a4a0359f50ab776e3897c411521e51d3013079cbd62",
+        "signature": "efe049114bad1035b0aa9a4a0359f50ab776e3897c411521e51d3013079cbd62"
+      },
+      "../node_modules/typescript/lib/lib.es2018.regexp.d.ts": {
+        "version": "e7780d04cd4120ee554c665829db2bbdd6b947cbaa3c150b7d9ea74df3beb2e8",
+        "signature": "e7780d04cd4120ee554c665829db2bbdd6b947cbaa3c150b7d9ea74df3beb2e8"
+      },
+      "../node_modules/typescript/lib/lib.es2019.array.d.ts": {
+        "version": "7054111c49ea06f0f2e623eab292a9c1ae9b7d04854bd546b78f2b8b57e13d13",
+        "signature": "7054111c49ea06f0f2e623eab292a9c1ae9b7d04854bd546b78f2b8b57e13d13"
+      },
+      "../node_modules/typescript/lib/lib.es2019.object.d.ts": {
+        "version": "989b95205f1189943fab0ce12a39c80570edf8f200aca60e0fdc500afc4d5859",
+        "signature": "989b95205f1189943fab0ce12a39c80570edf8f200aca60e0fdc500afc4d5859"
+      },
+      "../node_modules/typescript/lib/lib.es2019.string.d.ts": {
+        "version": "e9bfd234b801c955459cde7109bebf6fd1b4814fd8b394942f5ba746828a6486",
+        "signature": "e9bfd234b801c955459cde7109bebf6fd1b4814fd8b394942f5ba746828a6486"
+      },
+      "../node_modules/typescript/lib/lib.es2019.symbol.d.ts": {
+        "version": "53d5859b8aaefd27aa3242d36fc17a9243335d04ec14664b52314e7d9eb04de6",
+        "signature": "53d5859b8aaefd27aa3242d36fc17a9243335d04ec14664b52314e7d9eb04de6"
+      },
+      "../node_modules/typescript/lib/lib.es2019.full.d.ts": {
+        "version": "2e29c91abb0c3a575ff79670fa315b6c09ac7a57a7b42aa509fa17f0a224968f",
+        "signature": "2e29c91abb0c3a575ff79670fa315b6c09ac7a57a7b42aa509fa17f0a224968f"
+      },
+      "../src/direction.ts": {
+        "version": "2b6fb7c82223e187efd5abd4a1b78479bce886a0ed75a7cf2955e9dcfaed6f4c",
+        "signature": "6c9455722bbd6c515a0461eb0814f12e99d03915f897b6f7bfb156f722843e63"
+      },
+      "../src/transform.ts": {
+        "version": "2e467a09d174f80fa99aab129f5b66118a369e4e7e95b52ada6110c40978a934",
+        "signature": "401c42e4d7fa6115a7ecd963dfa39d1570de7f29cb6e382a32b83c912e3821a8"
+      },
+      "../src/edge.ts": {
+        "version": "e74700176a96eaad2970fff8b0f0d7a11d771794e47d54f536e63b139828f9d6",
+        "signature": "21a41d5c4b8f52686c9499715a8391e7da5f88ec9e28228d5a199fdcad2c3156"
+      },
+      "../src/conf.ts": {
+        "version": "81bc82d5a37e6f2991297b2eb9cc882525c1d40c951b7564e08383975ce66081",
+        "signature": "29820f50d515e26f4873ed83b0e11d5289a865a2b7bc07f59f01514aa098a61f"
+      },
+      "../src/draw.ts": {
+        "version": "80215a1d015f0ebedbf232c155c45460fbc11e932b26c10518aa50c73021fce4",
+        "signature": "692bc171fb4ae9ce6294fdd2d2d1382a9e419bd67541eeaac131193313f1e6f6"
+      },
+      "../src/shapes.ts": {
+        "version": "fe6e33cd4d82b96b009ec86b17637c0ae8055415d1ad3dadcfcda6d2fa93b60c",
+        "signature": "579023ee9988dc7f83828fe571ce86e888c9bd101810f537bb3774cfb044ba86"
+      },
+      "../src/tile.ts": {
+        "version": "0c97acb15e1a721b46109894784cf72bc41d24a2bbbc191c09f18977b12ddf52",
+        "signature": "9f0826ec73fe082a3cec49f4104241cfe5ce65957b6751de7729ffa62fd78b2d"
+      },
+      "../src/cell.ts": {
+        "version": "13109944443d9f83b84cb40fac9cb9dd1186989a08a3de9ee75e73a9beaa25dd",
+        "signature": "dd6197569aceb7f4e94071a5790757691d882105c37a2dda8720375219caceed"
+      },
+      "../src/cell-repo.ts": {
+        "version": "836426d3008eb5eb2310c0e59d689412e6d02384e3afd682ff1bb4f6991a152f",
+        "signature": "f530aa6e628705a2911a498d1f3a45148f2f8c741f02070b7a0144ab756bf900"
+      },
+      "../src/score.ts": {
+        "version": "b3a616715e8c5519b713141ee84d2cef4c8c9a862c12e8f0e1a979416e49b78d",
+        "signature": "5b8e6aeeb3b519ac3d47616bd723ed0b40fe9b62380c4df3f8e88e3ab243f3a9"
+      },
+      "../src/board.ts": {
+        "version": "6f037dedb676072a360cfb37ae990ab333959b7adda671f599bf1806bc953038",
+        "signature": "23451ebb463e3f440ccbbb3882236032c1049d45ea00e3d110d95bb94861624c"
+      },
+      "../src/html.ts": {
+        "version": "91dcb11e905be31cf14f9d53d95d0a9e45e66bcdd4ae82069ff093ae68674c4f",
+        "signature": "5f6310749cd8f896d08fce8eb9b2382c8a31aef8bd74357a9419299e6cf28536"
+      },
+      "../src/dice.ts": {
+        "version": "202e1bf5dc9eab2a8d8e0e4105d5104f9f4cda0665d92978c0d7efbf4c3aba0e",
+        "signature": "c5a8759c1fd62aea1861b472ecd50a6a11c3cf11e60abd08065392bf68eae7e3"
+      },
+      "../src/pool.ts": {
+        "version": "d1ef2e93fb6d009ac24c473cd28065eefd9aa3be149c70c0f1d4c0e5fe46376d",
+        "signature": "a164e51bf00c170735962d40b523273ddffcc2cbb0f8c19f53b7dffef51d897d"
+      },
+      "../src/round.ts": {
+        "version": "b0a4d830d3bf1c2c262fabba0649262e13abd224e7a4daca38ea0ffd4b28786e",
+        "signature": "29c87b252a201e538ee3707762afdf364d309d8e07bcbf94de2c349a3e1a1608"
+      },
+      "../src/game.ts": {
+        "version": "58b5cd89bd02f545cecde880b12b4495da560673ad0c2c62da811c1f01b7d7b1",
+        "signature": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+      }
+    },
+    "options": {
+      "strict": true,
+      "outDir": "./",
+      "target": 6,
+      "noUnusedLocals": true,
+      "noUnusedParameters": true,
+      "noEmitOnError": true,
+      "incremental": true,
+      "configFilePath": "../tsconfig.json"
+    },
+    "referencedMap": {
+      "../src/transform.ts": [
+        "../src/direction.ts"
+      ],
+      "../src/edge.ts": [
+        "../src/direction.ts"
+      ],
+      "../src/draw.ts": [
+        "../src/direction.ts",
+        "../src/conf.ts"
+      ],
+      "../src/shapes.ts": [
+        "../src/transform.ts",
+        "../src/direction.ts",
+        "../src/edge.ts",
+        "../src/draw.ts",
+        "../src/conf.ts"
+      ],
+      "../src/tile.ts": [
+        "../src/transform.ts",
+        "../src/shapes.ts",
+        "../src/direction.ts",
+        "../src/edge.ts"
+      ],
+      "../src/cell.ts": [
+        "../src/tile.ts"
+      ],
+      "../src/cell-repo.ts": [
+        "../src/cell.ts",
+        "../src/conf.ts"
+      ],
+      "../src/score.ts": [
+        "../src/cell-repo.ts",
+        "../src/cell.ts",
+        "../src/direction.ts",
+        "../src/edge.ts"
+      ],
+      "../src/board.ts": [
+        "../src/tile.ts",
+        "../src/direction.ts",
+        "../src/edge.ts",
+        "../src/score.ts",
+        "../src/conf.ts",
+        "../src/cell-repo.ts"
+      ],
+      "../src/dice.ts": [
+        "../src/tile.ts",
+        "../src/transform.ts",
+        "../src/html.ts"
+      ],
+      "../src/pool.ts": [
+        "../src/dice.ts"
+      ],
+      "../src/round.ts": [
+        "../src/board.ts",
+        "../src/pool.ts",
+        "../src/dice.ts"
+      ],
+      "../src/game.ts": [
+        "../src/board.ts",
+        "../src/round.ts",
+        "../src/pool.ts",
+        "../src/tile.ts"
+      ]
+    },
+    "exportedModulesMap": {
+      "../src/transform.ts": [
+        "../src/direction.ts"
+      ],
+      "../src/edge.ts": [
+        "../src/direction.ts"
+      ],
+      "../src/draw.ts": [
+        "../src/direction.ts"
+      ],
+      "../src/shapes.ts": [
+        "../src/transform.ts",
+        "../src/edge.ts"
+      ],
+      "../src/tile.ts": [
+        "../src/transform.ts",
+        "../src/direction.ts",
+        "../src/edge.ts"
+      ],
+      "../src/cell.ts": [
+        "../src/tile.ts"
+      ],
+      "../src/cell-repo.ts": [
+        "../src/cell.ts"
+      ],
+      "../src/score.ts": [
+        "../src/cell-repo.ts"
+      ],
+      "../src/board.ts": [
+        "../src/cell-repo.ts",
+        "../src/tile.ts"
+      ],
+      "../src/dice.ts": [
+        "../src/tile.ts",
+        "../src/transform.ts"
+      ],
+      "../src/pool.ts": [
+        "../src/dice.ts"
+      ],
+      "../src/round.ts": [
+        "../src/dice.ts",
+        "../src/pool.ts",
+        "../src/board.ts"
+      ]
+    },
+    "semanticDiagnosticsPerFile": [
+      "../node_modules/typescript/lib/lib.es5.d.ts",
+      "../node_modules/typescript/lib/lib.es2015.d.ts",
+      "../node_modules/typescript/lib/lib.es2016.d.ts",
+      "../node_modules/typescript/lib/lib.es2017.d.ts",
+      "../node_modules/typescript/lib/lib.es2018.d.ts",
+      "../node_modules/typescript/lib/lib.es2019.d.ts",
+      "../node_modules/typescript/lib/lib.dom.d.ts",
+      "../node_modules/typescript/lib/lib.dom.iterable.d.ts",
+      "../node_modules/typescript/lib/lib.webworker.importscripts.d.ts",
+      "../node_modules/typescript/lib/lib.scripthost.d.ts",
+      "../node_modules/typescript/lib/lib.es2015.core.d.ts",
+      "../node_modules/typescript/lib/lib.es2015.collection.d.ts",
+      "../node_modules/typescript/lib/lib.es2015.generator.d.ts",
+      "../node_modules/typescript/lib/lib.es2015.iterable.d.ts",
+      "../node_modules/typescript/lib/lib.es2015.promise.d.ts",
+      "../node_modules/typescript/lib/lib.es2015.proxy.d.ts",
+      "../node_modules/typescript/lib/lib.es2015.reflect.d.ts",
+      "../node_modules/typescript/lib/lib.es2015.symbol.d.ts",
+      "../node_modules/typescript/lib/lib.es2015.symbol.wellknown.d.ts",
+      "../node_modules/typescript/lib/lib.es2016.array.include.d.ts",
+      "../node_modules/typescript/lib/lib.es2017.object.d.ts",
+      "../node_modules/typescript/lib/lib.es2017.sharedmemory.d.ts",
+      "../node_modules/typescript/lib/lib.es2017.string.d.ts",
+      "../node_modules/typescript/lib/lib.es2017.intl.d.ts",
+      "../node_modules/typescript/lib/lib.es2017.typedarrays.d.ts",
+      "../node_modules/typescript/lib/lib.es2018.asyncgenerator.d.ts",
+      "../node_modules/typescript/lib/lib.es2018.asynciterable.d.ts",
+      "../node_modules/typescript/lib/lib.es2018.intl.d.ts",
+      "../node_modules/typescript/lib/lib.es2018.promise.d.ts",
+      "../node_modules/typescript/lib/lib.es2018.regexp.d.ts",
+      "../node_modules/typescript/lib/lib.es2019.array.d.ts",
+      "../node_modules/typescript/lib/lib.es2019.object.d.ts",
+      "../node_modules/typescript/lib/lib.es2019.string.d.ts",
+      "../node_modules/typescript/lib/lib.es2019.symbol.d.ts",
+      "../node_modules/typescript/lib/lib.es2019.full.d.ts",
+      "../src/direction.ts",
+      "../src/transform.ts",
+      "../src/edge.ts",
+      "../src/conf.ts",
+      "../src/draw.ts",
+      "../src/tile.ts",
+      "../src/cell.ts",
+      "../src/cell-repo.ts",
+      "../src/score.ts",
+      "../src/board.ts",
+      "../src/html.ts",
+      "../src/dice.ts",
+      "../src/pool.ts",
+      "../src/round.ts",
+      "../src/game.ts",
+      "../src/shapes.ts"
+    ]
+  },
+  "version": "3.7.4"
+}

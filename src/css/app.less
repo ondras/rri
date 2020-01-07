@@ -1,0 +1,16 @@
+* { box-sizing: border-box; }
+
+body {
+	background-image: linear-gradient(135deg, #cde, #def);
+}
+
+@import "board.less";
+@import "pool.less";
+
+.tile {
+	transition: all 300ms;
+	width: calc(var(--cell-size) * 1px);
+	height: calc(var(--cell-size) * 1px);
+	display: block;
+}
+
