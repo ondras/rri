@@ -1,6 +1,7 @@
 import { Direction, N, E, S, W } from "./direction.js";
 import { TILE } from "./conf.js";
 
+const RAIL_TICK_WIDTH = 1;
 const LINE_WIDTH = 2;
 const STATION = 18;
 const RADIUS = 16;
@@ -8,8 +9,8 @@ const RADIUS = 16;
 const RAIL_WIDTH = 12;
 const ROAD_WIDTH = 14;
 
-const RAIL_TICK_SMALL = [2, 5];
-const RAIL_TICK_LARGE = [2, 7];
+const RAIL_TICK_SMALL = [RAIL_TICK_WIDTH, 6];
+const RAIL_TICK_LARGE = [RAIL_TICK_WIDTH, 8];
 const ROAD_TICK = [6, 4];
 
 type Point = [number, number];
@@ -38,7 +39,7 @@ export default class DrawContext {
 	styleRoadTicks(dash: number[], offset: number) {
 		const ctx = this._ctx;
 
-		ctx.lineWidth = LINE_WIDTH;
+		ctx.lineWidth = LINE_WIDTH/2;
 		ctx.setLineDash(dash);
 		ctx.lineDashOffset = offset; 
 	}
@@ -60,6 +61,7 @@ export default class DrawContext {
 	railCross() {
 		const ctx = this._ctx;
 
+		ctx.lineWidth = RAIL_TICK_WIDTH;
 		ctx.beginPath();
 	
 		let c = [TILE/2, TILE/2];
@@ -176,46 +178,40 @@ export default class DrawContext {
 		this.roadTicks(edge, length);
 	}
 	
-	arc(edge1: Direction, edge2: Direction, diff: number) {
+	arc(quadrant: Direction, diff: number) {
 		const ctx = this._ctx;
+
 		diff *= ROAD_WIDTH/2;
 		let R = RADIUS + diff;
 		ctx.beginPath();
-	
-		let start = STARTS[edge1].map($ => $*TILE) as Point;
-		let end = STARTS[edge2].map($ => $*TILE) as Point;
-		let mid = [0, 0];
-	
-		switch (edge1) {
-			case N:
-			case S:
-				start[0] += (edge2 == W ? 1 : -1)*diff;
-				mid[0] = start[0];
+
+		let start = [0, 0] as Point; // N/S edge
+		let end = [0, 0] as Point;   // E/W edge
+
+		switch (quadrant) {
+			case N: // top-left
+				start[0] = end[1] = TILE/2 + diff;
 			break;
-	
-			case E:
-			case W:
-				start[1] += (edge2 == N ? 1 : -1)*diff;
-				mid[1] = start[1];
+			case E:  // top-right
+				start[0] = TILE/2 - diff;
+				end[0] = TILE;
+				end[1] = TILE/2 + diff;
 			break;
-		}
-	
-		switch (edge2) {
-			case N:
-			case S:
-				end[0] += (edge1 == W ? 1 : -1)*diff;
-				mid[0] = end[0];
+			case S: // bottom-right
+				start[0] = TILE/2 - diff;
+				start[1] = TILE;
+				end[0] = TILE;
+				end[1] = TILE/2 - diff;
 			break;
-	
-			case E:
-			case W:
-				end[1] += (edge1 == N ? 1 : -1)*diff;
-				mid[1] = end[1];
-			break;
+			case W: // bottom-left
+				end[1] = TILE/2 - diff;
+				start[0] = TILE/2 + diff;
+				start[1] = TILE;
+			break; 
 		}
 	
 		ctx.moveTo(...start);
-		ctx.arcTo(mid[0], mid[1], end[0], end[1], R);
+		ctx.arcTo(start[0], end[1], end[0], end[1], R);
 		ctx.lineTo(...end);
 	
 		ctx.stroke();

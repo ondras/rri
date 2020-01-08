@@ -97,8 +97,8 @@ const templates: {[id:string]: ShapeTemplate} = {
 		],
 
 		render(ctx: DrawContext) {
-			ctx.arc(N, E, -1);
-			ctx.arc(N, W, -1);
+			ctx.arc(N, -1);
+			ctx.arc(E, -1);
 			ctx.roadTicks(N, 0.5);
 			ctx.roadTicks(E, 0.5);
 			ctx.roadTicks(W, 0.5);
@@ -114,9 +114,9 @@ const templates: {[id:string]: ShapeTemplate} = {
 		],
 
 		render(ctx: DrawContext) {
-			ctx.arc(N, E, 0);
-			ctx.styleRailTicks([2, 6], -3);
-			ctx.arc(N, E, 0);
+			ctx.arc(E, 0);
+			ctx.styleRailTicks([1, 7], -3);
+			ctx.arc(E, 0);
 		}
 	},
 
@@ -129,11 +129,11 @@ const templates: {[id:string]: ShapeTemplate} = {
 		],
 
 		render(ctx: DrawContext) {
-			ctx.arc(N, E, -1);
-			ctx.arc(N, E, 1);
+			ctx.arc(E, -1);
+			ctx.arc(E, 1);
 
 			ctx.styleRoadTicks([7, 4], -3);
-			ctx.arc(N, E, 0);
+			ctx.arc(E, 0);
 		}
 	},
 
@@ -277,10 +277,10 @@ const templates: {[id:string]: ShapeTemplate} = {
 		],
 
 		render(ctx: DrawContext) {
-			ctx.arc(N, E, -1);
-			ctx.arc(N, W, -1);
-			ctx.arc(S, E, -1);
-			ctx.arc(S, W, -1);
+			ctx.arc(N, -1);
+			ctx.arc(E, -1);
+			ctx.arc(S, -1);
+			ctx.arc(W, -1);
 			ctx.roadTicks(N, 0.5);
 			ctx.roadTicks(E, 0.5);
 			ctx.roadTicks(S, 0.5);
