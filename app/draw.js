@@ -3,9 +3,9 @@ import { TILE } from "./conf.js";
 const LINE_WIDTH = 2;
 const RAIL_WIDTH = 12;
 const ROAD_WIDTH = 14;
-const RAIL_TICK_SMALL = 6;
-const RAIL_TICK_LARGE = 8;
-const ROAD_TICK = 6;
+const RAIL_TICK_SMALL = [2, 5];
+const RAIL_TICK_LARGE = [2, 7];
+const ROAD_TICK = [6, 4];
 const STATION = 18;
 const RADIUS = 16;
 export function station(ctx) {
@@ -25,37 +25,41 @@ export function railCross(ctx) {
     ctx.lineTo(c[0] + d, c[1] - d);
     ctx.stroke();
 }
-export function railTicks(ctx, edge, length) {
+export function roadTicks(ctx, edge, length) {
+    ctx.save();
+    let pxLength = length * TILE;
     let start = STARTS[edge].map($ => $ * TILE);
+    let vec = VECTORS[edge];
+    let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
     ctx.lineWidth = LINE_WIDTH;
+    ctx.setLineDash(ROAD_TICK);
+    ctx.lineDashOffset = -3;
     ctx.beginPath();
-    let max = 3;
-    let baseStep = RAIL_TICK_SMALL;
-    if (length < 0.5) {
-        max = 2;
-    }
-    if (length > 0.5) {
-        max = 7;
-        baseStep = RAIL_TICK_LARGE;
-    }
-    for (let i = 0; i < max; i++) {
-        let step = baseStep;
-        switch (edge) {
-            case S: step *= -1;
-            case N:
-                let y = start[1] + (i + 1) * step;
-                ctx.moveTo(start[0] - RAIL_WIDTH / 2, y);
-                ctx.lineTo(start[0] + RAIL_WIDTH / 2, y);
-                break;
-            case E: step *= -1;
-            case W:
-                let x = start[0] + (i + 1) * step;
-                ctx.moveTo(x, start[1] - RAIL_WIDTH / 2);
-                ctx.lineTo(x, start[1] + RAIL_WIDTH / 2);
-                break;
-        }
-    }
+    ctx.moveTo(...start);
+    ctx.lineTo(...end);
     ctx.stroke();
+    ctx.restore();
+}
+export function railTicks(ctx, edge, length) {
+    let pxLength = length * TILE;
+    let start = STARTS[edge].map($ => $ * TILE);
+    let vec = VECTORS[edge];
+    let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
+    ctx.save();
+    if (length > 0.5) {
+        ctx.setLineDash(RAIL_TICK_LARGE);
+        ctx.lineDashOffset = 5;
+    }
+    else {
+        ctx.setLineDash(RAIL_TICK_SMALL);
+        ctx.lineDashOffset = 3;
+    }
+    ctx.lineWidth = RAIL_WIDTH;
+    ctx.beginPath();
+    ctx.moveTo(...start);
+    ctx.lineTo(...end);
+    ctx.stroke();
+    ctx.restore();
 }
 export function rail(ctx, edge, length) {
     let pxLength = length * TILE;
@@ -67,32 +71,7 @@ export function rail(ctx, edge, length) {
     ctx.moveTo(...start);
     ctx.lineTo(...end);
     ctx.stroke();
-    railTicks(ctx, edge, length);
-}
-export function roadTicks(ctx, edge, length) {
-    let start = STARTS[edge].map($ => $ * TILE);
-    ctx.lineWidth = LINE_WIDTH;
-    ctx.beginPath();
-    let max = 3;
-    if (length < 0.5) {
-        max = 2;
-    }
-    for (let i = 0; i < max; i++) {
-        let step = ROAD_TICK;
-        switch (edge) {
-            case S: step *= -1;
-            case N:
-                ctx.moveTo(start[0], start[1] + step * (1 / 2 + i * 5 / 3));
-                ctx.lineTo(start[0], start[1] + step * (3 / 2 + i * 5 / 3));
-                break;
-            case E: step *= -1;
-            case W:
-                ctx.moveTo(start[0] + step * (1 / 2 + i * 5 / 3), start[1]);
-                ctx.lineTo(start[0] + step * (3 / 2 + i * 5 / 3), start[1]);
-                break;
-        }
-    }
-    ctx.stroke();
+    railTicks(ctx, edge, length > 0.5 ? 1 : 0.35);
 }
 export function road(ctx, edge, length) {
     let pxLength = length * TILE;

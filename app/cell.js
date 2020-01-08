@@ -19,7 +19,7 @@ export class Cell {
             this.node.appendChild(this._round);
         }
         else {
-            this.node.appendChild(html.node("div", { className: "dummy" }));
+            this._appendDummy();
         }
     }
     set signal(signal) { this.node.classList.toggle("signal", signal); }
@@ -36,6 +36,9 @@ export class Cell {
         this.x == 5 && this.node.classList.add("right");
         this.y == 3 && this.node.classList.add("top");
         this.y == 5 && this.node.classList.add("bottom");
+    }
+    _appendDummy() {
+        this.node.appendChild(html.node("div", { className: "dummy" }));
     }
 }
 export class BorderCell extends Cell {
@@ -76,4 +79,5 @@ export class BorderCell extends Cell {
                 break;
         }
     }
+    _appendDummy() { }
 }

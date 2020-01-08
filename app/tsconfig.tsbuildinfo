@@ -142,67 +142,67 @@
         "signature": "2e29c91abb0c3a575ff79670fa315b6c09ac7a57a7b42aa509fa17f0a224968f"
       },
       "../src/direction.ts": {
-        "version": "2b6fb7c82223e187efd5abd4a1b78479bce886a0ed75a7cf2955e9dcfaed6f4c",
+        "version": "0b77980b5a66c82f99a3e8c83c9317a784ac8cd3e89e871c9f03b9b5e95c7187",
         "signature": "6c9455722bbd6c515a0461eb0814f12e99d03915f897b6f7bfb156f722843e63"
       },
       "../src/transform.ts": {
-        "version": "2e467a09d174f80fa99aab129f5b66118a369e4e7e95b52ada6110c40978a934",
+        "version": "a828c1886c91349b8a43f19dc1d7bba3d8e6829206e2a7b20dc79accec877ebc",
         "signature": "401c42e4d7fa6115a7ecd963dfa39d1570de7f29cb6e382a32b83c912e3821a8"
       },
       "../src/edge.ts": {
-        "version": "e74700176a96eaad2970fff8b0f0d7a11d771794e47d54f536e63b139828f9d6",
+        "version": "00177df4fa1f052c04d8056a1af3858c971879e2e2019e17d5990d8d1adf4fc0",
         "signature": "21a41d5c4b8f52686c9499715a8391e7da5f88ec9e28228d5a199fdcad2c3156"
       },
       "../src/conf.ts": {
-        "version": "81bc82d5a37e6f2991297b2eb9cc882525c1d40c951b7564e08383975ce66081",
+        "version": "b18b707f0b3e1a8b41442fb19e68b541d106269eb0ac255c2231ac9ba4b20fea",
         "signature": "29820f50d515e26f4873ed83b0e11d5289a865a2b7bc07f59f01514aa098a61f"
       },
       "../src/draw.ts": {
-        "version": "80215a1d015f0ebedbf232c155c45460fbc11e932b26c10518aa50c73021fce4",
-        "signature": "692bc171fb4ae9ce6294fdd2d2d1382a9e419bd67541eeaac131193313f1e6f6"
+        "version": "65027fe8c0b7185626a64b00bf35d04e85561ef4181eacde43309652117367a7",
+        "signature": "57d37aa95417d25ff3c06fac417dc641b9f06b8a18d1dead47278cf6b94f5a8b"
       },
       "../src/html.ts": {
-        "version": "105ef74f1521d9a77b03d7fa9cdce7abcc7822c5871d6095f6b1c2b9adbfc8cb",
+        "version": "458312b3bb3d7dc81631203b3ebcb186ffbc2bd324c63ca27dba374a0b86c9d8",
         "signature": "560cab456f1f6091bb27053a26449eaed019c7fc642a6550d5150629c62aec5a"
       },
       "../src/shapes.ts": {
-        "version": "f83b490d74bf7fe51277432592ed8eb91e85c583d062103e43d3c64b9744f150",
+        "version": "20f7b2a7a492345edbde331adb709feeb03c02299542744ba9dd314b02dff187",
         "signature": "579023ee9988dc7f83828fe571ce86e888c9bd101810f537bb3774cfb044ba86"
       },
       "../src/tile.ts": {
-        "version": "0c97acb15e1a721b46109894784cf72bc41d24a2bbbc191c09f18977b12ddf52",
+        "version": "a76638aa0766caf56e51bf339ca9032ca707e1b44dbfc24ed8eec744431ebd0a",
         "signature": "9f0826ec73fe082a3cec49f4104241cfe5ce65957b6751de7729ffa62fd78b2d"
       },
       "../src/cell.ts": {
-        "version": "2355830bcd325892127003a82e541ea374b14fc63e9e8ad54a254b0ba07d0e52",
-        "signature": "237361c028d00141fefbe182d2762c4392edd901801bcb7c5fe582205b54b31a"
+        "version": "369819dc7398c7fdddeff1d065c7d5491414a60bf4352c16fca89c47e5b252e8",
+        "signature": "a8976b75ee523309d45cf887dab00b392a51e3c081695c73de4efe99cf4f5248"
       },
       "../src/cell-repo.ts": {
-        "version": "836426d3008eb5eb2310c0e59d689412e6d02384e3afd682ff1bb4f6991a152f",
+        "version": "9dcdf1bd7742d5db48de714adfbdaa951e119ee782f2f3e489daa8823fd881dd",
         "signature": "f530aa6e628705a2911a498d1f3a45148f2f8c741f02070b7a0144ab756bf900"
       },
       "../src/score.ts": {
-        "version": "d5cbf4316451ede0410cf03002e9b018af40ea04a05087f849cffe761c65ce8e",
+        "version": "8cc5cf3120937d7d32d5e3168d8bbaf8eff61e7a5775780d8fc6c6e9d01b875f",
         "signature": "43aba6d9e82033678b9c8be3f101b46ea30157086d9a8edcff58c6143777b090"
       },
       "../src/board.ts": {
-        "version": "36c1b704bd11657e983807258d294ade18fd5f50efc763b4e10786b748c84b18",
+        "version": "f71cb2e6254213a07c7971fdf3ce9f151e7406459462a102f5d2bc76c3ae580e",
         "signature": "14bc98225ac85960f516de6d7aa792e0d284ebd7f6ea5d24e47e225e53989993"
       },
       "../src/dice.ts": {
-        "version": "8066ef632337dc0559877a344861c1551644f4b90b5a5ccfbdd47f05a89cc966",
+        "version": "fe9f3ef3e077630cf0641d842441990eaef25c79c2dd21809c34cb8551eb7129",
         "signature": "59365cf8168cde7d2dc6c1e2afa307d295ca6eb7e37be2474aa6623c034903b1"
       },
       "../src/pool.ts": {
-        "version": "8f7cc2dc5e422c8458328bb025cb7f2c688a853fd1ee8a5a6f8c838056879655",
+        "version": "bd90ff8c8c5aef9c59aac8937310154b4427c621851c52cefa09e9338c2b0817",
         "signature": "6efc6788f28fbcbf589ca077ec3cb70590fd1fad86eef0ccc66d4f49679d1bc0"
       },
       "../src/round.ts": {
-        "version": "e5be007ae0ac8ab50b54a734feb1be37c60e3a30602df67b9cae43480da6f1a4",
+        "version": "3a60f1f6f80269b0bd588a9dff88af781ced39ae1580bc31d343691b8451ac7c",
         "signature": "29c87b252a201e538ee3707762afdf364d309d8e07bcbf94de2c349a3e1a1608"
       },
       "../src/game.ts": {
-        "version": "98f8738e6f260b0005fc4422788229cd49334dc81a3248f3e5d11203e7d4169d",
+        "version": "dffa663a3f5724ef7aa96084ebef56b0d505e6fafdb7989b4f336a20b890ceeb",
         "signature": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
       }
     },
@@ -378,14 +378,14 @@
       "../src/html.ts",
       "../src/shapes.ts",
       "../src/tile.ts",
-      "../src/cell.ts",
       "../src/cell-repo.ts",
       "../src/score.ts",
+      "../src/board.ts",
       "../src/dice.ts",
       "../src/pool.ts",
       "../src/round.ts",
       "../src/game.ts",
-      "../src/board.ts"
+      "../src/cell.ts"
     ]
   },
   "version": "3.7.4"

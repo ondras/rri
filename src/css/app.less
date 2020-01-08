@@ -6,11 +6,8 @@ body {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
+	min-width: 600px;
 }
-
-@import "board.less";
-@import "pool.less";
-@import "score.less";
 
 .tile {
 	transition: all 300ms;
@@ -19,3 +16,6 @@ body {
 	display: block;
 }
 
+@import "board.less";
+@import "pool.less";
+@import "score.less";

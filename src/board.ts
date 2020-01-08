@@ -75,7 +75,7 @@ export default class Board {
 		if (!avail.length) { return false; }
 		tile.transform = avail[0];
 		this.place(tile, x, y, round);
-		return true;		
+		return true;
 	}
 
 	place(tile: Tile, x: number, y: number, round: number) {

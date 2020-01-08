@@ -89,8 +89,6 @@ const templates = {
         ],
         render(ctx) {
             draw.arc(ctx, N, E, 0);
-            draw.railTicks(ctx, N, 0.5);
-            draw.railTicks(ctx, E, 0.5);
         }
     },
     "road-l": {

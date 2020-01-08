@@ -7,6 +7,13 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  min-width: 600px;
+}
+.tile {
+  transition: all 300ms;
+  width: calc(var(--cell-size) * 1px);
+  height: calc(var(--cell-size) * 1px);
+  display: block;
 }
 table.board {
   border-collapse: collapse;
@@ -122,10 +129,4 @@ table.board .dummy {
 }
 .score tfoot td:last-child {
   font-weight: bold;
-}
-.tile {
-  transition: all 300ms;
-  width: calc(var(--cell-size) * 1px);
-  height: calc(var(--cell-size) * 1px);
-  display: block;
 }

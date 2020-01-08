@@ -28,7 +28,7 @@ export class Cell {
 			this.node.appendChild(tile.node);
 			this.node.appendChild(this._round);
 		} else {
-			this.node.appendChild(html.node("div", {className:"dummy"}));
+			this._appendDummy();
 		}
 	}
 
@@ -46,6 +46,10 @@ export class Cell {
 		this.x == 5 && this.node.classList.add("right");
 		this.y == 3 && this.node.classList.add("top");
 		this.y == 5 && this.node.classList.add("bottom");
+	}
+
+	_appendDummy() {
+		this.node.appendChild(html.node("div", {className:"dummy"}));
 	}
 }
 
@@ -84,5 +88,7 @@ export class BorderCell extends Cell {
 			case (x==0 && y==4): this.tile = new Tile("road-half", "1"); break;
 			case (x==8 && y==4): this.tile = new Tile("road-half", "-1"); break;
 		}
-	}	
+	}
+
+	_appendDummy() {}
 }
