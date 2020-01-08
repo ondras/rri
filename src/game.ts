@@ -1,37 +1,39 @@
 import Board from "./board.js";
 import Round from "./round.js";
 import { BonusPool } from "./pool.js";
-import Tile from "./tile.js";
+// import Tile from "./tile.js";
 import * as score from "./score.js";
 
-let round: Round | null = null;
 let board = new Board();
 let bonusPool = new BonusPool();
 
 const MAX_ROUNDS = 2;
 
-document.body.appendChild(bonusPool.node);
-document.body.appendChild(board.node);
-
-function onRoundEnd(num: number) {
-	board.lock();
-	if (num == MAX_ROUNDS) {
-		alert("Great! Scoring is currently not implemented. Please count your score yourself ;)");
-	} else {
-		startRound(num+1);
-	}
+function gameOver() {
+	let s = score.render(board.getScore());
+	document.body.insertBefore(s, document.body.firstChild);
+	while (s.nextSibling && s.nextSibling != board.node) { s.nextSibling.remove(); }
 }
 
-function startRound(num: number) {
-	if (round) { round.node.remove(); }
-	round = new Round(num, board, bonusPool);
+async function play() {
+	document.body.appendChild(bonusPool.node);
+	document.body.appendChild(board.node);
 
+	let num = 1;
 	let parent = board.node.parentNode as HTMLElement;
-	parent.insertBefore(round.node, board.node);
 
-	round.onEnd = onRoundEnd;
+	while (num <= MAX_ROUNDS) {
+		let round = new Round(num, board, bonusPool);
+		parent.insertBefore(round.node, board.node);
+		await round.start("");
+		round.node.remove();
+		num++;
+	}
+
+	gameOver();
 }
 
+/*
 board.place(new Tile("rail-i", "1"), 1, 2, 0);
 board.place(new Tile("road-i", "0"), 2, 1, 0);
 board.place(new Tile("bridge", "0"), 2, 2, 0);
@@ -52,8 +54,5 @@ board.place(new Tile("cross-road", "0"), 4, 6, 0);
 board.place(new Tile("cross-road", "0"), 5, 6, 0);
 board.place(new Tile("cross-road", "0"), 6, 6, 0);
 board.place(new Tile("rail-road-i", "1"), 7, 6, 0);
-
-startRound(1);
-
-let s = board.getScore();
-document.body.appendChild(score.render(s));
+*/
+play();

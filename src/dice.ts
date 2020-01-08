@@ -5,7 +5,7 @@ import * as html from "./html.js";
 export const DICE_1 = ["road-i", "rail-i", "road-l", "rail-l", "road-t", "rail-t"];
 export const DICE_2 = DICE_1;
 export const DICE_3 = DICE_1;
-export const DICE_4 = ["bridge", "bridge", "rail-road-i", "rail-road-i", "rail-road-l", "rail-load-l"];
+export const DICE_4 = ["bridge", "bridge", "rail-road-i", "rail-road-i", "rail-road-l", "rail-road-l"];
 
 export default class Dice {
 	node: HTMLElement = html.node("div", {className:"dice"});

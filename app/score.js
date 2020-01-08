@@ -171,7 +171,7 @@ export function render(score) {
     let exits = score.exits.map(count => count == 12 ? 45 : (count - 1) * 4);
     row = table.insertRow();
     row.insertCell().textContent = "Connected exits";
-    row.insertCell().textContent = exits.join("+");
+    row.insertCell().textContent = exits.join("+") || "0";
     row = table.insertRow();
     row.insertCell().textContent = "Longest road";
     row.insertCell().textContent = score.road.toString();

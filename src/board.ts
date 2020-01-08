@@ -3,6 +3,7 @@ import { clamp, all as allDirections } from "./direction.js";
 import { NONE } from "./edge.js";
 import { get as getScore } from "./score.js";
 import { BOARD } from "./conf.js";
+import { Cell } from "./cell.js";
 import CellRepo from "./cell-repo.js";
 import * as html from "./html.js";
 
@@ -36,21 +37,12 @@ export default class Board {
 				if (!td) { return; }
 
 				let cell = this._cells.byNode(td);
-				if (!cell || cell.locked) { return; }
-
-				if (!inBoard(cell.x, cell.y)) { return; }
-				this.onClick(cell.x, cell.y);
+				cell && this.onClick(cell);
 			break;
 		}
 	}
 
-	onClick(x: number, y: number) { console.log(x, y); }
-
-	lock() {
-		this._cells.forEach(cell => {
-			if (cell.tile) { cell.locked = true; }
-		});
-	}
+	onClick(cell: Cell) { console.log(cell); }
 
 	signalAvailable(tile: Tile | null) {
 		this._cells.forEach(cell => {

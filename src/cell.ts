@@ -3,7 +3,6 @@ import * as html from "./html.js";
 
 export class Cell {
 	node: HTMLTableCellElement;
-	locked = false;
 	x: number;
 	y: number;
 

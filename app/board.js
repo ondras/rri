@@ -28,24 +28,11 @@ export default class Board {
                     return;
                 }
                 let cell = this._cells.byNode(td);
-                if (!cell || cell.locked) {
-                    return;
-                }
-                if (!inBoard(cell.x, cell.y)) {
-                    return;
-                }
-                this.onClick(cell.x, cell.y);
+                cell && this.onClick(cell);
                 break;
         }
     }
-    onClick(x, y) { console.log(x, y); }
-    lock() {
-        this._cells.forEach(cell => {
-            if (cell.tile) {
-                cell.locked = true;
-            }
-        });
-    }
+    onClick(cell) { console.log(cell); }
     signalAvailable(tile) {
         this._cells.forEach(cell => {
             cell.signal = (tile ? this.wouldFit(tile, cell.x, cell.y) : false);

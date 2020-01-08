@@ -2,7 +2,6 @@ import Tile from "./tile.js";
 import * as html from "./html.js";
 export class Cell {
     constructor(node, x, y) {
-        this.locked = false;
         this.node = node;
         this.x = x;
         this.y = y;

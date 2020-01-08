@@ -174,23 +174,23 @@
         "signature": "9f0826ec73fe082a3cec49f4104241cfe5ce65957b6751de7729ffa62fd78b2d"
       },
       "../src/cell.ts": {
-        "version": "369819dc7398c7fdddeff1d065c7d5491414a60bf4352c16fca89c47e5b252e8",
-        "signature": "a8976b75ee523309d45cf887dab00b392a51e3c081695c73de4efe99cf4f5248"
+        "version": "4ad26530309244cff7df7579452f8bc5b87158b114dd36a3890648f5e771683f",
+        "signature": "293fed1ac3b8e836263799671b5d3fed2e6f18b707d0f99933d60fde52ddac89"
       },
       "../src/cell-repo.ts": {
         "version": "9dcdf1bd7742d5db48de714adfbdaa951e119ee782f2f3e489daa8823fd881dd",
         "signature": "f530aa6e628705a2911a498d1f3a45148f2f8c741f02070b7a0144ab756bf900"
       },
       "../src/score.ts": {
-        "version": "8cc5cf3120937d7d32d5e3168d8bbaf8eff61e7a5775780d8fc6c6e9d01b875f",
+        "version": "e5beae4b4698be9466adfb9acaf8493bdb826560876e4010c4881616e3def878",
         "signature": "43aba6d9e82033678b9c8be3f101b46ea30157086d9a8edcff58c6143777b090"
       },
       "../src/board.ts": {
-        "version": "f71cb2e6254213a07c7971fdf3ce9f151e7406459462a102f5d2bc76c3ae580e",
-        "signature": "14bc98225ac85960f516de6d7aa792e0d284ebd7f6ea5d24e47e225e53989993"
+        "version": "af8bddeb5aedde22e120a99933e9594d5927bcbbecc86a2bfb8ef30f7554487d",
+        "signature": "12188f29a2d03c851169ed63ab2ecc9ef7b50e9dc38a23ca3b5178307139ec1e"
       },
       "../src/dice.ts": {
-        "version": "fe9f3ef3e077630cf0641d842441990eaef25c79c2dd21809c34cb8551eb7129",
+        "version": "1770c5b80ac1465af85a6eec3dbae7c170791d079f2ab8a985cd3fecdcc267e8",
         "signature": "59365cf8168cde7d2dc6c1e2afa307d295ca6eb7e37be2474aa6623c034903b1"
       },
       "../src/pool.ts": {
@@ -198,11 +198,11 @@
         "signature": "6efc6788f28fbcbf589ca077ec3cb70590fd1fad86eef0ccc66d4f49679d1bc0"
       },
       "../src/round.ts": {
-        "version": "3a60f1f6f80269b0bd588a9dff88af781ced39ae1580bc31d343691b8451ac7c",
-        "signature": "29c87b252a201e538ee3707762afdf364d309d8e07bcbf94de2c349a3e1a1608"
+        "version": "91b254ae05da25f7ce6119fb18d96dddbed426c761dfecf0ee7fceb32c036698",
+        "signature": "bc84f4467435f77c7ac8221e69060776f919fcd608c56d23116b856dc2101589"
       },
       "../src/game.ts": {
-        "version": "dffa663a3f5724ef7aa96084ebef56b0d505e6fafdb7989b4f336a20b890ceeb",
+        "version": "b5bd7582ad14b5d8546874bc5b86a864365d4c479d1c5339df9082496192797c",
         "signature": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
       }
     },
@@ -262,6 +262,7 @@
         "../src/edge.ts",
         "../src/score.ts",
         "../src/conf.ts",
+        "../src/cell.ts",
         "../src/cell-repo.ts",
         "../src/html.ts"
       ],
@@ -278,13 +279,14 @@
         "../src/board.ts",
         "../src/pool.ts",
         "../src/dice.ts",
+        "../src/cell.ts",
+        "../src/tile.ts",
         "../src/html.ts"
       ],
       "../src/game.ts": [
         "../src/board.ts",
         "../src/round.ts",
         "../src/pool.ts",
-        "../src/tile.ts",
         "../src/score.ts"
       ]
     },
@@ -319,6 +321,7 @@
       "../src/board.ts": [
         "../src/score.ts",
         "../src/cell-repo.ts",
+        "../src/cell.ts",
         "../src/tile.ts"
       ],
       "../src/dice.ts": [
@@ -331,7 +334,9 @@
       "../src/round.ts": [
         "../src/dice.ts",
         "../src/pool.ts",
-        "../src/board.ts"
+        "../src/board.ts",
+        "../src/tile.ts",
+        "../src/cell.ts"
       ]
     },
     "semanticDiagnosticsPerFile": [
@@ -374,18 +379,18 @@
       "../src/transform.ts",
       "../src/edge.ts",
       "../src/conf.ts",
+      "../src/draw.ts",
       "../src/html.ts",
       "../src/shapes.ts",
       "../src/tile.ts",
       "../src/cell.ts",
       "../src/cell-repo.ts",
       "../src/score.ts",
-      "../src/board.ts",
       "../src/dice.ts",
       "../src/pool.ts",
       "../src/round.ts",
       "../src/game.ts",
-      "../src/draw.ts"
+      "../src/board.ts"
     ]
   },
   "version": "3.7.4"

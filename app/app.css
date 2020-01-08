@@ -115,7 +115,10 @@ table.board .dummy {
   margin-left: 8px;
 }
 .pool button {
-  margin-left: auto;
+  cursor: pointer;
+  margin-left: 8px;
+  width: calc(var(--cell-size) * 1px);
+  height: calc(var(--cell-size) * 1px);
 }
 .score table {
   border-collapse: collapse;
