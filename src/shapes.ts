@@ -1,7 +1,7 @@
 import { Transform, get as getTransform, all as allTransforms } from "./transform.js";
 import { N, E, S, W, all as allDirections } from "./direction.js";
 import { Edge, NONE, RAIL, ROAD } from "./edge.js";
-import * as draw from "./draw.js";
+import DrawContext from "./draw.js";
 import { TILE } from "./conf.js";
 import * as html from "./html.js";
 
@@ -14,7 +14,7 @@ interface Shape {
 
 interface ShapeTemplate {
 	edges: Edges;
-	render(ctx: CanvasRenderingContext2D): void;
+	render(ctx: DrawContext): void;
 }
 
 const repo: {[id:string]: Shape} = {};
@@ -27,8 +27,8 @@ const templates: {[id:string]: ShapeTemplate} = {
 			{type:NONE, connects: []}
 		],
 
-		render(ctx: CanvasRenderingContext2D) {
-			draw.rail(ctx, N, 0.35);
+		render(ctx: DrawContext) {
+			ctx.rail(N, 0.35);
 		}
 	},
 
@@ -40,8 +40,8 @@ const templates: {[id:string]: ShapeTemplate} = {
 			{type:NONE, connects: []}
 		],
 
-		render(ctx: CanvasRenderingContext2D) {
-			draw.road(ctx, N, 0.35);
+		render(ctx: DrawContext) {
+			ctx.road(N, 0.35);
 		}
 	},
 
@@ -53,8 +53,8 @@ const templates: {[id:string]: ShapeTemplate} = {
 			{type:NONE, connects: []}
 		],
 
-		render(ctx: CanvasRenderingContext2D) {
-			draw.rail(ctx, N, 1);
+		render(ctx: DrawContext) {
+			ctx.rail(N, 1);
 		}
 	},
 
@@ -66,9 +66,9 @@ const templates: {[id:string]: ShapeTemplate} = {
 			{type:NONE, connects: []}
 		],
 
-		render(ctx: CanvasRenderingContext2D) {
-			draw.road(ctx, N, 0.5);
-			draw.road(ctx, S, 0.5);
+		render(ctx: DrawContext) {
+			ctx.road(N, 0.5);
+			ctx.road(S, 0.5);
 		}
 	},
 
@@ -80,11 +80,11 @@ const templates: {[id:string]: ShapeTemplate} = {
 			{type:RAIL, connects: [N, E]}
 		],
 
-		render(ctx: CanvasRenderingContext2D) {
-			draw.rail(ctx, N, 0.5);
-			draw.rail(ctx, E, 0.5);
-			draw.rail(ctx, W, 0.5);
-			draw.railCross(ctx);
+		render(ctx: DrawContext) {
+			ctx.rail(N, 0.5);
+			ctx.rail(E, 0.5);
+			ctx.rail(W, 0.5);
+			ctx.railCross();
 		}
 	},
 
@@ -96,12 +96,12 @@ const templates: {[id:string]: ShapeTemplate} = {
 			{type:ROAD, connects: [N, E]}
 		],
 
-		render(ctx: CanvasRenderingContext2D) {
-			draw.arc(ctx, N, E, -1);
-			draw.arc(ctx, N, W, -1);
-			draw.roadTicks(ctx, N, 0.5);
-			draw.roadTicks(ctx, E, 0.5);
-			draw.roadTicks(ctx, W, 0.5);
+		render(ctx: DrawContext) {
+			ctx.arc(N, E, -1);
+			ctx.arc(N, W, -1);
+			ctx.roadTicks(N, 0.5);
+			ctx.roadTicks(E, 0.5);
+			ctx.roadTicks(W, 0.5);
 		}
 	},
 
@@ -113,8 +113,10 @@ const templates: {[id:string]: ShapeTemplate} = {
 			{type:NONE, connects: []}
 		],
 
-		render(ctx: CanvasRenderingContext2D) {
-			draw.arc(ctx, N, E, 0);
+		render(ctx: DrawContext) {
+			ctx.arc(N, E, 0);
+			ctx.styleRailTicks([2, 6], -3);
+			ctx.arc(N, E, 0);
 		}
 	},
 
@@ -126,12 +128,12 @@ const templates: {[id:string]: ShapeTemplate} = {
 			{type:NONE, connects: []}
 		],
 
-		render(ctx: CanvasRenderingContext2D) {
-			draw.arc(ctx, N, E, -1);
-			draw.arc(ctx, N, E, 1);
-			ctx.setLineDash([7, 4]);
-			ctx.lineDashOffset = -3; 
-			draw.arc(ctx, N, E, 0);
+		render(ctx: DrawContext) {
+			ctx.arc(N, E, -1);
+			ctx.arc(N, E, 1);
+
+			ctx.styleRoadTicks([7, 4], -3);
+			ctx.arc(N, E, 0);
 		}
 	},
 
@@ -143,10 +145,10 @@ const templates: {[id:string]: ShapeTemplate} = {
 			{type:NONE, connects: []}
 		],
 
-		render(ctx: CanvasRenderingContext2D) {
-			draw.rail(ctx, N, 0.5);
-			draw.road(ctx, E, 0.5);
-			draw.station(ctx);
+		render(ctx: DrawContext) {
+			ctx.rail(N, 0.5);
+			ctx.road(E, 0.5);
+			ctx.station();
 		}
 	},
 
@@ -158,10 +160,10 @@ const templates: {[id:string]: ShapeTemplate} = {
 			{type:NONE, connects: []}
 		],
 
-		render(ctx: CanvasRenderingContext2D) {
-			draw.rail(ctx, N, 0.5);
-			draw.road(ctx, S, 0.5);
-			draw.station(ctx);
+		render(ctx: DrawContext) {
+			ctx.rail(N, 0.5);
+			ctx.road(S, 0.5);
+			ctx.station();
 		}
 	},
 
@@ -173,11 +175,11 @@ const templates: {[id:string]: ShapeTemplate} = {
 			{type:RAIL, connects: [E]}
 		],
 
-		render(ctx: CanvasRenderingContext2D) {
-			draw.rail(ctx, E, 0.5);
-			draw.rail(ctx, W, 0.5);
-			draw.road(ctx, N, 0.5);
-			draw.road(ctx, S, 0.5);
+		render(ctx: DrawContext) {
+			ctx.rail(E, 0.5);
+			ctx.rail(W, 0.5);
+			ctx.road(N, 0.5);
+			ctx.road(S, 0.5);
 		}
 	},
 
@@ -189,12 +191,12 @@ const templates: {[id:string]: ShapeTemplate} = {
 			{type:ROAD, connects: [N, E, S]}
 		],
 
-		render(ctx: CanvasRenderingContext2D) {
-			draw.road(ctx, N, 0.5);
-			draw.road(ctx, E, 0.5);
-			draw.rail(ctx, S, 0.5);
-			draw.road(ctx, W, 0.5);
-			draw.station(ctx);
+		render(ctx: DrawContext) {
+			ctx.road(N, 0.5);
+			ctx.road(E, 0.5);
+			ctx.rail(S, 0.5);
+			ctx.road(W, 0.5);
+			ctx.station();
 		}
 	},
 
@@ -206,12 +208,12 @@ const templates: {[id:string]: ShapeTemplate} = {
 			{type:RAIL, connects: [N, E, S]}
 		],
 
-		render(ctx: CanvasRenderingContext2D) {
-			draw.road(ctx, N, 0.5);
-			draw.rail(ctx, E, 0.5);
-			draw.rail(ctx, S, 0.5);
-			draw.rail(ctx, W, 0.5);
-			draw.station(ctx);
+		render(ctx: DrawContext) {
+			ctx.road(N, 0.5);
+			ctx.rail(E, 0.5);
+			ctx.rail(S, 0.5);
+			ctx.rail(W, 0.5);
+			ctx.station();
 		}
 	},
 
@@ -223,12 +225,12 @@ const templates: {[id:string]: ShapeTemplate} = {
 			{type:ROAD, connects: [N, E, S]}
 		],
 
-		render(ctx: CanvasRenderingContext2D) {
-			draw.road(ctx, N, 0.5);
-			draw.rail(ctx, E, 0.5);
-			draw.rail(ctx, S, 0.5);
-			draw.road(ctx, W, 0.5);
-			draw.station(ctx);
+		render(ctx: DrawContext) {
+			ctx.road(N, 0.5);
+			ctx.rail(E, 0.5);
+			ctx.rail(S, 0.5);
+			ctx.road(W, 0.5);
+			ctx.station();
 		}
 	},
 
@@ -240,12 +242,12 @@ const templates: {[id:string]: ShapeTemplate} = {
 			{type:RAIL, connects: [N, E, S]}
 		],
 
-		render(ctx: CanvasRenderingContext2D) {
-			draw.road(ctx, N, 0.5);
-			draw.rail(ctx, E, 0.5);
-			draw.road(ctx, S, 0.5);
-			draw.rail(ctx, W, 0.5);
-			draw.station(ctx);
+		render(ctx: DrawContext) {
+			ctx.road(N, 0.5);
+			ctx.rail(E, 0.5);
+			ctx.road(S, 0.5);
+			ctx.rail(W, 0.5);
+			ctx.station();
 		}
 	},
 
@@ -257,12 +259,12 @@ const templates: {[id:string]: ShapeTemplate} = {
 			{type:RAIL, connects: [N, E, S]}
 		],
 
-		render(ctx: CanvasRenderingContext2D) {
-			draw.rail(ctx, N, 0.5);
-			draw.rail(ctx, E, 0.5);
-			draw.rail(ctx, S, 0.5);
-			draw.rail(ctx, W, 0.5);
-			draw.railCross(ctx);
+		render(ctx: DrawContext) {
+			ctx.rail(N, 0.5);
+			ctx.rail(E, 0.5);
+			ctx.rail(S, 0.5);
+			ctx.rail(W, 0.5);
+			ctx.railCross();
 		}
 	},
 
@@ -274,15 +276,15 @@ const templates: {[id:string]: ShapeTemplate} = {
 			{type:ROAD, connects: [N, E, S]}
 		],
 
-		render(ctx: CanvasRenderingContext2D) {
-			draw.arc(ctx, N, E, -1);
-			draw.arc(ctx, N, W, -1);
-			draw.arc(ctx, S, E, -1);
-			draw.arc(ctx, S, W, -1);
-			draw.roadTicks(ctx, N, 0.5);
-			draw.roadTicks(ctx, E, 0.5);
-			draw.roadTicks(ctx, S, 0.5);
-			draw.roadTicks(ctx, W, 0.5);
+		render(ctx: DrawContext) {
+			ctx.arc(N, E, -1);
+			ctx.arc(N, W, -1);
+			ctx.arc(S, E, -1);
+			ctx.arc(S, W, -1);
+			ctx.roadTicks(N, 0.5);
+			ctx.roadTicks(E, 0.5);
+			ctx.roadTicks(S, 0.5);
+			ctx.roadTicks(W, 0.5);
 		}
 	}
 };
@@ -311,9 +313,7 @@ function getTransforms(edges: Edges) {
 
 function shapeFromTemplate(template: ShapeTemplate) {
 	let canvas = html.node("canvas");
-	canvas.width = canvas.height = TILE * devicePixelRatio;
-	let ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-	ctx.scale(devicePixelRatio, devicePixelRatio);
+	let ctx = new DrawContext(canvas);
 	template.render(ctx);
 
 	let node = new Image();

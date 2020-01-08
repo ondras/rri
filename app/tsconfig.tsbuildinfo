@@ -158,15 +158,15 @@
         "signature": "29820f50d515e26f4873ed83b0e11d5289a865a2b7bc07f59f01514aa098a61f"
       },
       "../src/draw.ts": {
-        "version": "65027fe8c0b7185626a64b00bf35d04e85561ef4181eacde43309652117367a7",
-        "signature": "57d37aa95417d25ff3c06fac417dc641b9f06b8a18d1dead47278cf6b94f5a8b"
+        "version": "92eaf5e7768083371fc2ea1cd8d96ef58b42a1ec13e4c268ad37750c9cc7f813",
+        "signature": "478a09d5ac99b4afd638d68a94fa1707a54c098b00ea4f6915fa907bb7f8e5c1"
       },
       "../src/html.ts": {
         "version": "458312b3bb3d7dc81631203b3ebcb186ffbc2bd324c63ca27dba374a0b86c9d8",
         "signature": "560cab456f1f6091bb27053a26449eaed019c7fc642a6550d5150629c62aec5a"
       },
       "../src/shapes.ts": {
-        "version": "20f7b2a7a492345edbde331adb709feeb03c02299542744ba9dd314b02dff187",
+        "version": "d3f4d87694a42d583e2fa0d4e4d0cfec1941c9f32c686d263d0c6a0ba14ee1be",
         "signature": "579023ee9988dc7f83828fe571ce86e888c9bd101810f537bb3774cfb044ba86"
       },
       "../src/tile.ts": {
@@ -376,8 +376,8 @@
       "../src/conf.ts",
       "../src/draw.ts",
       "../src/html.ts",
-      "../src/shapes.ts",
       "../src/tile.ts",
+      "../src/cell.ts",
       "../src/cell-repo.ts",
       "../src/score.ts",
       "../src/board.ts",
@@ -385,7 +385,7 @@
       "../src/pool.ts",
       "../src/round.ts",
       "../src/game.ts",
-      "../src/cell.ts"
+      "../src/shapes.ts"
     ]
   },
   "version": "3.7.4"
