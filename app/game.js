@@ -3,13 +3,14 @@ import Round from "./round.js";
 import { BonusPool } from "./pool.js";
 import * as score from "./score.js";
 import * as html from "./html.js";
+const main = document.querySelector("main");
 let board = new Board();
 let bonusPool = new BonusPool();
 let menu = html.node("div", { className: "menu" });
 const MAX_ROUNDS = 7;
 function gameOver() {
     let s = score.render(board.getScore());
-    document.body.insertBefore(s, document.body.firstChild);
+    main.insertBefore(s, main.firstChild);
     while (s.nextSibling && s.nextSibling != board.node) {
         s.nextSibling.remove();
     }
@@ -29,9 +30,9 @@ async function play() {
     gameOver();
 }
 function init() {
-    document.body.appendChild(bonusPool.node);
-    document.body.appendChild(menu);
-    document.body.appendChild(board.node);
+    main.appendChild(bonusPool.node);
+    main.appendChild(menu);
+    main.appendChild(board.node);
     bonusPool.disableAll();
     let start = html.node("button", {}, "Start the game");
     menu.appendChild(start);
@@ -39,8 +40,8 @@ function init() {
     menu.appendChild(html.node("span", { className: "rounds" }, `${MAX_ROUNDS}\xa0rounds`));
     menu.appendChild(html.node("span", { className: "dummy" }));
     menu.appendChild(html.node("span", { className: "dummy" }));
-    menu.appendChild(html.node("a", { href: "#", target: "_blank" }, "Report issue"));
-    menu.appendChild(html.node("a", { href: "#", target: "_blank" }, "Read rules"));
+    menu.appendChild(html.node("a", { href: "https://github.com/ondras/rri/issues", target: "_blank" }, "Report issue"));
+    menu.appendChild(html.node("a", { href: "https://www.horrible-games.com/wp-content/uploads/2018/07/RRI_BLU_Rulebook_ENG_v05_light.pdf", target: "_blank" }, "Read rules"));
 }
 init();
 /*
