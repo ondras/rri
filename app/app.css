@@ -124,7 +124,7 @@ table.board .dummy {
   width: calc(var(--cell-size) * 1px);
   height: calc(var(--cell-size) * 1px);
 }
-.score table {
+.score {
   border-collapse: collapse;
 }
 .score td:last-child {

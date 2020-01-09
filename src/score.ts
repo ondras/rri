@@ -185,23 +185,20 @@ export function get(cells: CellRepo): Score {
 }
 
 export function render(score: Score) {
-	let node = html.node("div", {className:"score"});
-	node.appendChild(html.node("h3", {}, "Score"));
-
-	let table = html.node("table");
-	node.appendChild(table);
+	let table = html.node("table", {className:"score"});
 	
 	let row: HTMLTableRowElement;
 
 	let exits = score.exits.map(count => count == 12 ? 45 : (count-1)*4);
+	let exitScore = exits.reduce((a, b) => a+b, 0);
 	row = table.insertRow();
 	row.insertCell().textContent = "Connected exits";
-	row.insertCell().textContent = exits.join("+") || "0";
+	row.insertCell().textContent = (exitScore ? `${exits.join("+")}=${exitScore}` : "0");
 
 	row = table.insertRow();
 	row.insertCell().textContent = "Longest road";
-	row.insertCell().textContent = score.road.toString();
 
+	row.insertCell().textContent = score.road.toString();
 	row = table.insertRow();
 	row.insertCell().textContent = "Longest rail";
 	row.insertCell().textContent = score.rail.toString();
@@ -214,7 +211,7 @@ export function render(score: Score) {
 	row.insertCell().textContent = "Dead ends";
 	row.insertCell().textContent = (-score.deadends).toString();
 
-	let total = exits.reduce((a, b) => a+b, 0)
+	let total = exitScore
 					+ score.road
 					+ score.rail
 					+ score.center
@@ -223,8 +220,8 @@ export function render(score: Score) {
 	let tfoot = html.node("tfoot");
 	table.appendChild(tfoot);
 	row = tfoot.insertRow();
-	row.insertCell().textContent = "Total";
+	row.insertCell().textContent = "Score";
 	row.insertCell().textContent = total.toString();
 
-	return node;
+	return table;
 }
