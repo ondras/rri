@@ -14,8 +14,14 @@ body {
 	width: calc(var(--cell-size) * 1px);
 	height: calc(var(--cell-size) * 1px);
 	display: block;
+	user-select: none;
+}
+
+button {
+	border: 1px solid #000;
 }
 
 @import "board.less";
 @import "pool.less";
 @import "score.less";
+@import "menu.less";

@@ -1,11 +1,12 @@
 import Board from "./board.js";
 import Round from "./round.js";
 import { BonusPool } from "./pool.js";
-// import Tile from "./tile.js";
 import * as score from "./score.js";
+import * as html from "./html.js";
 let board = new Board();
 let bonusPool = new BonusPool();
-const MAX_ROUNDS = 2;
+let menu = html.node("div", { className: "menu" });
+const MAX_ROUNDS = 7;
 function gameOver() {
     let s = score.render(board.getScore());
     document.body.insertBefore(s, document.body.firstChild);
@@ -14,8 +15,8 @@ function gameOver() {
     }
 }
 async function play() {
-    document.body.appendChild(bonusPool.node);
-    document.body.appendChild(board.node);
+    bonusPool.enableAll();
+    menu.remove();
     let num = 1;
     let parent = board.node.parentNode;
     while (num <= MAX_ROUNDS) {
@@ -27,7 +28,23 @@ async function play() {
     }
     gameOver();
 }
+function init() {
+    document.body.appendChild(bonusPool.node);
+    document.body.appendChild(menu);
+    document.body.appendChild(board.node);
+    bonusPool.disableAll();
+    let start = html.node("button", {}, "Start the game");
+    menu.appendChild(start);
+    start.addEventListener("pointerdown", () => play());
+    menu.appendChild(html.node("span", { className: "rounds" }, `${MAX_ROUNDS}\xa0rounds`));
+    menu.appendChild(html.node("span", { className: "dummy" }));
+    menu.appendChild(html.node("span", { className: "dummy" }));
+    menu.appendChild(html.node("a", { href: "#", target: "_blank" }, "Report issue"));
+    menu.appendChild(html.node("a", { href: "#", target: "_blank" }, "Read rules"));
+}
+init();
 /*
+// import Tile from "./tile.js";
 board.place(new Tile("rail-i", "1"), 1, 2, 0);
 board.place(new Tile("road-i", "0"), 2, 1, 0);
 board.place(new Tile("bridge", "0"), 2, 2, 0);
@@ -49,4 +66,3 @@ board.place(new Tile("cross-road", "0"), 5, 6, 0);
 board.place(new Tile("cross-road", "0"), 6, 6, 0);
 board.place(new Tile("rail-road-i", "1"), 7, 6, 0);
 */
-play();

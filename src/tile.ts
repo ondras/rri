@@ -3,6 +3,7 @@ import { get as getShape } from "./shapes.js";
 import { Direction } from "./direction.js";
 import { Edge, EdgeType, NONE } from "./edge.js";
 
+
 export default class Tile {
 	_sid: string;
 	_tid!: Transform;

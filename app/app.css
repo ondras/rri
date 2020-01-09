@@ -14,6 +14,10 @@ body {
   width: calc(var(--cell-size) * 1px);
   height: calc(var(--cell-size) * 1px);
   display: block;
+  user-select: none;
+}
+button {
+  border: 1px solid #000;
 }
 table.board {
   border-collapse: collapse;
@@ -133,4 +137,22 @@ table.board .dummy {
 }
 .score tfoot td:last-child {
   font-weight: bold;
+}
+.menu {
+  display: flex;
+  padding: 8px 0;
+  border-bottom: 1px solid #000;
+  align-items: center;
+  text-align: center;
+}
+.menu > * {
+  --size: calc((var(--cell-size) + 2) * 1px);
+  width: var(--size);
+}
+.menu > *:not(:first-child) {
+  margin-left: 8px;
+}
+.menu button {
+  font-weight: bold;
+  height: var(--size);
 }

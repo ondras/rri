@@ -16,10 +16,14 @@ export default class Board {
         this.node = html.node("table", { className: "board" });
         this.node.className = "board";
         this.node.addEventListener("pointerdown", this);
+        this.node.addEventListener("contextmenu", this);
         this._cells = new CellRepo(this.node);
     }
     handleEvent(e) {
         switch (e.type) {
+            case "contextmenu":
+                e.preventDefault();
+                break;
             case "pointerdown":
                 let td = e.target.closest("td");
                 if (!td) {
