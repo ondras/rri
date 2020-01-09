@@ -7,7 +7,7 @@ export default class Round {
     constructor(num, board, bonusPool) {
         this._pending = null;
         this._end = html.node("button");
-        this._placedTiles = new Set();
+        this._placedTiles = new Map();
         this._num = num;
         this._board = board;
         this._bonusPool = bonusPool;
@@ -60,14 +60,15 @@ export default class Round {
             if (!this._board.wouldFit(tile, x, y)) {
                 return false;
             }
-            this._board.placeBest(tile, x, y, this._num);
+            let clone = tile.clone();
+            this._board.placeBest(clone, x, y, this._num);
             this._board.signalAvailable(null);
             this._pool.signal(null);
             this._bonusPool.signal(null);
             this._pool.disable(this._pending);
             this._bonusPool.disable(this._pending);
+            this._placedTiles.set(clone, this._pending);
             this._pending = null;
-            this._placedTiles.add(tile);
             if (this._pool.length == 0) {
                 this._end.disabled = false;
             } // fixme re-disable on return

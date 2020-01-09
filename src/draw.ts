@@ -39,7 +39,7 @@ export default class DrawContext {
 	styleRoadTicks(dash: number[], offset: number) {
 		const ctx = this._ctx;
 
-		ctx.lineWidth = LINE_WIDTH/2;
+		ctx.lineWidth = LINE_WIDTH;
 		ctx.setLineDash(dash);
 		ctx.lineDashOffset = offset; 
 	}
