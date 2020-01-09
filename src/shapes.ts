@@ -102,6 +102,8 @@ const templates: {[id:string]: ShapeTemplate} = {
 			ctx.roadTicks(N, 0.5);
 			ctx.roadTicks(E, 0.5);
 			ctx.roadTicks(W, 0.5);
+			ctx.roadLine(E, 0.5, 1);
+			ctx.roadLine(W, 0.5, 1);
 		}
 	},
 

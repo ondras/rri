@@ -1,7 +1,7 @@
 import { Cell, BorderCell } from "./cell.js";
 import { BOARD } from "./conf.js";
 
-function inBoard(x: number, y: number) { // FIXME dupe
+function inBoard(x: number, y: number) {
 	return (x > 0 && y > 0 && x <= BOARD && y <= BOARD);
 }
 

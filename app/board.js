@@ -1,7 +1,7 @@
 import { clamp, all as allDirections } from "./direction.js";
 import { NONE } from "./edge.js";
 import { get as getScore } from "./score.js";
-import { BOARD } from "./conf.js";
+import { BorderCell } from "./cell.js";
 import CellRepo from "./cell-repo.js";
 import * as html from "./html.js";
 const HOLD = 400;
@@ -11,9 +11,6 @@ const DIFFS = [
     [0, 1],
     [-1, 0]
 ];
-function inBoard(x, y) {
-    return (x > 0 && y > 0 && x <= BOARD && y <= BOARD);
-}
 export default class Board {
     constructor() {
         this.node = html.node("table", { className: "board" });
@@ -82,10 +79,8 @@ export default class Board {
         cell.round = (tile ? round.toString() : "");
     }
     wouldFit(tile, x, y) {
-        if (!inBoard(x, y)) {
-            return false;
-        }
-        if (this._cells.at(x, y).tile) {
+        let cell = this._cells.at(x, y);
+        if (cell instanceof BorderCell || cell.tile) {
             return false;
         }
         let transforms = this._getTransforms(tile, x, y);

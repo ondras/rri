@@ -60,6 +60,7 @@ export default class DrawContext {
 	
 	railCross() {
 		const ctx = this._ctx;
+		this.styleLine();
 
 		ctx.lineWidth = RAIL_TICK_WIDTH;
 		ctx.beginPath();
@@ -78,7 +79,6 @@ export default class DrawContext {
 	
 	roadTicks(edge: Direction, length: number) {
 		const ctx = this._ctx;
-		ctx.save();
 	
 		let pxLength = length * TILE;
 		let start = STARTS[edge].map($ => $*TILE) as Point;
@@ -92,8 +92,6 @@ export default class DrawContext {
 		ctx.lineTo(...end);
 	
 		ctx.stroke();
-	
-		ctx.restore();
 	}
 	
 	railTicks(edge: Direction, length: number) {
@@ -103,8 +101,6 @@ export default class DrawContext {
 		let start = STARTS[edge].map($ => $*TILE) as Point;
 		let vec = VECTORS[edge];
 		let end = [start[0] + vec[0]*pxLength, start[1] + vec[1]*pxLength] as Point;
-	
-		ctx.save();
 	
 		if (length > 0.5) {
 			this.styleRailTicks(RAIL_TICK_LARGE, 5);
@@ -118,12 +114,12 @@ export default class DrawContext {
 		ctx.lineTo(...end);
 	
 		ctx.stroke();
-	
-		ctx.restore();
 	}
 	
 	rail(edge: Direction, length: number) {
 		const ctx = this._ctx;
+		this.styleLine();
+		
 		let pxLength = length * TILE;
 	
 		let vec = VECTORS[edge];
@@ -138,6 +134,36 @@ export default class DrawContext {
 		ctx.stroke();
 	
 		this.railTicks(edge, length > 0.5 ? 1 : 0.35);
+	}
+
+	roadLine(edge: Direction, length: number, diff: number) {
+		const ctx = this._ctx;
+		this.styleLine();
+
+		let pxLength = length * TILE;
+		diff *= ROAD_WIDTH/2;
+
+		let vec = VECTORS[edge];
+		let start = STARTS[edge].map($ => $*TILE);
+		let end = [start[0] + vec[0]*pxLength, start[1] + vec[1]*pxLength];
+		
+		ctx.beginPath();
+	
+		switch (edge) {
+			case N:
+			case S:
+				ctx.moveTo(start[0]+diff, start[1]);
+				ctx.lineTo(end[0]+diff, end[1]);
+			break;
+
+			case W:
+			case E:
+				ctx.moveTo(start[0], start[1]+diff);
+				ctx.lineTo(end[0], end[1]+diff);
+			break;
+		}
+	
+		ctx.stroke();
 	}
 	
 	road(edge: Direction, length: number) {
@@ -154,27 +180,9 @@ export default class DrawContext {
 			case W: ctx.clearRect(start[0], start[1] - ROAD_WIDTH/2, pxLength, ROAD_WIDTH); break;
 			case E: ctx.clearRect(end[0], end[1] - ROAD_WIDTH/2, pxLength, ROAD_WIDTH); break;
 		}
-	
-		ctx.beginPath();
-	
-		[-ROAD_WIDTH/2, ROAD_WIDTH/2].forEach(diff => {
-			switch (edge) {
-				case N:
-				case S:
-					ctx.moveTo(start[0]+diff, start[1]);
-					ctx.lineTo(end[0]+diff, end[1]);
-				break;
-	
-				case W:
-				case E:
-					ctx.moveTo(start[0], start[1]+diff);
-					ctx.lineTo(end[0], end[1]+diff);
-				break;
-			}
-		});
-	
-		ctx.stroke();
-	
+
+		this.roadLine(edge, length, -1);
+		this.roadLine(edge, length, +1);
 		this.roadTicks(edge, length);
 	}
 	
