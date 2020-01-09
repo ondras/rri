@@ -4,6 +4,7 @@ import { get as getScore } from "./score.js";
 import { BOARD } from "./conf.js";
 import CellRepo from "./cell-repo.js";
 import * as html from "./html.js";
+const HOLD = 400;
 const DIFFS = [
     [0, -1],
     [1, 0],
@@ -29,10 +30,25 @@ export default class Board {
                 }
                 let cell = this._cells.byNode(td);
                 cell && this.onClick(cell);
+                function removeEvents() {
+                    td.removeEventListener("pointerup", cancelHold);
+                    td.removeEventListener("pointerleave", cancelHold);
+                }
+                function cancelHold() {
+                    clearTimeout(timeout);
+                    removeEvents();
+                }
+                let timeout = setTimeout(() => {
+                    this.onHold(cell);
+                    removeEvents();
+                }, HOLD);
+                td.addEventListener("pointerup", cancelHold);
+                td.addEventListener("pointerleave", cancelHold);
                 break;
         }
     }
-    onClick(cell) { console.log(cell); }
+    onClick(cell) { console.log("click", cell); }
+    onHold(cell) { console.log("hold", cell); }
     signalAvailable(tile) {
         this._cells.forEach(cell => {
             cell.signal = (tile ? this.wouldFit(tile, cell.x, cell.y) : false);
@@ -63,7 +79,7 @@ export default class Board {
     place(tile, x, y, round) {
         let cell = this._cells.at(x, y);
         cell.tile = tile;
-        cell.round = round.toString();
+        cell.round = (tile ? round.toString() : "");
     }
     wouldFit(tile, x, y) {
         if (!inBoard(x, y)) {

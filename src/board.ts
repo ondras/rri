@@ -7,6 +7,8 @@ import { Cell } from "./cell.js";
 import CellRepo from "./cell-repo.js";
 import * as html from "./html.js";
 
+const HOLD = 400;
+
 const DIFFS = [
 	[0, -1],
 	[1, 0],
@@ -33,16 +35,35 @@ export default class Board {
 	handleEvent(e: PointerEvent) {
 		switch (e.type) {
 			case "pointerdown":
-				let td = (e.target as HTMLElement).closest("td");
+				let td = (e.target as HTMLElement).closest("td") as HTMLElement;
 				if (!td) { return; }
 
 				let cell = this._cells.byNode(td);
 				cell && this.onClick(cell);
+
+				function removeEvents() {
+					td.removeEventListener("pointerup", cancelHold);
+					td.removeEventListener("pointerleave", cancelHold);
+				}
+
+				function cancelHold() {
+					clearTimeout(timeout);
+					removeEvents();
+				}
+
+				let timeout = setTimeout(() => {
+					this.onHold(cell);
+					removeEvents();
+				}, HOLD);
+
+				td.addEventListener("pointerup", cancelHold);
+				td.addEventListener("pointerleave", cancelHold);
 			break;
 		}
 	}
 
-	onClick(cell: Cell) { console.log(cell); }
+	onClick(cell: Cell) { console.log("click", cell); }
+	onHold(cell: Cell) { console.log("hold", cell); }
 
 	signalAvailable(tile: Tile | null) {
 		this._cells.forEach(cell => {
@@ -70,10 +91,10 @@ export default class Board {
 		return true;
 	}
 
-	place(tile: Tile, x: number, y: number, round: number) {
+	place(tile: Tile | null, x: number, y: number, round: number) {
 		let cell = this._cells.at(x, y);
 		cell.tile = tile;
-		cell.round = round.toString();
+		cell.round = (tile ? round.toString() : "");
 	}
 
 	wouldFit(tile: Tile, x: number, y: number) {

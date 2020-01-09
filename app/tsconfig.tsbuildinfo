@@ -186,20 +186,20 @@
         "signature": "43aba6d9e82033678b9c8be3f101b46ea30157086d9a8edcff58c6143777b090"
       },
       "../src/board.ts": {
-        "version": "af8bddeb5aedde22e120a99933e9594d5927bcbbecc86a2bfb8ef30f7554487d",
-        "signature": "12188f29a2d03c851169ed63ab2ecc9ef7b50e9dc38a23ca3b5178307139ec1e"
+        "version": "cef230d09b04e02bc5c1ca61b13fe5fbbbfbd6eb6ced188993ade0ed4570199b",
+        "signature": "f16e53b257f117642c0599894c352d88c6087bb5311fa2cdbbe7a9631414978c"
       },
       "../src/dice.ts": {
         "version": "1770c5b80ac1465af85a6eec3dbae7c170791d079f2ab8a985cd3fecdcc267e8",
         "signature": "59365cf8168cde7d2dc6c1e2afa307d295ca6eb7e37be2474aa6623c034903b1"
       },
       "../src/pool.ts": {
-        "version": "bd90ff8c8c5aef9c59aac8937310154b4427c621851c52cefa09e9338c2b0817",
-        "signature": "6efc6788f28fbcbf589ca077ec3cb70590fd1fad86eef0ccc66d4f49679d1bc0"
+        "version": "89dcaca10120b480511cc3ae879365924d460e36f031a2980c427ac05a447fbe",
+        "signature": "8bd44a6fe874a1ea2ea3d286a326bd7445d548b433846971936eb411d9a79f15"
       },
       "../src/round.ts": {
-        "version": "8794b66dbd6bcaf8c0ed87dcde38e369d57516533baf3e811403615f51702ab8",
-        "signature": "25e061f61484ddfa03584a4adbfd56986b9d9b534f60c9f196abf3b8697fd991"
+        "version": "336c1ec909045eaaf3911a6e5f100b9e8bd055c4102643f6b2abf0f249852f2e",
+        "signature": "55b6de4346d919d198a3a6c21ecd839741ac40a145a6bbabc6a6ca0eda68d0ad"
       },
       "../src/game.ts": {
         "version": "b5bd7582ad14b5d8546874bc5b86a864365d4c479d1c5339df9082496192797c",
@@ -379,6 +379,7 @@
       "../src/transform.ts",
       "../src/edge.ts",
       "../src/conf.ts",
+      "../src/draw.ts",
       "../src/html.ts",
       "../src/shapes.ts",
       "../src/tile.ts",
@@ -388,9 +389,8 @@
       "../src/board.ts",
       "../src/dice.ts",
       "../src/pool.ts",
-      "../src/round.ts",
       "../src/game.ts",
-      "../src/draw.ts"
+      "../src/round.ts"
     ]
   },
   "version": "3.7.4"

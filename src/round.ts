@@ -27,13 +27,13 @@ export default class Round {
 		this.node = this._pool.node;
 
 		this._end.textContent = `End round #${this._num}`;
-		this._end.disabled = true;
 	}
 
 	start(type = "") {
 		this._pool.onClick = dice => this._onPoolClick(dice);
 		this._bonusPool.onClick = dice => this._onPoolClick(dice);
 		this._board.onClick = cell => this._onBoardClick(cell);
+		this._board.onHold = cell => this._onBoardHold(cell);
 
 		switch (type) {
 			case "demo":
@@ -50,6 +50,7 @@ export default class Round {
 		}
 
 		this.node.appendChild(this._end);
+		this._syncEnd();
 		this._bonusPool.unlock();
 
 		return new Promise(resolve => {
@@ -91,12 +92,33 @@ export default class Round {
 			this._placedTiles.set(clone, this._pending);
 			this._pending = null;
 
-			if (this._pool.length == 0) { this._end.disabled = false; } // fixme re-disable on return
+			this._syncEnd();
+
 		} else {
 			let tile = cell.tile;
 			if (!tile) { return; }
 			if (!this._placedTiles.has(tile)) { return; }
 			this._board.cycleTransform(x, y);
 		}
+	}
+
+	_onBoardHold(cell: Cell) {
+		let tile = cell.tile;
+		if (!tile) { return; }
+
+		let dice = this._placedTiles.get(tile);
+		if (!dice) { return; }
+
+		this._placedTiles.delete(tile);
+		this._board.place(null, cell.x, cell.y, 0);
+
+		this._pool.enable(dice);
+		this._bonusPool.enable(dice);
+
+		this._syncEnd();
+	}
+
+	_syncEnd() {
+		this._end.disabled = (this._pool.length > 0);
 	}
 }

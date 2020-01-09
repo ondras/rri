@@ -13,9 +13,9 @@ export default class Pool {
 
 	handleEvent(e: PointerEvent) {
 		let target = e.currentTarget as HTMLElement;
-		let index = this._dices.map(dice => dice.node).indexOf(target);
-		if (index == -1) { return; }
-		this.onClick(this._dices[index]);
+		let dice = this._dices.filter(dice => dice.node == target)[0];
+		if (!dice || dice.disabled) { return; }
+		this.onClick(dice);
 	}
 
 	add(dice: Dice) {
@@ -25,9 +25,14 @@ export default class Pool {
 		this._dices.push(dice);
 	}
 
+	enable(dice: Dice) {
+		if (!this._dices.includes(dice)) { return false; }
+		dice.disabled = false;
+		return true;
+	}
+
 	disable(dice: Dice) {
 		if (!this._dices.includes(dice)) { return false; }
-		dice.node.removeEventListener("pointerdown", this);
 		dice.disabled = true;
 		return true;
 	}
@@ -66,6 +71,15 @@ export class BonusPool extends Pool {
 			this._locked = true;
 		}
 		return disabled;
+	}
+
+	enable(dice: Dice) {
+		let enabled = super.enable(dice);
+		if (enabled) {
+			this._used--;
+			this.unlock();
+		}
+		return enabled;
 	}
 
 	unlock() {
