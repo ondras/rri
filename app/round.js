@@ -26,10 +26,12 @@ export default class Round {
                     .forEach(dice => this._pool.add(dice));
                 break;
             default:
-                this._pool.add(Dice.withRandomTile(DICE_1));
-                this._pool.add(Dice.withRandomTile(DICE_2));
-                this._pool.add(Dice.withRandomTile(DICE_3));
-                this._pool.add(Dice.withRandomTile(DICE_4));
+                let types = [DICE_1, DICE_2, DICE_3, DICE_4];
+                while (types.length) {
+                    let index = Math.floor(Math.random() * types.length);
+                    let type = types.splice(index, 1)[0];
+                    this._pool.add(Dice.withRandomTile(type));
+                }
                 break;
         }
         this.node.appendChild(this._end);
