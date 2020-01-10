@@ -1,5 +1,6 @@
 import Dice from "./dice.js";
 import * as html from "./html.js";
+import { DOWN } from "./event.js";
 
 const MAX_BONUSES = 3;
 
@@ -11,7 +12,7 @@ export default class Pool {
 		return this._dices.filter(d => !d.disabled).length;
 	}
 
-	handleEvent(e: PointerEvent) {
+	handleEvent(e: Event) {
 		let target = e.currentTarget as HTMLElement;
 		let dice = this._dices.filter(dice => dice.node == target)[0];
 		if (!dice || dice.disabled) { return; }
@@ -21,7 +22,7 @@ export default class Pool {
 	add(dice: Dice) {
 		this.node.appendChild(dice.node);
 
-		dice.node.addEventListener("pointerdown", this);
+		dice.node.addEventListener(DOWN, this);
 		this._dices.push(dice);
 	}
 
@@ -59,7 +60,7 @@ export class BonusPool extends Pool {
 		this.add(Dice.withTile("cross-road-rail-road-rail", "0"));
 	}
 
-	handleEvent(e: PointerEvent) {
+	handleEvent(e: Event) {
 		if (this._locked || this._used == MAX_BONUSES) { return; }
 		super.handleEvent(e);
 	}

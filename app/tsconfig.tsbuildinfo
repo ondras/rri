@@ -193,8 +193,12 @@
         "version": "8044a2b5f2d5897495425736ff3d6a0f9941f113a7ebb6927992450a2abc7a93",
         "signature": "0c34749428e3d483eb19f2825450b41ba4a73ffb580fed85b8b04996385b1146"
       },
+      "../src/event.ts": {
+        "version": "0f136af8cd3ce5b0223d8de5b551e283ae171635a2b3e5cd8eb97df2e55173ca",
+        "signature": "a5117af846a77bad85c09bef36cd12766a3016df45ebe30e0a13df6f9185eacc"
+      },
       "../src/board.ts": {
-        "version": "8656597280061a7e3f8e88f559fa3ac1d668ed72c1b1629a6163400c57c0d110",
+        "version": "15b7dd3e4e1aa1a80cfd4fc4701453b5d386e757da3ebfecd24474cabcdd7ae1",
         "signature": "61588ea4e205cf3deefe361c3501404dd3f3c8db399ea12b3eb85b02cf021b66"
       },
       "../src/dice.ts": {
@@ -202,15 +206,15 @@
         "signature": "59365cf8168cde7d2dc6c1e2afa307d295ca6eb7e37be2474aa6623c034903b1"
       },
       "../src/pool.ts": {
-        "version": "31a7fe51056f45bdaa10029234b84db83e4904f60b5ea48b6fcc4841fdd318c1",
-        "signature": "fccfa1fca169e061d8a85bb017dda93e18dd3f03bab36a523be6694665a0755b"
+        "version": "99ff51bd29df03fc02a02442f142d6f9b2aedc06d41a5424f2fda2645729c9cd",
+        "signature": "2c16aa279a2e46a371c45dabd7800bde62b9a22675e6655197b834f8f372fd24"
       },
       "../src/round.ts": {
-        "version": "f0fd6fe4d92b96610fe3ce0f035e65792bd7caf9a5dc7bd598b4c027493583e4",
+        "version": "d1b8f020bdf4b9fdd899f2b8e25fb22e785f9bbe16e84e4112c597f459d0973d",
         "signature": "55b6de4346d919d198a3a6c21ecd839741ac40a145a6bbabc6a6ca0eda68d0ad"
       },
       "../src/game.ts": {
-        "version": "a75532a9976a1401f0905bce464c88d32231c495af113f8d7d7fa375cd7f1aa2",
+        "version": "d03750ccb79debacadb4dd57d4309980b349db819dab06be1266c6403d582bc6",
         "signature": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
       },
       "../../../node_modules/@types/node/globals.d.ts": {
@@ -716,6 +720,12 @@
         "../../../node_modules/@types/node/util.d.ts",
         "../../../node_modules/@types/node/ts3.2/util.d.ts"
       ],
+      "../src/event.ts": [
+        "../../../node_modules/@types/node/fs.d.ts",
+        "../../../node_modules/@types/node/ts3.2/fs.d.ts",
+        "../../../node_modules/@types/node/util.d.ts",
+        "../../../node_modules/@types/node/ts3.2/util.d.ts"
+      ],
       "../src/board.ts": [
         "../src/tile.ts",
         "../src/direction.ts",
@@ -724,6 +734,7 @@
         "../src/cell.ts",
         "../src/cell-repo.ts",
         "../src/html.ts",
+        "../src/event.ts",
         "../../../node_modules/@types/node/fs.d.ts",
         "../../../node_modules/@types/node/ts3.2/fs.d.ts",
         "../../../node_modules/@types/node/util.d.ts",
@@ -741,6 +752,7 @@
       "../src/pool.ts": [
         "../src/dice.ts",
         "../src/html.ts",
+        "../src/event.ts",
         "../../../node_modules/@types/node/fs.d.ts",
         "../../../node_modules/@types/node/ts3.2/fs.d.ts",
         "../../../node_modules/@types/node/util.d.ts",
@@ -753,6 +765,7 @@
         "../src/cell.ts",
         "../src/tile.ts",
         "../src/html.ts",
+        "../src/event.ts",
         "../../../node_modules/@types/node/fs.d.ts",
         "../../../node_modules/@types/node/ts3.2/fs.d.ts",
         "../../../node_modules/@types/node/util.d.ts",
@@ -764,6 +777,7 @@
         "../src/pool.ts",
         "../src/score.ts",
         "../src/html.ts",
+        "../src/event.ts",
         "../../../node_modules/@types/node/fs.d.ts",
         "../../../node_modules/@types/node/ts3.2/fs.d.ts",
         "../../../node_modules/@types/node/util.d.ts",
@@ -1594,9 +1608,10 @@
       "../src/cell.ts",
       "../src/cell-repo.ts",
       "../src/score.ts",
-      "../src/board.ts",
+      "../src/event.ts",
       "../src/dice.ts",
       "../src/pool.ts",
+      "../src/round.ts",
       "../src/game.ts",
       "../../../node_modules/@types/node/globals.d.ts",
       "../../../node_modules/@types/node/assert.d.ts",
@@ -1643,7 +1658,7 @@
       "../../../node_modules/@types/node/ts3.2/util.d.ts",
       "../../../node_modules/@types/node/ts3.2/globals.d.ts",
       "../../../node_modules/@types/node/ts3.2/index.d.ts",
-      "../src/round.ts"
+      "../src/board.ts"
     ]
   },
   "version": "3.7.4"

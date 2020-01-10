@@ -4,6 +4,7 @@ import { get as getScore } from "./score.js";
 import { BorderCell } from "./cell.js";
 import CellRepo from "./cell-repo.js";
 import * as html from "./html.js";
+import { DOWN, UP } from "./event.js";
 const HOLD = 400;
 const DIFFS = [
     [0, -1],
@@ -15,7 +16,7 @@ export default class Board {
     constructor() {
         this.node = html.node("table", { className: "board" });
         this.node.className = "board";
-        this.node.addEventListener("pointerdown", this);
+        this.node.addEventListener(DOWN, this);
         this.node.addEventListener("contextmenu", this);
         this._cells = new CellRepo(this.node);
     }
@@ -24,7 +25,7 @@ export default class Board {
             case "contextmenu":
                 e.preventDefault();
                 break;
-            case "pointerdown":
+            case DOWN:
                 let td = e.target.closest("td");
                 if (!td) {
                     return;
@@ -32,7 +33,7 @@ export default class Board {
                 let cell = this._cells.byNode(td);
                 cell && this.onClick(cell);
                 function removeEvents() {
-                    td.removeEventListener("pointerup", cancelHold);
+                    td.removeEventListener(UP, cancelHold);
                     td.removeEventListener("pointerleave", cancelHold);
                 }
                 function cancelHold() {
@@ -43,7 +44,7 @@ export default class Board {
                     this.onHold(cell);
                     removeEvents();
                 }, HOLD);
-                td.addEventListener("pointerup", cancelHold);
+                td.addEventListener(UP, cancelHold);
                 td.addEventListener("pointerleave", cancelHold);
                 break;
         }

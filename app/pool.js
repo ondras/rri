@@ -1,5 +1,6 @@
 import Dice from "./dice.js";
 import * as html from "./html.js";
+import { DOWN } from "./event.js";
 const MAX_BONUSES = 3;
 export default class Pool {
     constructor() {
@@ -19,7 +20,7 @@ export default class Pool {
     }
     add(dice) {
         this.node.appendChild(dice.node);
-        dice.node.addEventListener("pointerdown", this);
+        dice.node.addEventListener(DOWN, this);
         this._dices.push(dice);
     }
     enable(dice) {

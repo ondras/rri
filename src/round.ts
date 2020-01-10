@@ -4,6 +4,7 @@ import Dice, { DICE_1, DICE_2, DICE_3, DICE_4 } from "./dice.js";
 import { Cell } from "./cell.js";
 import Tile from "./tile.js";
 import * as html from "./html.js";
+import { DOWN } from "./event.js";
 
 const DEMO = ["bridge", "rail-i", "road-i", "rail-road-l", "rail-road-i", "rail-t", "road-l", "rail-l", "road-t"];
 //const DEMO = ["bridge"];
@@ -56,7 +57,7 @@ export default class Round {
 		this._bonusPool.unlock();
 
 		return new Promise(resolve => {
-			this._end.addEventListener("pointerdown", () => resolve());
+			this._end.addEventListener(DOWN, () => resolve());
 		});
 	}
 

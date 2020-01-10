@@ -3,6 +3,7 @@ import Round from "./round.js";
 import { BonusPool } from "./pool.js";
 import * as score from "./score.js";
 import * as html from "./html.js";
+import { DOWN } from "./event.js";
 
 const main = document.querySelector("main") as HTMLElement;
 let board = new Board();
@@ -43,7 +44,7 @@ function init() {
 
 	let start = html.node("button", {}, "Start the game");
 	menu.appendChild(start);
-	start.addEventListener("pointerdown", () => play());
+	start.addEventListener(DOWN, () => play());
 
 	menu.appendChild(html.node("span", {className:"rounds"}, `Rounds: ${MAX_ROUNDS}`));
 
