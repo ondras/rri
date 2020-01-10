@@ -45,7 +45,7 @@ function init() {
 	menu.appendChild(start);
 	start.addEventListener("pointerdown", () => play());
 
-	menu.appendChild(html.node("span", {className:"rounds"}, `${MAX_ROUNDS}\xa0rounds`));
+	menu.appendChild(html.node("span", {className:"rounds"}, `Rounds: ${MAX_ROUNDS}`));
 
 	menu.appendChild(html.node("span", {className:"dummy"}));
 	menu.appendChild(html.node("span", {className:"dummy"}));

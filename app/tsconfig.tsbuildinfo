@@ -158,15 +158,15 @@
         "signature": "29820f50d515e26f4873ed83b0e11d5289a865a2b7bc07f59f01514aa098a61f"
       },
       "../src/draw.ts": {
-        "version": "a95736af264092c4334f5b2a87d70e6f6e70feea08b224337d7ade58d0d950da",
-        "signature": "72212de8cb123f6974783c7615175a03878fcef06acb0d608308cd919802f4c7"
+        "version": "561eb3886834ab650208414b7b8e4aeee34d5d8ce2aa3c9713f9edd419cf3054",
+        "signature": "3d63672ef80cda9fe1a3037aafe2d782628d02904ef905bf801a8d3f0af15180"
       },
       "../src/html.ts": {
         "version": "458312b3bb3d7dc81631203b3ebcb186ffbc2bd324c63ca27dba374a0b86c9d8",
         "signature": "560cab456f1f6091bb27053a26449eaed019c7fc642a6550d5150629c62aec5a"
       },
       "../src/shapes.ts": {
-        "version": "055c62d7f3005b0a2ccdd4cd67e2ff9e8bd0633c2622fdc709befec88a2f3c34",
+        "version": "f5b0480643546c07ba239cd8bdaf1a03bc4ce5e72196e0827a4a2adb37a2e05b",
         "signature": "579023ee9988dc7f83828fe571ce86e888c9bd101810f537bb3774cfb044ba86"
       },
       "../src/tile.ts": {
@@ -202,7 +202,7 @@
         "signature": "55b6de4346d919d198a3a6c21ecd839741ac40a145a6bbabc6a6ca0eda68d0ad"
       },
       "../src/game.ts": {
-        "version": "2f82a73bce688c695d375473ec75d9db050d22df5efa4858869daec885264242",
+        "version": "a75532a9976a1401f0905bce464c88d32231c495af113f8d7d7fa375cd7f1aa2",
         "signature": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
       }
     },

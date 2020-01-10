@@ -15,6 +15,7 @@ const templates = {
         ],
         render(ctx) {
             ctx.rail(N, 0.35);
+            ctx.redGlow(N);
         }
     },
     "road-half": {
@@ -26,6 +27,7 @@ const templates = {
         ],
         render(ctx) {
             ctx.road(N, 0.35);
+            ctx.redGlow(N);
         }
     },
     "rail-i": {

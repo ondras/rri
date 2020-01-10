@@ -29,6 +29,7 @@ const templates: {[id:string]: ShapeTemplate} = {
 
 		render(ctx: DrawContext) {
 			ctx.rail(N, 0.35);
+			ctx.redGlow(N);
 		}
 	},
 
@@ -42,6 +43,7 @@ const templates: {[id:string]: ShapeTemplate} = {
 
 		render(ctx: DrawContext) {
 			ctx.road(N, 0.35);
+			ctx.redGlow(N);
 		}
 	},
 

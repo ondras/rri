@@ -224,4 +224,17 @@ export default class DrawContext {
 	
 		ctx.stroke();
 	}
+
+	redGlow(direction: Direction) {
+		const ctx = this._ctx;
+
+		let point = STARTS[direction].map($ => $*TILE);
+		const R = 12;
+
+		ctx.beginPath();
+		ctx.arc(point[0], point[1], R, 0, Math.PI, false);
+
+		ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
+		ctx.fill();
+	}
 }

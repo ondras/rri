@@ -37,7 +37,7 @@ function init() {
     let start = html.node("button", {}, "Start the game");
     menu.appendChild(start);
     start.addEventListener("pointerdown", () => play());
-    menu.appendChild(html.node("span", { className: "rounds" }, `${MAX_ROUNDS}\xa0rounds`));
+    menu.appendChild(html.node("span", { className: "rounds" }, `Rounds: ${MAX_ROUNDS}`));
     menu.appendChild(html.node("span", { className: "dummy" }));
     menu.appendChild(html.node("span", { className: "dummy" }));
     menu.appendChild(html.node("a", { href: "https://github.com/ondras/rri/issues", target: "_blank" }, "Report issue"));
