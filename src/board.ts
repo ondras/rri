@@ -124,6 +124,7 @@ export default class Board {
 const BCELL = TILE;
 const BB = 3;
 const BC = 1;
+const DPR = devicePixelRatio;
 /*
 function pxToCell(px: number) {
 	for (let i=0;i<BOARD+2;i++) {
@@ -154,18 +155,21 @@ export class CanvasBoard {
 		canvas.addEventListener("contextmenu", this);
 		this.node.appendChild(canvas);
 		const SIZE = 2*(BCELL + BB) + BOARD*TILE + (BOARD-1)*BC;
-		canvas.width = canvas.height = SIZE * devicePixelRatio;
+		canvas.width = canvas.height = SIZE * DPR;
 		canvas.style.width = canvas.style.height = `${SIZE}px`;
 
 		const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-		ctx.scale(devicePixelRatio, devicePixelRatio);
+		ctx.scale(DPR, DPR);
 		ctx.beginPath();
 
 		let start = BCELL + BB;
 		let length = BOARD*TILE + (BOARD-1)*BC;
 		for (let i=0;i<BOARD-1;i++) {
-			let x = .5+ start + TILE + i*(TILE+BC);
-			let y = .5+ start + TILE + i*(TILE+BC);
+			let x = start + TILE + i*(TILE+BC);
+			let y = start + TILE + i*(TILE+BC);
+
+			x += (x%2 ? .667 : .333);
+			y += (y%2 ? .667 : .333);
 
 			ctx.moveTo(start, y);
 			ctx.lineTo(start+length, y);
@@ -173,7 +177,7 @@ export class CanvasBoard {
 			ctx.moveTo(x, start);
 			ctx.lineTo(x, start+length);
 		}``
-		ctx.lineWidth = BC;
+		ctx.lineWidth = BC / 1.5;
 		ctx.stroke();
 
 		ctx.lineWidth = BB;
