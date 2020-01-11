@@ -190,8 +190,8 @@
         "signature": "a5117af846a77bad85c09bef36cd12766a3016df45ebe30e0a13df6f9185eacc"
       },
       "../src/board.ts": {
-        "version": "3ff3fd60da2d51bb68cd286f3cb0f0e2737b19a0130ee067496ff7aa738603fa",
-        "signature": "fc3786759097cc9842fe5efff7852c0dcccf34fc7e5f1b9195937e983e28a45d"
+        "version": "1e8c780bebfe911febc9ef9ef662482c77943e5420693bb3a7549140f787d183",
+        "signature": "31a4af570b88574c7c781a20cf31f93d52fca0f36db477ba3b729e1368510ebd"
       },
       "../src/dice.ts": {
         "version": "1770c5b80ac1465af85a6eec3dbae7c170791d079f2ab8a985cd3fecdcc267e8",
@@ -206,7 +206,7 @@
         "signature": "55ead41f4c110cdb1669d283d22dc81a8f49d4d6884efe61865c85d48d939c52"
       },
       "../src/game.ts": {
-        "version": "1b49386dcb3689b50592d33ea767923fb8c2f4e6a69dd1b9ad561fc2619a9d38",
+        "version": "c18c980489c463bcfe69305cff8d4a1fad4a5f0afa59b70fe6c3e3888164f130",
         "signature": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
       }
     },
@@ -296,7 +296,8 @@
         "../src/pool.ts",
         "../src/score.ts",
         "../src/html.ts",
-        "../src/event.ts"
+        "../src/event.ts",
+        "../src/tile.ts"
       ]
     },
     "exportedModulesMap": {
@@ -396,11 +397,11 @@
       "../src/cell-repo.ts",
       "../src/score.ts",
       "../src/event.ts",
+      "../src/board.ts",
       "../src/dice.ts",
       "../src/pool.ts",
       "../src/round.ts",
-      "../src/game.ts",
-      "../src/board.ts"
+      "../src/game.ts"
     ]
   },
   "version": "3.7.4"

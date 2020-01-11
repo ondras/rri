@@ -4,11 +4,13 @@ import { BonusPool } from "./pool.js";
 import * as score from "./score.js";
 import * as html from "./html.js";
 import { DOWN } from "./event.js";
+import Tile from "./tile.js";
 
 const main = document.querySelector("main") as HTMLElement;
 let board = new CanvasBoard();
 let bonusPool = new BonusPool();
 let menu = html.node("div", {className:"menu"});
+board.place(new Tile("rail-i", "1"), 1, 2, 0);
 
 const MAX_ROUNDS = 7;
 
@@ -58,8 +60,6 @@ function init() {
 init();
 
 /*
-// import Tile from "./tile.js";
-board.place(new Tile("rail-i", "1"), 1, 2, 0);
 board.place(new Tile("road-i", "0"), 2, 1, 0);
 board.place(new Tile("bridge", "0"), 2, 2, 0);
 board.place(new Tile("cross-rail", "0"), 3, 2, 0);

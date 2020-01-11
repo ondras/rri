@@ -109,6 +109,12 @@ table.board .dummy {
   width: calc(var(--cell-size) * 1px);
   height: calc(var(--cell-size) * 1px);
 }
+div.board {
+  position: relative;
+}
+div.board .tile {
+  position: absolute;
+}
 .pool {
   display: flex;
   padding: 8px 0;

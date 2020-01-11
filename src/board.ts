@@ -121,38 +121,74 @@ export default class Board {
 	}
 }
 
+const BCELL = TILE;
+const BB = 3;
+const BC = 1;
+/*
+function pxToCell(px: number) {
+	for (let i=0;i<BOARD+2;i++) {
+		let cellPx = cellToPx(i);
+		if (px >= cellPx && px < cellPx+TILE) { return i; }
+	}
+	return null;
+}
+*/
+
+function cellToPx(cell: number) {
+	if (cell == 0) { return 0; }
+	let offset = BCELL+BB;
+	if (cell <= BOARD) { return offset + (cell-1) * (TILE+BC); }
+
+	return offset + BOARD*TILE + (BOARD-1)*BC + BB;
+}
+
 export class CanvasBoard {
 	_cells: CellRepo;
-	node = html.node("canvas", {className:"board"});
+	node = html.node("div", {className:"board"});
 
 	constructor() {
-		let table = html.node("table");
-		this.node.addEventListener(DOWN, this);
-		this.node.addEventListener("contextmenu", this);
+		this._cells = new CellRepo(html.node("table"));
 
-		this._cells = new CellRepo(table);
+		let canvas = html.node("canvas");
+		canvas.addEventListener(DOWN, this);
+		canvas.addEventListener("contextmenu", this);
+		this.node.appendChild(canvas);
+		const SIZE = 2*(BCELL + BB) + BOARD*TILE + (BOARD-1)*BC;
+		canvas.width = canvas.height = SIZE * devicePixelRatio;
+		canvas.style.width = canvas.style.height = `${SIZE}px`;
 
-		const SIZE = (BOARD+2)*TILE + (BOARD+1);
-		this.node.width = this.node.height = SIZE * devicePixelRatio;
-		this.node.style.width = this.node.style.height = `${SIZE}px`;
-
-		const ctx = this.node.getContext("2d") as CanvasRenderingContext2D;
+		const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 		ctx.scale(devicePixelRatio, devicePixelRatio);
 		ctx.beginPath();
 
-		let offset = [TILE+1, TILE+1];
-		let length = BOARD*TILE + (BOARD-1);
+		let start = BCELL + BB;
+		let length = BOARD*TILE + (BOARD-1)*BC;
 		for (let i=0;i<BOARD-1;i++) {
-			let x = offset[0] + (i+1)*(TILE+1);
-			let y = offset[1] + (i+1)*(TILE+1);
+			let x = .5+ start + TILE + i*(TILE+BC);
+			let y = .5+ start + TILE + i*(TILE+BC);
 
-			ctx.moveTo(offset[0], y);
-			ctx.lineTo(offset[0]+length, y);
+			ctx.moveTo(start, y);
+			ctx.lineTo(start+length, y);
 
-			ctx.moveTo(x, offset[1]);
-			ctx.lineTo(x, offset[1]+length);
-		}
+			ctx.moveTo(x, start);
+			ctx.lineTo(x, start+length);
+		}``
+		ctx.lineWidth = BC;
 		ctx.stroke();
+
+		ctx.lineWidth = BB;
+		ctx.strokeRect(TILE + BB/2, TILE + BB/2, length+BB, length+BB);
+
+		ctx.strokeStyle = "red";
+		ctx.lineWidth = 3;
+		ctx.strokeRect(cellToPx(3)-BC/2, cellToPx(3)-BC/2, 3*(TILE+BC), 3*(TILE+BC));
+
+		ctx.fillStyle = "lime";
+		ctx.fillRect(cellToPx(1), cellToPx(1), TILE, TILE);
+		ctx.fillRect(cellToPx(1), cellToPx(2), TILE, TILE);
+		ctx.fillRect(cellToPx(2), cellToPx(1), TILE, TILE);
+		ctx.fillRect(cellToPx(1), cellToPx(3), TILE, TILE);
+		ctx.fillRect(cellToPx(1), cellToPx(4), TILE, TILE);
 	}
 
 	handleEvent(e: Event) {
@@ -218,6 +254,14 @@ export class CanvasBoard {
 		let cell = this._cells.at(x, y);
 		cell.tile = tile;
 		cell.round = (tile ? round.toString() : "");
+
+		if (!tile) return;
+		let pxx = cellToPx(x);
+		let pxy = cellToPx(y);
+		let node = tile.node;
+		this.node.appendChild(node);
+		node.style.left = `${pxx}px`;
+		node.style.top = `${pxy}px`;
 	}
 
 	wouldFit(tile: Tile, x: number, y: number) {
