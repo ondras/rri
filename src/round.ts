@@ -1,10 +1,10 @@
-import Board from "./board.js";
+import { Board } from "./board.js";
 import Pool, { BonusPool } from "./pool.js";
 import Dice, { DICE_1, DICE_2, DICE_3, DICE_4 } from "./dice.js";
-import { Cell } from "./cell.js";
 import Tile from "./tile.js";
 import * as html from "./html.js";
 import { DOWN } from "./event.js";
+import { Cell } from "./cell-repo.js";
 
 const DEMO = ["bridge", "rail-i", "road-i", "rail-road-l", "rail-road-i", "rail-t", "road-l", "rail-l", "road-t"];
 //const DEMO = ["bridge"];

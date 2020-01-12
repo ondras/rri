@@ -1,5 +1,15 @@
-import { Cell, BorderCell } from "./cell.js";
+import Tile from "./tile.js";
 import { BOARD } from "./conf.js";
+
+export interface Cell {
+	tile: Tile | null;
+	x: number;
+	y: number;
+	border: boolean;
+	center: boolean;
+	signal: boolean;
+	round: number;
+}
 
 function inBoard(x: number, y: number) {
 	return (x > 0 && y > 0 && x <= BOARD && y <= BOARD);
@@ -8,16 +18,20 @@ function inBoard(x: number, y: number) {
 export default class CellRepo {
 	_cells: Cell[][] = [];
 
-	constructor(table: HTMLTableElement) {
+	constructor() {
+		const tile = null;
+		const signal = false;
+		const round = 0;
+
 		for (let y=0; y<BOARD+2; y++) {
-			let tr = table.insertRow();
 			let row = [] as Cell[];
 			this._cells.push(row);
 
 			for (let x=0; x<BOARD+2; x++) {
-				let td = tr.insertCell();
-				let ctor = (inBoard(x, y) ? Cell : BorderCell);
-				row.push(new ctor(td, x, y));
+				let border = !inBoard(x, y);
+				let center = (x >= 3 && x <= 5 && y >= 3 && y <= 5);
+				let cell = { x, y, border, center, tile, signal, round };
+				row.push(cell);
 			}
 		}
 	}
@@ -38,10 +52,6 @@ export default class CellRepo {
 		});
 
 		return results;
-	}
-
-	byNode(node: HTMLElement) {
-		return this.filter(cell => cell.node == node)[0];
 	}
 
 	at(x: number, y: number) {

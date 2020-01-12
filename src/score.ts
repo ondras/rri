@@ -1,5 +1,4 @@
-import CellRepo from "./cell-repo.js";
-import { Cell, BorderCell } from "./cell.js";
+import CellRepo, { Cell } from "./cell-repo.js";
 import { Direction, clamp, all as allDirections } from "./direction.js";
 import { NONE, ROAD, RAIL, EdgeType } from "./edge.js";
 import * as html from "./html.js";
@@ -26,7 +25,7 @@ interface LongestPathContext {
 }
 
 function getCenterCount(cells: CellRepo) {
-	return cells.filter(cell => cell.isCenter && cell.tile).length;
+	return cells.filter(cell => cell.center && cell.tile).length;
 }
 
 function getEdgeKey(a: Cell, b: Cell) {
@@ -78,12 +77,12 @@ function getSubgraph(start: Cell, cells: CellRepo) {
 }
 
 function getConnectedExits(start: Cell, cells: CellRepo) {
-	return getSubgraph(start, cells).filter(cell => cell instanceof BorderCell);
+	return getSubgraph(start, cells).filter(cell => cell.border);
 }
 
 function getExits(cells: CellRepo) {
 	let results: number[] = [];
-	let exitsArr = cells.filter(cell => cell instanceof BorderCell && cell.tile);
+	let exitsArr = cells.filter(cell => cell.border && cell.tile);
 	let exits = new Set(exitsArr);
 
 	while (exits.size > 0) {
@@ -111,7 +110,7 @@ function getLongestFrom(cell: Cell, from: Direction | null, ctx: LongestPathCont
 			let x = cell.x + DIFFS[d][0];
 			let y = cell.y + DIFFS[d][1];
 			let neighbor = ctx.cells.at(x, y);
-			if (neighbor instanceof BorderCell || !neighbor.tile) { return; }
+			if (neighbor.border || !neighbor.tile) { return; }
 			if (ctx.lockedCells.has(neighbor)) { return; }
 
 			let neighborEdge = clamp(d+2);
@@ -129,7 +128,7 @@ function getLongestFrom(cell: Cell, from: Direction | null, ctx: LongestPathCont
 
 function getLongest(edgeType: EdgeType, cells: CellRepo) {
 	function contains(cell: Cell) {
-		if (cell instanceof BorderCell || !cell.tile) { return; }
+		if (cell.border || !cell.tile) { return; }
 		let tile = cell.tile;
 		return allDirections.some(d => tile.getEdge(d).type == edgeType);
 	}
@@ -150,7 +149,7 @@ function isDeadend(cell: Cell, direction: Direction, cells: CellRepo) {
 	let x = cell.x + DIFFS[direction][0];
 	let y = cell.y + DIFFS[direction][1];
 	let neighbor = cells.at(x, y);
-	if (neighbor instanceof BorderCell) { return false; }
+	if (neighbor.border) { return false; }
 
 	if (!neighbor.tile) { return true; }
 	let neighborEdge = clamp(direction+2);
@@ -161,7 +160,7 @@ function getDeadends(cells: CellRepo) {
 	let deadends = 0;
 
 	cells.forEach(cell => {
-		if (cell instanceof BorderCell || !cell.tile) { return; }
+		if (cell.border || !cell.tile) { return; }
 		let tile = cell.tile;
 		allDirections.forEach(d => {
 			let edge = tile.getEdge(d).type;

@@ -1,19 +1,21 @@
-import { Cell, BorderCell } from "./cell.js";
 import { BOARD } from "./conf.js";
 function inBoard(x, y) {
     return (x > 0 && y > 0 && x <= BOARD && y <= BOARD);
 }
 export default class CellRepo {
-    constructor(table) {
+    constructor() {
         this._cells = [];
+        const tile = null;
+        const signal = false;
+        const round = 0;
         for (let y = 0; y < BOARD + 2; y++) {
-            let tr = table.insertRow();
             let row = [];
             this._cells.push(row);
             for (let x = 0; x < BOARD + 2; x++) {
-                let td = tr.insertCell();
-                let ctor = (inBoard(x, y) ? Cell : BorderCell);
-                row.push(new ctor(td, x, y));
+                let border = !inBoard(x, y);
+                let center = (x >= 3 && x <= 5 && y >= 3 && y <= 5);
+                let cell = { x, y, border, center, tile, signal, round };
+                row.push(cell);
             }
         }
     }
@@ -30,9 +32,6 @@ export default class CellRepo {
             });
         });
         return results;
-    }
-    byNode(node) {
-        return this.filter(cell => cell.node == node)[0];
     }
     at(x, y) {
         return this._cells[y][x];
