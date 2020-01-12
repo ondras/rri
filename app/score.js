@@ -168,7 +168,7 @@ export function render(score) {
     let exitScore = exits.reduce((a, b) => a + b, 0);
     row = table.insertRow();
     row.insertCell().textContent = "Connected exits";
-    row.insertCell().textContent = (exitScore ? `${exits.join("+")}=${exitScore}` : "0");
+    row.insertCell().textContent = (exitScore ? `${score.exits.join("+")} → ${exitScore}` : "0");
     row = table.insertRow();
     row.insertCell().textContent = "Longest road";
     row.insertCell().textContent = score.road.toString();

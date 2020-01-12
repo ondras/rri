@@ -178,7 +178,7 @@
         "signature": "349fd3d04d3aaa5b009e653c52c09cb8c5217c4747b3ae1d36dc5a50e779e77f"
       },
       "../src/score.ts": {
-        "version": "d47d443e58c674f2b35ff95be5606b0dd7abbfd76451c340668462b8d3821353",
+        "version": "0a6c4001c709c66d2c6282f641d697f1a17cb90bdf3a7f0e11d2d99c82ed9c94",
         "signature": "0c34749428e3d483eb19f2825450b41ba4a73ffb580fed85b8b04996385b1146"
       },
       "../src/event.ts": {
@@ -380,11 +380,11 @@
       "../src/cell-repo.ts",
       "../src/score.ts",
       "../src/event.ts",
+      "../src/board.ts",
       "../src/dice.ts",
       "../src/pool.ts",
-      "../src/board.ts",
-      "../src/game.ts",
-      "../src/round.ts"
+      "../src/round.ts",
+      "../src/game.ts"
     ]
   },
   "version": "3.7.4"
