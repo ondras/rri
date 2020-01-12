@@ -1,10 +1,10 @@
-import Board, { CanvasBoard } from "./board.js";
+import { Board } from "./board.js";
 import Pool, { BonusPool } from "./pool.js";
 import Dice, { DICE_1, DICE_2, DICE_3, DICE_4 } from "./dice.js";
-import { Cell } from "./cell.js";
 import Tile from "./tile.js";
 import * as html from "./html.js";
 import { DOWN } from "./event.js";
+import { Cell } from "./cell-repo.js";
 
 const DEMO = ["bridge", "rail-i", "road-i", "rail-road-l", "rail-road-i", "rail-t", "road-l", "rail-l", "road-t"];
 //const DEMO = ["bridge"];
@@ -15,11 +15,11 @@ export default class Round {
 	_pending: Dice | null = null;
 	_pool: Pool;
 	_bonusPool: BonusPool;
-	_board: Board | CanvasBoard;
+	_board: Board;
 	_end: HTMLButtonElement = html.node("button");
 	_placedTiles = new Map<Tile, Dice>();
 
-	constructor(num: number, board: Board | CanvasBoard, bonusPool: BonusPool) {
+	constructor(num: number, board: Board, bonusPool: BonusPool) {
 		this._num = num;
 		this._board = board;
 		this._bonusPool = bonusPool;

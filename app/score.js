@@ -1,4 +1,3 @@
-import { BorderCell } from "./cell.js";
 import { clamp, all as allDirections } from "./direction.js";
 import { NONE, ROAD, RAIL } from "./edge.js";
 import * as html from "./html.js";
@@ -9,7 +8,7 @@ const DIFFS = [
     [-1, 0]
 ];
 function getCenterCount(cells) {
-    return cells.filter(cell => cell.isCenter && cell.tile).length;
+    return cells.filter(cell => cell.center && cell.tile).length;
 }
 function getEdgeKey(a, b) {
     if (a.x > b.x || a.y > b.y) {
@@ -57,11 +56,11 @@ function getSubgraph(start, cells) {
     return subgraph;
 }
 function getConnectedExits(start, cells) {
-    return getSubgraph(start, cells).filter(cell => cell instanceof BorderCell);
+    return getSubgraph(start, cells).filter(cell => cell.border);
 }
 function getExits(cells) {
     let results = [];
-    let exitsArr = cells.filter(cell => cell instanceof BorderCell && cell.tile);
+    let exitsArr = cells.filter(cell => cell.border && cell.tile);
     let exits = new Set(exitsArr);
     while (exits.size > 0) {
         let cell = exits.values().next().value;
@@ -87,7 +86,7 @@ function getLongestFrom(cell, from, ctx) {
         let x = cell.x + DIFFS[d][0];
         let y = cell.y + DIFFS[d][1];
         let neighbor = ctx.cells.at(x, y);
-        if (neighbor instanceof BorderCell || !neighbor.tile) {
+        if (neighbor.border || !neighbor.tile) {
             return;
         }
         if (ctx.lockedCells.has(neighbor)) {
@@ -106,7 +105,7 @@ function getLongestFrom(cell, from, ctx) {
 }
 function getLongest(edgeType, cells) {
     function contains(cell) {
-        if (cell instanceof BorderCell || !cell.tile) {
+        if (cell.border || !cell.tile) {
             return;
         }
         let tile = cell.tile;
@@ -126,7 +125,7 @@ function isDeadend(cell, direction, cells) {
     let x = cell.x + DIFFS[direction][0];
     let y = cell.y + DIFFS[direction][1];
     let neighbor = cells.at(x, y);
-    if (neighbor instanceof BorderCell) {
+    if (neighbor.border) {
         return false;
     }
     if (!neighbor.tile) {
@@ -138,7 +137,7 @@ function isDeadend(cell, direction, cells) {
 function getDeadends(cells) {
     let deadends = 0;
     cells.forEach(cell => {
-        if (cell instanceof BorderCell || !cell.tile) {
+        if (cell.border || !cell.tile) {
             return;
         }
         let tile = cell.tile;

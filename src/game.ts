@@ -1,4 +1,4 @@
-import /*Board, */ { CanvasBoard } from "./board.js";
+import { BoardCanvas } from "./board.js";
 import Round from "./round.js";
 import { BonusPool } from "./pool.js";
 import * as score from "./score.js";
@@ -7,7 +7,7 @@ import { DOWN } from "./event.js";
 import Tile from "./tile.js";
 
 const main = document.querySelector("main") as HTMLElement;
-let board = new CanvasBoard();
+let board = new BoardCanvas();
 let bonusPool = new BonusPool();
 let menu = html.node("div", {className:"menu"});
 board.place(new Tile("rail-i", "1"), 1, 2, 0);

@@ -1,7 +1,7 @@
+import Tile from "./tile.js";
 import { clamp, all as allDirections } from "./direction.js";
 import { NONE } from "./edge.js";
 import { get as getScore } from "./score.js";
-import { BorderCell } from "./cell.js";
 import CellRepo from "./cell-repo.js";
 import * as html from "./html.js";
 import { DOWN, UP } from "./event.js";
@@ -13,44 +13,15 @@ const DIFFS = [
     [0, 1],
     [-1, 0]
 ];
-export default class Board {
+export class Board {
     constructor() {
-        this.node = html.node("table", { className: "board" });
-        this.node.addEventListener(DOWN, this);
-        this.node.addEventListener("contextmenu", this);
-        this._cells = new CellRepo(this.node);
+        this._cells = new CellRepo();
+        this.node = this._build();
+        this._placeInitialTiles();
+        // FIXME this.commit();
     }
-    handleEvent(e) {
-        switch (e.type) {
-            case "contextmenu":
-                e.preventDefault();
-                break;
-            case DOWN:
-                let td = e.target.closest("td");
-                if (!td) {
-                    return;
-                }
-                let cell = this._cells.byNode(td);
-                cell && this.onClick(cell);
-                function removeEvents() {
-                    td.removeEventListener(UP, cancelHold);
-                    td.removeEventListener("pointerleave", cancelHold);
-                }
-                function cancelHold() {
-                    clearTimeout(timeout);
-                    removeEvents();
-                }
-                let timeout = setTimeout(() => {
-                    this.onHold(cell);
-                    removeEvents();
-                }, HOLD);
-                td.addEventListener(UP, cancelHold);
-                td.addEventListener("pointerleave", cancelHold);
-                break;
-        }
-    }
-    onClick(cell) { console.log("click", cell); }
-    onHold(cell) { console.log("hold", cell); }
+    onClick(cell) { console.log(cell); }
+    onHold(cell) { console.log(cell); }
     signalAvailable(tile) {
         this._cells.forEach(cell => {
             cell.signal = (tile ? this.wouldFit(tile, cell.x, cell.y) : false);
@@ -78,20 +49,21 @@ export default class Board {
         this.place(tile, x, y, round);
         return true;
     }
-    place(tile, x, y, round) {
+    place(tile, x, y, round = 0) {
         let cell = this._cells.at(x, y);
         cell.tile = tile;
-        cell.round = (tile ? round.toString() : "");
+        cell.round = round;
     }
     wouldFit(tile, x, y) {
         let cell = this._cells.at(x, y);
-        if (cell instanceof BorderCell || cell.tile) {
+        if (cell.border || cell.tile) {
             return false;
         }
         let transforms = this._getTransforms(tile, x, y);
         return (transforms.length > 0);
     }
     getScore() { return getScore(this._cells); }
+    commit() { }
     _getTransforms(tile, x, y) {
         let neighborEdges = allDirections.map(dir => {
             let diff = DIFFS[dir];
@@ -106,6 +78,129 @@ export default class Board {
             clone.transform = t;
             return clone.fitsNeighbors(neighborEdges);
         });
+    }
+    _placeInitialTiles() {
+        this._cells.forEach(cell => {
+            const x = cell.x;
+            const y = cell.y;
+            let tile = null;
+            switch (true) {
+                case (x == 2 && y == 0):
+                case (x == 6 && y == 0):
+                    tile = new Tile("road-half", "2");
+                    break;
+                case (x == 2 && y == 8):
+                case (x == 6 && y == 8):
+                    tile = new Tile("road-half", "0");
+                    break;
+                case (x == 0 && y == 2):
+                case (x == 0 && y == 6):
+                    tile = new Tile("rail-half", "1");
+                    break;
+                case (x == 8 && y == 2):
+                case (x == 8 && y == 6):
+                    tile = new Tile("rail-half", "-1");
+                    break;
+                case (x == 4 && y == 0):
+                    tile = new Tile("rail-half", "2");
+                    break;
+                case (x == 4 && y == 8):
+                    tile = new Tile("rail-half", "0");
+                    break;
+                case (x == 0 && y == 4):
+                    tile = new Tile("road-half", "1");
+                    break;
+                case (x == 8 && y == 4):
+                    tile = new Tile("road-half", "-1");
+                    break;
+            }
+            this.place(tile, x, y);
+        });
+    }
+}
+export class BoardTable extends Board {
+    constructor() {
+        super();
+        this.node.addEventListener(DOWN, this);
+        this.node.addEventListener("contextmenu", this);
+    }
+    handleEvent(e) {
+        switch (e.type) {
+            case "contextmenu":
+                e.preventDefault();
+                break;
+            case DOWN:
+                let td = e.target.closest("td");
+                if (!td) {
+                    return;
+                }
+                let cell = this._cellByNode(td);
+                cell && this.onClick(cell);
+                function removeEvents() {
+                    td.removeEventListener(UP, cancelHold);
+                    td.removeEventListener("pointerleave", cancelHold);
+                }
+                function cancelHold() {
+                    clearTimeout(timeout);
+                    removeEvents();
+                }
+                let timeout = setTimeout(() => {
+                    this.onHold(cell);
+                    removeEvents();
+                }, HOLD);
+                td.addEventListener(UP, cancelHold);
+                td.addEventListener("pointerleave", cancelHold);
+                break;
+        }
+    }
+    place(tile, x, y, round = 0) {
+        super.place(tile, x, y, round);
+        let td = this._tableCellAt(x, y);
+        td.innerHTML = "";
+        if (tile) {
+            td.appendChild(tile.node);
+            round && td.appendChild(html.node("div", { className: "round" }, round.toString()));
+        }
+        else {
+            td.appendChild(html.node("div", { className: "dummy" }));
+        }
+    }
+    signalAvailable(tile) {
+        super.signalAvailable(tile);
+        this._cells.forEach(cell => {
+            let td = this._tableCellAt(cell.x, cell.y);
+            td.classList.toggle("signal", cell.signal);
+        });
+    }
+    _build() {
+        let table = html.node("table", { className: "board" });
+        this._cells.forEach(cell => {
+            while (table.rows.length <= cell.y) {
+                table.insertRow();
+            }
+            let row = table.rows[cell.y];
+            while (row.cells.length <= cell.x) {
+                row.insertCell();
+            }
+            let td = row.cells[cell.x];
+            if (cell.center) {
+                td.classList.add("center");
+                td.classList.toggle("left", cell.x == 3);
+                td.classList.toggle("right", cell.x == 5);
+                td.classList.toggle("top", cell.y == 3);
+                td.classList.toggle("bottom", cell.y == 5);
+            }
+        });
+        return table;
+    }
+    _tableCellAt(x, y) {
+        return this.node.rows[y].cells[x];
+    }
+    _cellByNode(node) {
+        return this._cells.filter(cell => {
+            let td = this._tableCellAt(cell.x, cell.y);
+            return (td == node);
+        })[0];
     }
 }
 const BCELL = TILE;
@@ -131,10 +226,17 @@ function cellToPx(cell) {
     }
     return offset + BOARD * TILE + (BOARD - 1) * BC + BB;
 }
-export class CanvasBoard {
-    constructor() {
-        this.node = html.node("div", { className: "board" });
-        this._cells = new CellRepo(html.node("table"));
+export class BoardCanvas extends Board {
+    handleEvent(e) {
+        switch (e.type) {
+            case "contextmenu":
+                e.preventDefault();
+                break;
+            case DOWN: break;
+        }
+    }
+    _build() {
+        let node = html.node("div", { className: "board" });
         let canvas = html.node("canvas");
         canvas.addEventListener(DOWN, this);
         canvas.addEventListener("contextmenu", this);
@@ -157,7 +259,6 @@ export class CanvasBoard {
             ctx.moveTo(x, start);
             ctx.lineTo(x, start + length);
         }
-        ``;
         ctx.lineWidth = BC / 1.5;
         ctx.stroke();
         ctx.lineWidth = BB;
@@ -171,98 +272,7 @@ export class CanvasBoard {
         ctx.fillRect(cellToPx(2), cellToPx(1), TILE, TILE);
         ctx.fillRect(cellToPx(1), cellToPx(3), TILE, TILE);
         ctx.fillRect(cellToPx(1), cellToPx(4), TILE, TILE);
-    }
-    handleEvent(e) {
-        switch (e.type) {
-            case "contextmenu":
-                e.preventDefault();
-                break;
-            case DOWN:
-                let td = e.target.closest("td");
-                if (!td) {
-                    return;
-                }
-                let cell = this._cells.byNode(td);
-                cell && this.onClick(cell);
-                function removeEvents() {
-                    td.removeEventListener(UP, cancelHold);
-                }
-                function cancelHold() {
-                    clearTimeout(timeout);
-                    removeEvents();
-                }
-                let timeout = setTimeout(() => {
-                    this.onHold(cell);
-                    removeEvents();
-                }, HOLD);
-                td.addEventListener(UP, cancelHold);
-                break;
-        }
-    }
-    onClick(cell) { console.log("click", cell); }
-    onHold(cell) { console.log("hold", cell); }
-    signalAvailable(tile) {
-        this._cells.forEach(cell => {
-            cell.signal = (tile ? this.wouldFit(tile, cell.x, cell.y) : false);
-        });
-    }
-    cycleTransform(x, y) {
-        let tile = this._cells.at(x, y).tile;
-        if (!tile) {
-            return;
-        }
-        let avail = this._getTransforms(tile, x, y);
-        let index = avail.indexOf(tile.transform);
-        if (index == -1 || avail.length <= 1) {
-            return;
-        }
-        index = (index + 1) % avail.length;
-        tile.transform = avail[index];
-    }
-    placeBest(tile, x, y, round) {
-        let avail = this._getTransforms(tile, x, y);
-        if (!avail.length) {
-            return false;
-        }
-        tile.transform = avail[0];
-        this.place(tile, x, y, round);
-        return true;
-    }
-    place(tile, x, y, round) {
-        let cell = this._cells.at(x, y);
-        cell.tile = tile;
-        cell.round = (tile ? round.toString() : "");
-        if (!tile)
-            return;
-        let pxx = cellToPx(x);
-        let pxy = cellToPx(y);
-        let node = tile.node;
-        this.node.appendChild(node);
-        node.style.left = `${pxx}px`;
-        node.style.top = `${pxy}px`;
-    }
-    wouldFit(tile, x, y) {
-        let cell = this._cells.at(x, y);
-        if (cell instanceof BorderCell || cell.tile) {
-            return false;
-        }
-        let transforms = this._getTransforms(tile, x, y);
-        return (transforms.length > 0);
-    }
-    getScore() { return getScore(this._cells); }
-    _getTransforms(tile, x, y) {
-        let neighborEdges = allDirections.map(dir => {
-            let diff = DIFFS[dir];
-            let neighbor = this._cells.at(x + diff[0], y + diff[1]).tile;
-            if (!neighbor) {
-                return NONE;
-            }
-            return neighbor.getEdge(clamp(dir + 2)).type;
-        });
-        let clone = tile.clone();
-        return tile.getTransforms().filter(t => {
-            clone.transform = t;
-            return clone.fitsNeighbors(neighborEdges);
-        });
+        node.appendChild(canvas);
+        return node;
     }
 }
