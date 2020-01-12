@@ -17,15 +17,11 @@ export class Board {
         this._cells = new CellRepo();
         this.node = this._build();
         this._placeInitialTiles();
-        // FIXME this.commit();
     }
     onClick(cell) { console.log(cell); }
     onHold(cell) { console.log(cell); }
-    signalAvailable(tile) {
-        this._cells.forEach(cell => {
-            cell.signal = (tile ? this.wouldFit(tile, cell.x, cell.y) : false);
-        });
-    }
+    commit() { }
+    getScore() { return getScore(this._cells); }
     cycleTransform(x, y) {
         let tile = this._cells.at(x, y).tile;
         if (!tile) {
@@ -53,16 +49,18 @@ export class Board {
         cell.tile = tile;
         cell.round = round;
     }
-    wouldFit(tile, x, y) {
-        let cell = this._cells.at(x, y);
-        if (cell.border || cell.tile) {
-            return false;
-        }
-        let transforms = this._getTransforms(tile, x, y);
-        return (transforms.length > 0);
+    signal(cells) {
+        this._cells.forEach(cell => cell.signal = cells.includes(cell));
     }
-    getScore() { return getScore(this._cells); }
-    commit() { }
+    getAvailableCells(tile) {
+        return this._cells.filter(cell => {
+            if (cell.border || cell.tile) {
+                return false;
+            }
+            let transforms = this._getTransforms(tile, cell.x, cell.y);
+            return (transforms.length > 0);
+        });
+    }
     _getTransforms(tile, x, y) {
         let neighborEdges = allDirections.map(dir => {
             let diff = DIFFS[dir];
@@ -115,6 +113,7 @@ export class Board {
             }
             this.place(tile, x, y);
         });
+        this.commit();
     }
 }
 export class BoardTable extends Board {
@@ -164,8 +163,8 @@ export class BoardTable extends Board {
             td.appendChild(html.node("div", { className: "dummy" }));
         }
     }
-    signalAvailable(tile) {
-        super.signalAvailable(tile);
+    signal(cells) {
+        super.signal(cells);
         this._cells.forEach(cell => {
             let td = this._tableCellAt(cell.x, cell.y);
             td.classList.toggle("signal", cell.signal);
