@@ -45,7 +45,7 @@ export class Board {
         this.place(tile, x, y, round);
         return true;
     }
-    place(tile, x, y, round = 0) {
+    place(tile, x, y, round) {
         let cell = this._cells.at(x, y);
         cell.tile = tile;
         cell.round = round;
@@ -112,7 +112,7 @@ export class Board {
                     tile = new Tile("road-half", "-1");
                     break;
             }
-            this.place(tile, x, y);
+            this.place(tile, x, y, 0);
         });
         this.commit();
     }
@@ -152,7 +152,7 @@ export class BoardTable extends Board {
                 break;
         }
     }
-    place(tile, x, y, round = 0) {
+    place(tile, x, y, round) {
         super.place(tile, x, y, round);
         let td = this._tableCellAt(x, y);
         td.innerHTML = "";
@@ -226,6 +226,11 @@ function cellToPx(cell) {
     return offset + BOARD * TILE + (BOARD - 1) * BC + BB;
 }
 export class BoardCanvas extends Board {
+    constructor() {
+        super();
+        this.node.addEventListener(DOWN, this);
+        this.node.addEventListener("contextmenu", this);
+    }
     handleEvent(e) {
         switch (e.type) {
             case "contextmenu":
@@ -234,16 +239,43 @@ export class BoardCanvas extends Board {
             case DOWN: break;
         }
     }
+    place(tile, x, y, round) {
+        super.place(tile, x, y, round);
+        let key = [x, y].join("/");
+        let oldTile = this._pendingTiles.get(key);
+        if (oldTile) {
+            oldTile.node.remove();
+            this._pendingTiles.delete(key);
+        }
+        if (!tile) {
+            return;
+        }
+        let pxx = cellToPx(x);
+        let pxy = cellToPx(y);
+        this.node.appendChild(tile.node);
+        tile.node.style.left = `${pxx}px`;
+        tile.node.style.top = `${pxy}px`;
+        this._pendingTiles.set(key, tile);
+    }
+    commit() {
+        //		const ctx = this._ctx;
+    }
     _build() {
+        this._pendingTiles = new Map();
         let node = html.node("div", { className: "board" });
         let canvas = html.node("canvas");
-        canvas.addEventListener(DOWN, this);
-        canvas.addEventListener("contextmenu", this);
+        node.appendChild(canvas);
         const SIZE = 2 * (BCELL + BB) + BOARD * TILE + (BOARD - 1) * BC;
         canvas.width = canvas.height = SIZE * DPR;
         canvas.style.width = canvas.style.height = `${SIZE}px`;
         const ctx = canvas.getContext("2d");
         ctx.scale(DPR, DPR);
+        this._ctx = ctx;
+        this._drawGrid();
+        return node;
+    }
+    _drawGrid() {
+        const ctx = this._ctx;
         ctx.beginPath();
         let start = BCELL + BB;
         let length = BOARD * TILE + (BOARD - 1) * BC;
@@ -270,7 +302,5 @@ export class BoardCanvas extends Board {
         ctx.fillRect(cellToPx(2), cellToPx(1), TILE, TILE);
         ctx.fillRect(cellToPx(1), cellToPx(3), TILE, TILE);
         ctx.fillRect(cellToPx(1), cellToPx(4), TILE, TILE);
-        node.appendChild(canvas);
-        return node;
     }
 }

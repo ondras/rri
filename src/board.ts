@@ -51,7 +51,7 @@ export abstract class Board {
 		return true;
 	}
 
-	place(tile: Tile | null, x: number, y: number, round = 0) {
+	place(tile: Tile | null, x: number, y: number, round: number) {
 		let cell = this._cells.at(x, y);
 		cell.tile = tile;
 		cell.round = round;
@@ -95,28 +95,28 @@ export abstract class Board {
 				case (x==6 && y==0):
 					tile = new Tile("road-half", "2");
 				break;
-	
+
 				case (x==2 && y==8):
 				case (x==6 && y==8):
 					tile = new Tile("road-half", "0");
 				break;
-	
+
 				case (x==0 && y==2):
 				case (x==0 && y==6):
 					tile = new Tile("rail-half", "1");
 				break;
-	
+
 				case (x==8 && y==2):
 				case (x==8 && y==6):
 					tile = new Tile("rail-half", "-1");
 				break;
-	
+
 				case (x==4 && y==0): tile = new Tile("rail-half", "2"); break;
 				case (x==4 && y==8): tile = new Tile("rail-half", "0"); break;
 				case (x==0 && y==4): tile = new Tile("road-half", "1"); break;
 				case (x==8 && y==4): tile = new Tile("road-half", "-1"); break;
 			}
-			this.place(tile, x, y);
+			this.place(tile, x, y, 0);
 		});
 		this.commit();
 	}
@@ -134,7 +134,7 @@ export class BoardTable extends Board {
 
 	handleEvent(e: Event) {
 		switch (e.type) {
-			case "contextmenu": e.preventDefault(); break; 
+			case "contextmenu": e.preventDefault(); break;
 
 			case DOWN:
 				let td = (e.target as HTMLElement).closest("td") as HTMLElement;
@@ -164,7 +164,7 @@ export class BoardTable extends Board {
 		}
 	}
 
-	place(tile: Tile | null, x: number, y: number, round = 0) {
+	place(tile: Tile | null, x: number, y: number, round: number) {
 		super.place(tile, x, y, round);
 
 		let td = this._tableCellAt(x, y);
@@ -204,7 +204,7 @@ export class BoardTable extends Board {
 				td.classList.toggle("bottom", cell.y == 5);
 			}
 		});
-	
+
 		return table;
 	}
 
@@ -243,20 +243,55 @@ function cellToPx(cell: number) {
 }
 
 export class BoardCanvas extends Board {
+	_ctx!: CanvasRenderingContext2D;
+	_pendingTiles!: Map<string, Tile>;
+
+	constructor() {
+		super();
+
+		this.node.addEventListener(DOWN, this);
+		this.node.addEventListener("contextmenu", this);
+	}
+
 	handleEvent(e: Event) {
 		switch (e.type) {
-			case "contextmenu": e.preventDefault(); break; 
+			case "contextmenu": e.preventDefault(); break;
 
 			case DOWN: break;
 		}
 	}
 
+	place(tile: Tile, x: number, y: number, round: number) {
+		super.place(tile, x, y, round);
+
+		let key = [x,y].join("/");
+		let oldTile = this._pendingTiles.get(key);
+		if (oldTile) {
+			oldTile.node.remove();
+			this._pendingTiles.delete(key);
+		}
+
+		if (!tile) { return; }
+
+		let pxx = cellToPx(x);
+		let pxy = cellToPx(y);
+		this.node.appendChild(tile.node);
+		tile.node.style.left = `${pxx}px`;
+		tile.node.style.top = `${pxy}px`;
+		this._pendingTiles.set(key, tile);
+	}
+
+	commit() {
+//		const ctx = this._ctx;
+	}
+
 	_build() {
+		this._pendingTiles = new Map();
+
 		let node = html.node("div", {className:"board"});
 
 		let canvas = html.node("canvas");
-		canvas.addEventListener(DOWN, this);
-		canvas.addEventListener("contextmenu", this);
+		node.appendChild(canvas);
 
 		const SIZE = 2*(BCELL + BB) + BOARD*TILE + (BOARD-1)*BC;
 		canvas.width = canvas.height = SIZE * DPR;
@@ -264,6 +299,15 @@ export class BoardCanvas extends Board {
 
 		const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 		ctx.scale(DPR, DPR);
+		this._ctx = ctx;
+
+		this._drawGrid();
+
+		return node;
+	}
+
+	_drawGrid() {
+		const ctx = this._ctx;
 		ctx.beginPath();
 
 		let start = BCELL + BB;
@@ -297,9 +341,6 @@ export class BoardCanvas extends Board {
 		ctx.fillRect(cellToPx(2), cellToPx(1), TILE, TILE);
 		ctx.fillRect(cellToPx(1), cellToPx(3), TILE, TILE);
 		ctx.fillRect(cellToPx(1), cellToPx(4), TILE, TILE);
-
-		node.appendChild(canvas);
-		return node;
 	}
 
 }
