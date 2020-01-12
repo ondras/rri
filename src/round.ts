@@ -94,7 +94,6 @@ export default class Round {
 
 			this._placedTiles.set(clone, this._pending);
 			this._pending = null;
-
 			this._syncEnd();
 
 		} else {
@@ -102,6 +101,7 @@ export default class Round {
 			if (!tile) { return; }
 			if (!this._placedTiles.has(tile)) { return; }
 			this._board.cycleTransform(x, y);
+			this._syncEnd();
 		}
 	}
 

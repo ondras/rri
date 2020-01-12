@@ -84,6 +84,7 @@ export default class Round {
                 return;
             }
             this._board.cycleTransform(x, y);
+            this._syncEnd();
         }
     }
     _onBoardHold(cell) {
