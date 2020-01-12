@@ -22,7 +22,10 @@ export default class Dice {
         this.node.innerHTML = "";
         this.node.appendChild(tile.node);
     }
-    set signal(signal) { this.node.classList.toggle("signal", signal); }
-    get disabled() { return this.node.classList.contains("disabled"); }
-    set disabled(disabled) { this.node.classList.toggle("disabled", disabled); }
 }
+["blocked", "pending", "disabled"].forEach(prop => {
+    Object.defineProperty(Dice.prototype, prop, {
+        get() { return this.node.classList.contains(prop); },
+        set(flag) { this.node.classList.toggle(prop, flag); }
+    });
+});

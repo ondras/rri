@@ -10,6 +10,9 @@ export const DICE_4 = ["bridge", "bridge", "rail-road-i", "rail-road-i", "rail-r
 export default class Dice {
 	node: HTMLElement = html.node("div", {className:"dice"});
 	_tile!: Tile;
+	blocked!: boolean;
+	pending!: boolean;
+	disabled!: boolean;
 
 	static withRandomTile(names: string[]) {
 		let name = names[Math.floor(Math.random() * names.length)];
@@ -30,9 +33,11 @@ export default class Dice {
 		this.node.innerHTML = "";
 		this.node.appendChild(tile.node);
 	}
-
-	set signal(signal: boolean) { this.node.classList.toggle("signal", signal); }
-
-	get disabled() { return this.node.classList.contains("disabled"); }
-	set disabled(disabled) { this.node.classList.toggle("disabled", disabled); }
 }
+
+["blocked", "pending", "disabled"].forEach(prop => {
+	Object.defineProperty(Dice.prototype, prop, {
+		get() { return this.node.classList.contains(prop); },
+		set(flag) { this.node.classList.toggle(prop, flag); }
+	});
+});

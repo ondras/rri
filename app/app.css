@@ -125,8 +125,11 @@ div.board .tile {
   border-radius: 6px;
   background-color: #fff;
 }
-.pool .dice.signal {
+.pool .dice.pending {
   box-shadow: inset 0 0 5px 5px lime;
+}
+.pool .dice.blocked {
+  box-shadow: inset 0 0 5px 5px red;
 }
 .pool .dice.disabled {
   opacity: 0.5;

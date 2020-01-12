@@ -8,12 +8,12 @@ export default class Pool {
         this._dices = [];
     }
     get length() {
-        return this._dices.filter(d => !d.disabled).length;
+        return this._dices.filter(d => !d.disabled && !d.blocked).length;
     }
     handleEvent(e) {
         let target = e.currentTarget;
         let dice = this._dices.filter(dice => dice.node == target)[0];
-        if (!dice || dice.disabled) {
+        if (!dice || dice.disabled || dice.blocked) {
             return;
         }
         this.onClick(dice);
@@ -37,10 +37,16 @@ export default class Pool {
         dice.disabled = true;
         return true;
     }
-    signal(dice) {
-        this._dices.forEach(d => d.signal = (dice == d));
+    pending(dice) {
+        this._dices.forEach(d => d.pending = (dice == d));
     }
     onClick(dice) { console.log(dice); }
+    sync(board) {
+        this._dices.filter(dice => !dice.disabled).forEach(dice => {
+            let cells = board.getAvailableCells(dice.tile);
+            dice.blocked = (cells.length == 0);
+        });
+    }
 }
 export class BonusPool extends Pool {
     constructor() {

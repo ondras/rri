@@ -64,14 +64,15 @@ export default class Round {
 	_onPoolClick(dice: Dice) {
 		if (this._pending == dice) {
 			this._pending = null;
-			this._board.signalAvailable(null);
-			this._pool.signal(null);
-			this._bonusPool.signal(null);
+			this._board.signal([]);
+			this._pool.pending(null);
+			this._bonusPool.pending(null);
 		} else {
 			this._pending = dice;
-			this._board.signalAvailable(dice.tile);
-			this._pool.signal(dice);	
-			this._bonusPool.signal(dice);	
+			let available = this._board.getAvailableCells(dice.tile);
+			this._board.signal(available);
+			this._pool.pending(dice);
+			this._bonusPool.pending(dice);
 		}
 	}
 
@@ -80,21 +81,21 @@ export default class Round {
 		const y = cell.y;
 		if (this._pending) {
 			let tile = this._pending.tile;
-			if (!this._board.wouldFit(tile, x, y)) { return false; }
+			let available = this._board.getAvailableCells(tile);
+			if (!available.includes(cell)) { return false; }
 
 			let clone = tile.clone();
 			this._board.placeBest(clone, x, y, this._num);
-			this._board.signalAvailable(null);
+			this._board.signal([]);
 
-			this._pool.signal(null);
-			this._bonusPool.signal(null);
+			this._pool.pending(null);
+			this._bonusPool.pending(null);
 
 			this._pool.disable(this._pending);
 			this._bonusPool.disable(this._pending);
 
 			this._placedTiles.set(clone, this._pending);
 			this._pending = null;
-
 			this._syncEnd();
 
 		} else {
@@ -102,6 +103,7 @@ export default class Round {
 			if (!tile) { return; }
 			if (!this._placedTiles.has(tile)) { return; }
 			this._board.cycleTransform(x, y);
+			this._syncEnd();
 		}
 	}
 
@@ -122,6 +124,7 @@ export default class Round {
 	}
 
 	_syncEnd() {
+		this._pool.sync(this._board);
 		this._end.disabled = (this._pool.length > 0);
 	}
 }

@@ -23,18 +23,13 @@ export abstract class Board {
 	constructor() {
 		this.node = this._build();
 		this._placeInitialTiles();
-		// FIXME this.commit();
 	}
 
 	abstract _build(): HTMLElement;
 	onClick(cell: Cell) { console.log(cell); }
 	onHold(cell: Cell) {  console.log(cell); }
-
-	signalAvailable(tile: Tile | null) {
-		this._cells.forEach(cell => {
-			cell.signal = (tile ? this.wouldFit(tile, cell.x, cell.y) : false);
-		});
-	}
+	commit() {}
+	getScore() { return getScore(this._cells); }
 
 	cycleTransform(x: number, y: number) {
 		let tile = this._cells.at(x, y).tile;
@@ -62,16 +57,18 @@ export abstract class Board {
 		cell.round = round;
 	}
 
-	wouldFit(tile: Tile, x: number, y: number) {
-		let cell = this._cells.at(x, y);
-		if (cell.border || cell.tile) { return false; }
-
-		let transforms = this._getTransforms(tile, x, y);
-		return (transforms.length > 0);
+	signal(cells: Cell[]) {
+		this._cells.forEach(cell => cell.signal = cells.includes(cell));
 	}
 
-	getScore() { return getScore(this._cells); }
-	commit() {}
+	getAvailableCells(tile: Tile) {
+		return this._cells.filter(cell => {
+			if (cell.border || cell.tile) { return false; }
+
+			let transforms = this._getTransforms(tile, cell.x, cell.y);
+			return (transforms.length > 0);
+		});
+	}
 
 	_getTransforms(tile: Tile, x: number, y: number) {
 		let neighborEdges = allDirections.map(dir => {
@@ -121,6 +118,7 @@ export abstract class Board {
 			}
 			this.place(tile, x, y);
 		});
+		this.commit();
 	}
 }
 
@@ -180,8 +178,8 @@ export class BoardTable extends Board {
 		}
 	}
 
-	signalAvailable(tile: Tile | null) {
-		super.signalAvailable(tile);
+	signal(cells: Cell[]) {
+		super.signal(cells);
 		this._cells.forEach(cell => {
 			let td = this._tableCellAt(cell.x, cell.y);
 			td.classList.toggle("signal", cell.signal);
