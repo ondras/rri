@@ -259,7 +259,7 @@ export class BoardCanvas extends Board {
 		let canvas = html.node("canvas");
 		canvas.addEventListener(DOWN, this);
 		canvas.addEventListener("contextmenu", this);
-		this.node.appendChild(canvas);
+
 		const SIZE = 2*(BCELL + BB) + BOARD*TILE + (BOARD-1)*BC;
 		canvas.width = canvas.height = SIZE * DPR;
 		canvas.style.width = canvas.style.height = `${SIZE}px`;

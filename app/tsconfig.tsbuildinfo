@@ -186,7 +186,7 @@
         "signature": "a5117af846a77bad85c09bef36cd12766a3016df45ebe30e0a13df6f9185eacc"
       },
       "../src/board.ts": {
-        "version": "583cea64c2dfd9b832c3def31edb6471b452ed1aad74763b0080fb34454ea405",
+        "version": "fcb2a8adf1c4281ddd8c82f14b59c7d6d270256206eb101d1273d51203d8f277",
         "signature": "702f630ff5201d34ca09f929f984715364638e09d2262b6e41710db9eaf4fec4"
       },
       "../src/dice.ts": {
@@ -384,9 +384,9 @@
       "../src/event.ts",
       "../src/dice.ts",
       "../src/pool.ts",
-      "../src/board.ts",
+      "../src/round.ts",
       "../src/game.ts",
-      "../src/round.ts"
+      "../src/board.ts"
     ]
   },
   "version": "3.7.4"
