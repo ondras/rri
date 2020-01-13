@@ -1,0 +1,24 @@
+# Ostre cary
+
+## DPR 1
+
+- nic specialniho
+- licha tloustka ma mit stred na polovine pixelu
+
+## DPR 1.5
+
+- prescale (canvas.style.width = canvas.width/DPR, ctx.scale(DPR))
+- tloustka >1 neni nutno resit
+- tloustka 1:
+  - lineWidth = .667 (tj. scale ji zmeni na 1)
+  - ke stredum pricitame tak, aby po scale byly na polovine: .667 k lichym, .333 k sudym
+
+
+## DPR 2
+
+- prescale
+- tlouska >1 neni nutno resit
+- tlouska 1:
+  - hypoteza: ke stredu pricitat ctvrtinu (po scale bude na polovine)?
+  - nefunguje :)
+
