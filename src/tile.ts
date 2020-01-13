@@ -7,11 +7,11 @@ import { Edge, EdgeType, NONE } from "./edge.js";
 export default class Tile {
 	_sid: string;
 	_tid!: Transform;
-	node: HTMLElement;
+	node: HTMLImageElement;
 
 	constructor(sid: string, transform: Transform) {
 		this._sid = sid;
-		this.node = getShape(sid).node.cloneNode(true) as HTMLElement;
+		this.node = getShape(sid).node.cloneNode(true) as HTMLImageElement;
 		this.node.classList.add("tile");
 
 		this.transform = transform;

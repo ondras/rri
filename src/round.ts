@@ -1,4 +1,4 @@
-import { Board } from "./board.js";
+import Board from "./board.js";
 import Pool, { BonusPool } from "./pool.js";
 import Dice, { DICE_1, DICE_2, DICE_3, DICE_4 } from "./dice.js";
 import Tile from "./tile.js";

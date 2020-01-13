@@ -1,5 +1,5 @@
 import Dice from "./dice.js";
-import { Board } from "./board.js";
+import Board from "./board.js";
 import * as html from "./html.js";
 import { DOWN } from "./event.js";
 
@@ -9,7 +9,7 @@ export default class Pool {
 	node: HTMLElement = html.node("div", {className:"pool"});
 	_dices: Dice[] = [];
 
-	get length() { 
+	get length() {
 		return this._dices.filter(d => !d.disabled && !d.blocked).length;
 	}
 

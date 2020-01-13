@@ -9,7 +9,7 @@ type Edges = [Edge, Edge, Edge, Edge];
 interface Shape {
 	edges: Edges;
 	transforms: Transform[];
-	node: HTMLElement;
+	node: HTMLImageElement;
 }
 
 interface ShapeTemplate {
@@ -294,7 +294,7 @@ const templates: {[id:string]: ShapeTemplate} = {
 };
 
 export function get(id: string) {
-	if (!(id in repo)) { throw new Error(`Shape ${id} not found`); } 
+	if (!(id in repo)) { throw new Error(`Shape ${id} not found`); }
 	return repo[id];
 }
 
@@ -310,7 +310,7 @@ function getTransforms(edges: Edges) {
 
 		if (cache.has(key)) { return false; }
 		cache.add(key);
-		return true; 
+		return true;
 	};
 	return allTransforms.filter(filter);
 }
