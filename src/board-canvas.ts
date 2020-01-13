@@ -29,7 +29,7 @@ function cellToPx(cell: number) {
 
 export default class BoardCanvas extends Board {
 	_ctx!: CanvasRenderingContext2D;
-	_pendingTiles!: Map<string, Tile>;
+	_pendingTiles!: Map<string, Tile>; // FIXME fakt klicovat stringem?
 
 	constructor() {
 		super();
