@@ -9,7 +9,7 @@ const DPR = devicePixelRatio;
 const BCELL = TILE;
 const BORDER = 3;
 const THIN = 1;
-/*
+
 function pxToCell(px: number) {
 	for (let i=0;i<BOARD+2;i++) {
 		let cellPx = cellToPx(i);
@@ -17,7 +17,6 @@ function pxToCell(px: number) {
 	}
 	return null;
 }
-*/
 
 function cellToPx(cell: number) {
 	if (cell == 0) { return 0; }
@@ -40,11 +39,33 @@ export default class BoardCanvas extends Board {
 		this.node.addEventListener("contextmenu", this);
 	}
 
-	handleEvent(e: Event) {
+	handleEvent(e: PointerEvent | TouchEvent) {
 		switch (e.type) {
 			case "contextmenu": e.preventDefault(); break;
 
-			case DOWN: break;
+			case DOWN:
+				let pxx: number | null = null;
+				let pxy: number | null = null;
+
+				if ("touches" in e) {
+					pxx = e.touches[0].clientX;
+					pxy = e.touches[0].clientY;
+				} else {
+					pxx = e.clientX;
+					pxy = e.clientY;
+				}
+
+				const rect = this.node.getBoundingClientRect();
+				pxx -= rect.left;
+				pxy -= rect.top;
+
+				let x = pxToCell(pxx);
+				let y = pxToCell(pxy);
+
+				if (x === null || y === null) { return; }
+				let cell = this._cells.at(x, y);
+				this.onClick(cell);
+			break;
 		}
 	}
 
