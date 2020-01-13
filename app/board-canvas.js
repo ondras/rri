@@ -1,7 +1,7 @@
 import Board from "./board.js";
 import * as html from "./html.js";
-import { DOWN } from "./event.js";
-import { BOARD, TILE } from "./conf.js";
+import { DOWN, UP } from "./event.js";
+import { BOARD, TILE, HOLD } from "./conf.js";
 const DPR = devicePixelRatio;
 const BCELL = TILE;
 const BORDER = 3;
@@ -58,6 +58,16 @@ export default class BoardCanvas extends Board {
                 }
                 let cell = this._cells.at(x, y);
                 this.onClick(cell);
+                function removeEvent() { window.removeEventListener(UP, cancelHold); }
+                function cancelHold() {
+                    clearTimeout(timeout);
+                    removeEvent();
+                }
+                let timeout = setTimeout(() => {
+                    this.onHold(cell);
+                    removeEvent();
+                }, HOLD);
+                window.addEventListener(UP, cancelHold);
                 break;
         }
     }

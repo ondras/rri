@@ -1,7 +1,7 @@
 import Board from "./board.js";
 import * as html from "./html.js";
 import { DOWN, UP } from "./event.js";
-const HOLD = 400;
+import { HOLD } from "./conf.js";
 export default class BoardTable extends Board {
     constructor() {
         super();

@@ -1,14 +1,15 @@
 import Board from "./board.js";
 import * as html from "./html.js";
-import { DOWN } from "./event.js";
+import { DOWN, UP } from "./event.js";
 import Tile from "./tile.js";
-import { BOARD, TILE } from "./conf.js";
+import { BOARD, TILE, HOLD } from "./conf.js";
 import { Cell } from "./cell-repo.js";
 
 const DPR = devicePixelRatio;
 const BCELL = TILE;
 const BORDER = 3;
 const THIN = 1;
+
 
 function pxToCell(px: number) {
 	for (let i=0;i<BOARD+2;i++) {
@@ -63,8 +64,23 @@ export default class BoardCanvas extends Board {
 				let y = pxToCell(pxy);
 
 				if (x === null || y === null) { return; }
+
 				let cell = this._cells.at(x, y);
 				this.onClick(cell);
+
+				function removeEvent() { window.removeEventListener(UP, cancelHold); }
+
+				function cancelHold() {
+					clearTimeout(timeout);
+					removeEvent();
+				}
+
+				let timeout = setTimeout(() => {
+					this.onHold(cell);
+					removeEvent();
+				}, HOLD);
+
+				window.addEventListener(UP, cancelHold);
 			break;
 		}
 	}

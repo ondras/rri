@@ -3,7 +3,7 @@ import Board from "./board.js";
 import * as html from "./html.js";
 import { DOWN, UP } from "./event.js";
 import { Cell } from "./cell-repo.js";
-const HOLD = 400;
+import { HOLD } from "./conf.js";
 
 export default class BoardTable extends Board {
 	node!: HTMLTableElement;

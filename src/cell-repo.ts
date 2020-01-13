@@ -7,7 +7,6 @@ export interface Cell {
 	y: number;
 	border: boolean;
 	center: boolean;
-	signal: boolean;
 	round: number;
 }
 
@@ -20,7 +19,6 @@ export default class CellRepo {
 
 	constructor() {
 		const tile = null;
-		const signal = false;
 		const round = 0;
 
 		for (let y=0; y<BOARD+2; y++) {
@@ -30,7 +28,7 @@ export default class CellRepo {
 			for (let x=0; x<BOARD+2; x++) {
 				let border = !inBoard(x, y);
 				let center = (x >= 3 && x <= 5 && y >= 3 && y <= 5);
-				let cell = { x, y, border, center, tile, signal, round };
+				let cell = { x, y, border, center, tile, round };
 				row.push(cell);
 			}
 		}
