@@ -4,10 +4,10 @@ import { DOWN } from "./event.js";
 import Tile from "./tile.js";
 import { BOARD, TILE } from "./conf.js";
 
-const BCELL = TILE;
-const BB = 3;
-const BC = 1;
 const DPR = devicePixelRatio;
+const BCELL = TILE;
+const BORDER = 3;
+const THIN = 1;
 /*
 function pxToCell(px: number) {
 	for (let i=0;i<BOARD+2;i++) {
@@ -20,10 +20,10 @@ function pxToCell(px: number) {
 
 function cellToPx(cell: number) {
 	if (cell == 0) { return 0; }
-	let offset = BCELL+BB;
-	if (cell <= BOARD) { return offset + (cell-1) * (TILE+BC); }
+	let offset = BCELL+BORDER;
+	if (cell <= BOARD) { return offset + (cell-1) * (TILE+THIN); }
 
-	return offset + BOARD*TILE + (BOARD-1)*BC + BB;
+	return offset + BOARD*TILE + (BOARD-1)*THIN + BORDER;
 }
 
 
@@ -71,16 +71,12 @@ export default class BoardCanvas extends Board {
 
 		ctx.save();
 		ctx.setTransform(1, 0, 0, 1, 0, 0);
-		ctx.beginPath();
-		ctx.moveTo(0, 0);
-		ctx.lineTo(100, 100);
-		ctx.stroke();
 
 		this._pendingTiles.forEach((tile, key) => {
 			let [x, y] = key.split("/").map(Number);
 			let pxx = cellToPx(x) * DPR;
 			let pxy = cellToPx(y) * DPR;
-			ctx.drawImage(tile.node, pxx, pxy);
+			ctx.drawImage(tile.createCanvas(), pxx, pxy);
 			tile.node.remove();
 		});
 
@@ -97,7 +93,7 @@ export default class BoardCanvas extends Board {
 		let canvas = html.node("canvas");
 		node.appendChild(canvas);
 
-		const SIZE = 2*(BCELL + BB) + BOARD*TILE + (BOARD-1)*BC;
+		const SIZE = 2*(BCELL + BORDER) + BOARD*TILE + (BOARD-1)*THIN;
 		canvas.width = canvas.height = SIZE * DPR;
 		canvas.style.width = canvas.style.height = `${SIZE}px`;
 
@@ -114,7 +110,7 @@ export default class BoardCanvas extends Board {
 		const ctx = this._ctx;
 		ctx.beginPath();
 
-		let offsetOdd = 0, offsetEven = 0, lineWidth = BC;
+		let offsetOdd = 0, offsetEven = 0, lineWidth = THIN;
 		switch (DPR) {
 			case 1:
 				offsetOdd = offsetEven = 0.5;
@@ -128,11 +124,11 @@ export default class BoardCanvas extends Board {
 		}
 		ctx.lineWidth = lineWidth;
 
-		let start = BCELL + BB;
-		let length = BOARD*TILE + (BOARD-1)*BC;
+		let start = BCELL + BORDER;
+		let length = BOARD*TILE + (BOARD-1)*THIN;
 		for (let i=0;i<BOARD-1;i++) {
-			let x = start + TILE + i*(TILE+BC);
-			let y = start + TILE + i*(TILE+BC);
+			let x = start + TILE + i*(TILE+THIN);
+			let y = start + TILE + i*(TILE+THIN);
 
 			x += (x%2 ? offsetOdd : offsetEven);
 			y += (y%2 ? offsetOdd : offsetEven);
@@ -145,19 +141,15 @@ export default class BoardCanvas extends Board {
 		}
 		ctx.stroke();
 
-		ctx.lineWidth = BB;
-		ctx.strokeRect(TILE + BB/2, TILE + BB/2, length+BB, length+BB);
+		start = TILE + BORDER/2;
+		length = length + BORDER;
+		ctx.lineWidth = BORDER;
+		ctx.strokeRect(start, start, length, length);
 
 		ctx.strokeStyle = "red";
-		ctx.lineWidth = 3;
-		ctx.strokeRect(cellToPx(3)-BC/2, cellToPx(3)-BC/2, 3*(TILE+BC), 3*(TILE+BC));
-
-		ctx.fillStyle = "lime";
-		ctx.fillRect(cellToPx(1), cellToPx(1), TILE, TILE);
-		ctx.fillRect(cellToPx(1), cellToPx(2), TILE, TILE);
-		ctx.fillRect(cellToPx(2), cellToPx(1), TILE, TILE);
-		ctx.fillRect(cellToPx(1), cellToPx(3), TILE, TILE);
-		ctx.fillRect(cellToPx(1), cellToPx(4), TILE, TILE);
+		ctx.lineWidth = BORDER;
+		start = cellToPx(3) - THIN/2;
+		length = 3*(TILE+THIN);
+		ctx.strokeRect(start, start, length, length);
 	}
-
 }

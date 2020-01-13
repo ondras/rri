@@ -18,6 +18,16 @@ class TransformImpl {
         }
         return `${scale}rotate(${this._offset * 90}deg)`;
     }
+    applyToContext(ctx) {
+        ctx.translate(ctx.canvas.width / 2, ctx.canvas.height / 2);
+        if (this._direction == -1) {
+            ctx.scale(-1, 1);
+        }
+        const deg = this._offset * 90;
+        const rad = deg * Math.PI / 180;
+        ctx.rotate(rad);
+        ctx.translate(-ctx.canvas.width / 2, -ctx.canvas.height / 2);
+    }
 }
 function create(id) {
     let offset = Math.abs(Number(id));

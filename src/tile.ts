@@ -2,6 +2,7 @@ import { Transform, get as getTransform } from "./transform.js";
 import { get as getShape } from "./shapes.js";
 import { Direction } from "./direction.js";
 import { Edge, EdgeType, NONE } from "./edge.js";
+import * as html from "./html.js";
 
 
 export default class Tile {
@@ -11,7 +12,7 @@ export default class Tile {
 
 	constructor(sid: string, transform: Transform) {
 		this._sid = sid;
-		this.node = getShape(sid).node.cloneNode(true) as HTMLImageElement;
+		this.node = getShape(sid).image.cloneNode(true) as HTMLImageElement;
 		this.node.classList.add("tile");
 
 		this.transform = transform;
@@ -19,6 +20,19 @@ export default class Tile {
 
 	clone() {
 		return new Tile(this._sid, this.transform);
+	}
+
+	createCanvas() {
+		const shape = getShape(this._sid);
+		const source = shape.canvas;
+
+		const canvas = html.node("canvas", {width:source.width, height:source.height});
+
+		const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+		getTransform(this._tid).applyToContext(ctx);
+		ctx.drawImage(shape.canvas, 0, 0);
+
+		return canvas;
 	}
 
 	get transform() { return this._tid; }

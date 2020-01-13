@@ -272,14 +272,13 @@ function shapeFromTemplate(template) {
     let canvas = html.node("canvas");
     let ctx = new DrawContext(canvas);
     template.render(ctx);
-    let node = new Image();
-    node.src = canvas.toDataURL("image/png");
+    let image = html.node("img", { src: canvas.toDataURL("image/png") });
     return {
         edges: template.edges,
         transforms: getTransforms(template.edges),
-        node
+        canvas,
+        image
     };
 }
 Object.entries(templates).forEach(([k, v]) => repo[k] = shapeFromTemplate(v));
 document.body.style.setProperty("--cell-size", TILE.toString());
-window.repo = repo;

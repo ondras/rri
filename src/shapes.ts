@@ -9,7 +9,8 @@ type Edges = [Edge, Edge, Edge, Edge];
 interface Shape {
 	edges: Edges;
 	transforms: Transform[];
-	node: HTMLImageElement;
+	image: HTMLImageElement;
+	canvas: HTMLCanvasElement;
 }
 
 interface ShapeTemplate {
@@ -320,18 +321,16 @@ function shapeFromTemplate(template: ShapeTemplate) {
 	let ctx = new DrawContext(canvas);
 	template.render(ctx);
 
-	let node = new Image();
-	node.src = canvas.toDataURL("image/png");
+	let image = html.node("img", {src:canvas.toDataURL("image/png")});
 
 	return {
 		edges: template.edges,
 		transforms: getTransforms(template.edges),
-		node
+		canvas,
+		image
 	}
 }
 
 
 Object.entries(templates).forEach(([k, v]) => repo[k] = shapeFromTemplate(v));
 document.body.style.setProperty("--cell-size", TILE.toString());
-
-(window as any).repo = repo;

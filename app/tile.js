@@ -1,15 +1,25 @@
 import { get as getTransform } from "./transform.js";
 import { get as getShape } from "./shapes.js";
 import { NONE } from "./edge.js";
+import * as html from "./html.js";
 export default class Tile {
     constructor(sid, transform) {
         this._sid = sid;
-        this.node = getShape(sid).node.cloneNode(true);
+        this.node = getShape(sid).image.cloneNode(true);
         this.node.classList.add("tile");
         this.transform = transform;
     }
     clone() {
         return new Tile(this._sid, this.transform);
+    }
+    createCanvas() {
+        const shape = getShape(this._sid);
+        const source = shape.canvas;
+        const canvas = html.node("canvas", { width: source.width, height: source.height });
+        const ctx = canvas.getContext("2d");
+        getTransform(this._tid).applyToContext(ctx);
+        ctx.drawImage(shape.canvas, 0, 0);
+        return canvas;
     }
     get transform() { return this._tid; }
     set transform(transform) {
