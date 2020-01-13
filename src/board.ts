@@ -310,14 +310,28 @@ export class BoardCanvas extends Board {
 		const ctx = this._ctx;
 		ctx.beginPath();
 
+		let offsetOdd = 0, offsetEven = 0, lineWidth = BC;
+		switch (DPR) {
+			case 1:
+				offsetOdd = offsetEven = 0.5;
+			break;
+
+			case 1.5:
+				offsetOdd = 2/3;
+				offsetEven = 1/3;
+				lineWidth /= DPR;
+			break;
+		}
+		ctx.lineWidth = lineWidth;
+
 		let start = BCELL + BB;
 		let length = BOARD*TILE + (BOARD-1)*BC;
 		for (let i=0;i<BOARD-1;i++) {
 			let x = start + TILE + i*(TILE+BC);
 			let y = start + TILE + i*(TILE+BC);
 
-			x += (x%2 ? .667 : .333);
-			y += (y%2 ? .667 : .333);
+			x += (x%2 ? offsetOdd : offsetEven);
+			y += (y%2 ? offsetOdd : offsetEven);
 
 			ctx.moveTo(start, y);
 			ctx.lineTo(start+length, y);
@@ -325,7 +339,6 @@ export class BoardCanvas extends Board {
 			ctx.moveTo(x, start);
 			ctx.lineTo(x, start+length);
 		}
-		ctx.lineWidth = BC / 1.5;
 		ctx.stroke();
 
 		ctx.lineWidth = BB;
