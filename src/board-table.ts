@@ -62,10 +62,9 @@ export default class BoardTable extends Board {
 	}
 
 	signal(cells: Cell[]) {
-		super.signal(cells);
 		this._cells.forEach(cell => {
 			let td = this._tableCellAt(cell.x, cell.y);
-			td.classList.toggle("signal", cell.signal);
+			td.classList.toggle("signal", cells.includes(cell));
 		});
 	}
 

@@ -28,6 +28,7 @@ function cellToPx(cell) {
 export default class BoardCanvas extends Board {
     constructor() {
         super();
+        this._signals = [];
         this.node.addEventListener(DOWN, this);
         this.node.addEventListener("contextmenu", this);
     }
@@ -70,6 +71,18 @@ export default class BoardCanvas extends Board {
         });
         ctx.restore();
         this._pendingTiles.clear();
+    }
+    signal(cells) {
+        this._signals.forEach(signal => signal.remove());
+        this._signals = cells.map(cell => {
+            let signal = html.node("div", { className: "signal" });
+            let pxx = cellToPx(cell.x);
+            let pxy = cellToPx(cell.y);
+            signal.style.left = `${pxx}px`;
+            signal.style.top = `${pxy}px`;
+            this.node.appendChild(signal);
+            return signal;
+        });
     }
     _build() {
         this._pendingTiles = new Map();

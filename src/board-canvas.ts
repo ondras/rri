@@ -3,6 +3,7 @@ import * as html from "./html.js";
 import { DOWN } from "./event.js";
 import Tile from "./tile.js";
 import { BOARD, TILE } from "./conf.js";
+import { Cell } from "./cell-repo.js";
 
 const DPR = devicePixelRatio;
 const BCELL = TILE;
@@ -30,6 +31,7 @@ function cellToPx(cell: number) {
 export default class BoardCanvas extends Board {
 	_ctx!: CanvasRenderingContext2D;
 	_pendingTiles!: Map<string, Tile>; // FIXME fakt klicovat stringem?
+	_signals = [] as HTMLElement[];
 
 	constructor() {
 		super();
@@ -83,6 +85,20 @@ export default class BoardCanvas extends Board {
 		ctx.restore();
 
 		this._pendingTiles.clear();
+	}
+
+	signal(cells: Cell[]) {
+		this._signals.forEach(signal => signal.remove());
+
+		this._signals = cells.map(cell => {
+			let signal = html.node("div", {className:"signal"});
+			let pxx = cellToPx(cell.x);
+			let pxy = cellToPx(cell.y);
+			signal.style.left = `${pxx}px`;
+			signal.style.top = `${pxy}px`;
+			this.node.appendChild(signal);
+			return signal;
+		});
 	}
 
 	_build() {

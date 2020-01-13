@@ -46,9 +46,6 @@ export default class Board {
         cell.tile = tile;
         cell.round = round;
     }
-    signal(cells) {
-        this._cells.forEach(cell => cell.signal = cells.includes(cell));
-    }
     getAvailableCells(tile) {
         return this._cells.filter(cell => {
             if (cell.border || cell.tile) {

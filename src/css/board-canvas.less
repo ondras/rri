@@ -1,5 +1,13 @@
 div.board {
 	position: relative;
 
-	.tile { position: absolute; }
+	canvas { display: block; }
+
+	.tile, .signal { position: absolute; }
+
+	.signal {
+		width: calc(var(--cell-size) * 1px);
+		height: calc(var(--cell-size) * 1px);
+		.-signal(lime);
+	}
 }

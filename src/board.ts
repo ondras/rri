@@ -21,6 +21,7 @@ export default abstract class Board {
 	}
 
 	abstract _build(): HTMLElement;
+	abstract signal(cells: Cell[]): void;
 	onClick(cell: Cell) { console.log(cell); }
 	onHold(cell: Cell) {  console.log(cell); }
 	commit() {}
@@ -50,10 +51,6 @@ export default abstract class Board {
 		let cell = this._cells.at(x, y);
 		cell.tile = tile;
 		cell.round = round;
-	}
-
-	signal(cells: Cell[]) {
-		this._cells.forEach(cell => cell.signal = cells.includes(cell));
 	}
 
 	getAvailableCells(tile: Tile) {
