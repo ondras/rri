@@ -12,6 +12,7 @@ let menu = html.node("div", { className: "menu" });
 const MAX_ROUNDS = 7;
 function gameOver() {
     let s = score.render(board.getScore());
+    console.log(board.getScore());
     main.insertBefore(s, main.firstChild);
     while (s.nextSibling && s.nextSibling != board.node) {
         s.nextSibling.remove();

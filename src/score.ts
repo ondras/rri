@@ -10,12 +10,17 @@ const DIFFS = [ // FIXME dupe s board.js
 	[-1, 0]
 ];
 
+export interface Deadend {
+	cell: Cell;
+	direction: Direction;
+}
+
 export interface Score {
 	exits: number[];
 	center: number;
-	deadends: number;
-	road: number;
-	rail: number;
+	deadends: Deadend[];
+	road: Cell[];
+	rail: Cell[];
 }
 
 interface LongestPathContext {
@@ -90,14 +95,15 @@ function getExits(cells: CellRepo) {
 		let connected = getConnectedExits(cell, cells);
 		if (connected.length > 1) { results.push(connected.length); }
 		connected.forEach(cell => exits.delete(cell));
-	} 
+	}
 
 	return results;
 }
 
 function getLongestFrom(cell: Cell, from: Direction | null, ctx: LongestPathContext) {
-	let length = 0;
-	if (!cell.tile) { return length; }
+	if (!cell.tile) { return []; }
+
+	let path: Cell[] = [];
 
 	let tile = cell.tile;
 	let outDirections = (from === null ? allDirections : tile.getEdge(from).connects);
@@ -118,12 +124,13 @@ function getLongestFrom(cell: Cell, from: Direction | null, ctx: LongestPathCont
 			if (neighborEdgeType != ctx.edgeType) { return; }
 
 			let subpath = getLongestFrom(neighbor, neighborEdge, ctx);
-			length = Math.max(length, subpath);
+			if (subpath.length > path.length) { path = subpath; }
 	});
 
 	ctx.lockedCells.delete(cell);
 
-	return length+1;
+	path.unshift(cell);
+	return path;
 }
 
 function getLongest(edgeType: EdgeType, cells: CellRepo) {
@@ -134,39 +141,42 @@ function getLongest(edgeType: EdgeType, cells: CellRepo) {
 	}
 	let starts = cells.filter(contains);
 
-	let length = 0;
+	let bestPath: Cell[] = [];
 	starts.forEach(cell => {
 		let lockedCells = new Set<Cell>();
 		let ctx: LongestPathContext = { cells, edgeType, lockedCells };
-		let l = getLongestFrom(cell, null, ctx);
-		length = Math.max(length, l);
+		let path = getLongestFrom(cell, null, ctx);
+		if (path.length > bestPath.length) { bestPath = path; }
 	});
 
-	return length;
+	return bestPath;
 }
 
-function isDeadend(cell: Cell, direction: Direction, cells: CellRepo) {
-	let x = cell.x + DIFFS[direction][0];
-	let y = cell.y + DIFFS[direction][1];
+function isDeadend(deadend: Deadend, cells: CellRepo) {
+	const cell = deadend.cell;
+	const tile = cell.tile;
+	if (!tile) { return false; }
+
+	let edge = tile.getEdge(deadend.direction).type;
+	if (edge != RAIL && edge != ROAD) { return false; }
+
+	let x = cell.x + DIFFS[deadend.direction][0];
+	let y = cell.y + DIFFS[deadend.direction][1];
 	let neighbor = cells.at(x, y);
 	if (neighbor.border) { return false; }
 
 	if (!neighbor.tile) { return true; }
-	let neighborEdge = clamp(direction+2);
-	return (neighbor.tile.getEdge(neighborEdge).type == NONE);
+	let neighborEdge = clamp(deadend.direction+2);
+	return (neighbor.tile.getEdge(neighborEdge).type != edge);
 }
 
 function getDeadends(cells: CellRepo) {
-	let deadends = 0;
+	let deadends: Deadend[] = [];
 
-	cells.forEach(cell => {
-		if (cell.border || !cell.tile) { return; }
-		let tile = cell.tile;
-		allDirections.forEach(d => {
-			let edge = tile.getEdge(d).type;
-			if (edge == RAIL || edge == ROAD) {
-				if (isDeadend(cell, d, cells)) { deadends++; }
-			}
+	cells.filter(cell => !cell.border).forEach(cell => {
+		allDirections.forEach(direction => {
+			let deadend: Deadend = { cell, direction };
+			isDeadend(deadend, cells) && deadends.push(deadend);
 		});
 	});
 
@@ -185,7 +195,7 @@ export function get(cells: CellRepo): Score {
 
 export function render(score: Score) {
 	let table = html.node("table", {className:"score"});
-	
+
 	let row: HTMLTableRowElement;
 
 	let exits = score.exits.map(count => count == 12 ? 45 : (count-1)*4);
@@ -197,10 +207,10 @@ export function render(score: Score) {
 	row = table.insertRow();
 	row.insertCell().textContent = "Longest road";
 
-	row.insertCell().textContent = score.road.toString();
+	row.insertCell().textContent = score.road.length.toString();
 	row = table.insertRow();
 	row.insertCell().textContent = "Longest rail";
-	row.insertCell().textContent = score.rail.toString();
+	row.insertCell().textContent = score.rail.length.toString();
 
 	row = table.insertRow();
 	row.insertCell().textContent = "Center tiles";
@@ -208,14 +218,14 @@ export function render(score: Score) {
 
 	row = table.insertRow();
 	row.insertCell().textContent = "Dead ends";
-	row.insertCell().textContent = (-score.deadends).toString();
+	row.insertCell().textContent = (-score.deadends.length).toString();
 
 	let total = exitScore
-					+ score.road
-					+ score.rail
+					+ score.road.length
+					+ score.rail.length
 					+ score.center
-					- score.deadends;
-	
+					- score.deadends.length;
+
 	let tfoot = html.node("tfoot");
 	table.appendChild(tfoot);
 	row = tfoot.insertRow();
