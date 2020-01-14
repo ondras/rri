@@ -9,6 +9,7 @@ export default class Board {
         this.node = this._build();
         this._placeInitialTiles();
     }
+    showScore(score) { console.log(score); }
     onClick(cell) { console.log(cell); }
     onHold(cell) { console.log(cell); }
     commit() { }

@@ -4,7 +4,7 @@ import { DOWN, UP } from "./event.js";
 import { BOARD, TILE, HOLD } from "./conf.js";
 import { N, E, S, W, Vector } from "./direction.js";
 const DPR = devicePixelRatio;
-const BCELL = TILE;
+const BTILE = TILE / 2;
 const BORDER = 3;
 const THIN = 1;
 function pxToCell(px) {
@@ -18,9 +18,9 @@ function pxToCell(px) {
 }
 function cellToPx(cell) {
     if (cell == 0) {
-        return 0;
+        return BTILE - TILE;
     }
-    let offset = BCELL + BORDER;
+    let offset = BTILE + BORDER;
     if (cell <= BOARD) {
         return offset + (cell - 1) * (TILE + THIN);
     }
@@ -142,7 +142,7 @@ export default class BoardCanvas extends Board {
         let node = html.node("div", { className: "board" });
         let canvas = html.node("canvas");
         node.appendChild(canvas);
-        const SIZE = 2 * (BCELL + BORDER) + BOARD * TILE + (BOARD - 1) * THIN;
+        const SIZE = 2 * (BTILE + BORDER) + BOARD * TILE + (BOARD - 1) * THIN;
         canvas.width = canvas.height = SIZE * DPR;
         canvas.style.width = canvas.style.height = `${SIZE}px`;
         const ctx = canvas.getContext("2d");
@@ -166,7 +166,7 @@ export default class BoardCanvas extends Board {
                 break;
         }
         ctx.lineWidth = lineWidth;
-        let start = BCELL + BORDER;
+        let start = BTILE + BORDER;
         let length = BOARD * TILE + (BOARD - 1) * THIN;
         for (let i = 0; i < BOARD - 1; i++) {
             let x = start + TILE + i * (TILE + THIN);
@@ -179,7 +179,7 @@ export default class BoardCanvas extends Board {
             ctx.lineTo(x, start + length);
         }
         ctx.stroke();
-        start = TILE + BORDER / 2;
+        start = BTILE + BORDER / 2;
         length = length + BORDER;
         ctx.lineWidth = BORDER;
         ctx.strokeRect(start, start, length, length);
