@@ -68,6 +68,8 @@ export default class BoardTable extends Board {
 		});
 	}
 
+	showScore() {}
+
 	_build() {
 		let table = html.node("table", {className:"board"});
 

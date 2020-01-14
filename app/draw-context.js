@@ -94,7 +94,11 @@ export default class DrawContext {
         ctx.moveTo(...start);
         ctx.lineTo(...end);
         ctx.stroke();
-        this.railTicks(edge, length > 0.5 ? 1 : 0.35);
+        let ticksLength = length;
+        if (length <= 0.5) {
+            ticksLength = Math.min(ticksLength, 0.35);
+        } // short rail segments have a max of .35 ticks
+        this.railTicks(edge, ticksLength);
     }
     roadLine(edge, length, diff) {
         const ctx = this._ctx;

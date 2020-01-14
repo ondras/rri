@@ -2,6 +2,7 @@ import Board from "./board.js";
 import * as html from "./html.js";
 import { DOWN, UP } from "./event.js";
 import { BOARD, TILE, HOLD } from "./conf.js";
+import { N, E, S, W, Vector } from "./direction.js";
 const DPR = devicePixelRatio;
 const BCELL = TILE;
 const BORDER = 3;
@@ -115,6 +116,27 @@ export default class BoardCanvas extends Board {
             return signal;
         });
     }
+    showScore(score) {
+        const ctx = this._ctx;
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "lime";
+        this._drawPolyline(score.rail);
+        ctx.strokeStyle = "blue";
+        this._drawPolyline(score.road);
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = "14px sans-serif";
+        ctx.fillStyle = "red";
+        score.deadends.forEach(deadend => {
+            let pxx = cellToPx(deadend.cell.x) + TILE / 2;
+            let pxy = cellToPx(deadend.cell.y) + TILE / 2;
+            const offset = TILE / 2 + 8;
+            let vec = Vector[deadend.direction];
+            pxx += vec[0] * offset;
+            pxy += vec[1] * offset;
+            ctx.fillText("✘", pxx, pxy);
+        });
+    }
     _build() {
         this._pendingTiles = new Map();
         let node = html.node("div", { className: "board" });
@@ -166,5 +188,50 @@ export default class BoardCanvas extends Board {
         start = cellToPx(3) - THIN / 2;
         length = 3 * (TILE + THIN);
         ctx.strokeRect(start, start, length, length);
+    }
+    _drawPolyline(cells) {
+        if (cells.length < 2) {
+            return;
+        }
+        const ctx = this._ctx;
+        ctx.beginPath();
+        cells.forEach((cell, i, all) => {
+            let cx = cellToPx(cell.x) + TILE / 2;
+            let cy = cellToPx(cell.y) + TILE / 2;
+            if (i == 0) { // first
+                ctx.moveTo(cx, cy);
+            }
+            else if (i == all.length - 1) { // last
+                ctx.lineTo(cx, cy);
+            }
+            else { // midpoint
+                let inDir = this._getDirectionBetweenCells(all[i - 1], cell);
+                let outDir = this._getDirectionBetweenCells(cell, all[i + 1]);
+                if (inDir == outDir) {
+                    ctx.lineTo(cx, cy);
+                }
+                else if (outDir !== null) {
+                    let vec = Vector[outDir];
+                    let endpoint = [cx + TILE / 2 * vec[0], cy + TILE / 2 * vec[1]];
+                    ctx.arcTo(cx, cy, endpoint[0], endpoint[1], 10);
+                }
+            }
+        });
+        ctx.stroke();
+    }
+    _getDirectionBetweenCells(c1, c2) {
+        if (c1.y > c2.y) {
+            return N;
+        }
+        if (c1.x > c2.x) {
+            return W;
+        }
+        if (c1.y < c2.y) {
+            return S;
+        }
+        if (c1.x < c2.x) {
+            return E;
+        }
+        return null;
     }
 }

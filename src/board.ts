@@ -1,7 +1,7 @@
 import Tile from "./tile.js";
 import { clamp, all as allDirections, Vector } from "./direction.js";
 import { NONE } from "./edge.js";
-import { get as getScore } from "./score.js";
+import { Score, get as getScore } from "./score.js";
 import CellRepo, { Cell } from "./cell-repo.js";
 
 export default abstract class Board {
@@ -15,6 +15,7 @@ export default abstract class Board {
 
 	abstract _build(): HTMLElement;
 	abstract signal(cells: Cell[]): void;
+	abstract showScore(score: Score): void;
 	onClick(cell: Cell) { console.log(cell); }
 	onHold(cell: Cell) {  console.log(cell); }
 	commit() {}

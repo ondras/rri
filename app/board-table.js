@@ -55,6 +55,7 @@ export default class BoardTable extends Board {
             td.classList.toggle("signal", cells.includes(cell));
         });
     }
+    showScore() { }
     _build() {
         let table = html.node("table", { className: "board" });
         this._cells.forEach(cell => {
