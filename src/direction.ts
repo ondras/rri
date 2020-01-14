@@ -10,3 +10,5 @@ export function clamp(direction: number) {
 }
 
 export const all = [N, E, S, W];
+
+export const Vector = [[0, -1], [1, 0], [0, 1], [-1, 0]];

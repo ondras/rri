@@ -1,4 +1,4 @@
-import { N, E, S, W } from "./direction.js";
+import { Vector, clamp, N, E, S, W } from "./direction.js";
 import { TILE } from "./conf.js";
 const RAIL_TICK_WIDTH = 1;
 const LINE_WIDTH = 2;
@@ -10,7 +10,7 @@ const RAIL_TICK_SMALL = [RAIL_TICK_WIDTH, 6];
 const RAIL_TICK_LARGE = [RAIL_TICK_WIDTH, 8];
 const ROAD_TICK = [6, 4];
 const STARTS = [[0.5, 0], [1, 0.5], [0.5, 1], [0, 0.5]];
-const VECTORS = [[0, 1], [-1, 0], [0, -1], [1, 0]];
+const TO_CENTER = Vector.map((_, i, all) => all[clamp(i + 2)]);
 export default class DrawContext {
     constructor(canvas) {
         canvas.width = canvas.height = TILE * devicePixelRatio;
@@ -58,7 +58,7 @@ export default class DrawContext {
         const ctx = this._ctx;
         let pxLength = length * TILE;
         let start = STARTS[edge].map($ => $ * TILE);
-        let vec = VECTORS[edge];
+        let vec = TO_CENTER[edge];
         let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
         this.styleRoadTicks(ROAD_TICK, -3);
         ctx.beginPath();
@@ -70,7 +70,7 @@ export default class DrawContext {
         const ctx = this._ctx;
         let pxLength = length * TILE;
         let start = STARTS[edge].map($ => $ * TILE);
-        let vec = VECTORS[edge];
+        let vec = TO_CENTER[edge];
         let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
         if (length > 0.5) {
             this.styleRailTicks(RAIL_TICK_LARGE, 5);
@@ -87,7 +87,7 @@ export default class DrawContext {
         const ctx = this._ctx;
         this.styleLine();
         let pxLength = length * TILE;
-        let vec = VECTORS[edge];
+        let vec = TO_CENTER[edge];
         let start = STARTS[edge].map($ => $ * TILE);
         let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
         ctx.beginPath();
@@ -101,7 +101,7 @@ export default class DrawContext {
         this.styleLine();
         let pxLength = length * TILE;
         diff *= ROAD_WIDTH / 2;
-        let vec = VECTORS[edge];
+        let vec = TO_CENTER[edge];
         let start = STARTS[edge].map($ => $ * TILE);
         let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
         ctx.beginPath();
@@ -122,7 +122,7 @@ export default class DrawContext {
     road(edge, length) {
         const ctx = this._ctx;
         let pxLength = length * TILE;
-        let vec = VECTORS[edge];
+        let vec = TO_CENTER[edge];
         let start = STARTS[edge].map($ => $ * TILE);
         let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
         switch (edge) {

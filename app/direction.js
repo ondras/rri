@@ -7,3 +7,4 @@ export function clamp(direction) {
     return (direction >= 0 ? direction : direction + 4);
 }
 export const all = [N, E, S, W];
+export const Vector = [[0, -1], [1, 0], [0, 1], [-1, 0]];

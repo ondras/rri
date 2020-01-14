@@ -1,14 +1,8 @@
 import Tile from "./tile.js";
-import { clamp, all as allDirections } from "./direction.js";
+import { clamp, all as allDirections, Vector } from "./direction.js";
 import { NONE } from "./edge.js";
 import { get as getScore } from "./score.js";
 import CellRepo from "./cell-repo.js";
-const DIFFS = [
-    [0, -1],
-    [1, 0],
-    [0, 1],
-    [-1, 0]
-];
 export default class Board {
     constructor() {
         this._cells = new CellRepo();
@@ -57,8 +51,8 @@ export default class Board {
     }
     _getTransforms(tile, x, y) {
         let neighborEdges = allDirections.map(dir => {
-            let diff = DIFFS[dir];
-            let neighbor = this._cells.at(x + diff[0], y + diff[1]).tile;
+            let vector = Vector[dir];
+            let neighbor = this._cells.at(x + vector[0], y + vector[1]).tile;
             if (!neighbor) {
                 return NONE;
             }

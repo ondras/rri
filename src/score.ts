@@ -1,14 +1,7 @@
 import CellRepo, { Cell } from "./cell-repo.js";
-import { Direction, clamp, all as allDirections } from "./direction.js";
+import { Direction, clamp, all as allDirections, Vector } from "./direction.js";
 import { NONE, ROAD, RAIL, EdgeType } from "./edge.js";
 import * as html from "./html.js";
-
-const DIFFS = [ // FIXME dupe s board.js
-	[0, -1],
-	[1, 0],
-	[0, 1],
-	[-1, 0]
-];
 
 export interface Deadend {
 	cell: Cell;
@@ -27,6 +20,12 @@ interface LongestPathContext {
 	cells: CellRepo;
 	edgeType: EdgeType;
 	lockedCells: Set<Cell>;
+}
+
+function getNeighbor(cell: Cell, direction: Direction, cells: CellRepo) {
+	let x = cell.x + Vector[direction][0];
+	let y = cell.y + Vector[direction][1];
+	return cells.at(x, y);
 }
 
 function getCenterCount(cells: CellRepo) {
@@ -61,9 +60,7 @@ function getSubgraph(start: Cell, cells: CellRepo) {
 			let edgeType = tile.getEdge(d).type;
 			if (edgeType == NONE) { return; }
 
-			let x = cell.x + DIFFS[d][0];
-			let y = cell.y + DIFFS[d][1];
-			let neighbor = cells.at(x, y);
+			let neighbor = getNeighbor(cell, d, cells);
 			if (!neighbor.tile) { return; }
 
 			let neighborEdge = clamp(d+2);
@@ -113,9 +110,7 @@ function getLongestFrom(cell: Cell, from: Direction | null, ctx: LongestPathCont
 	outDirections
 		.filter(d => tile.getEdge(d).type == ctx.edgeType)
 		.forEach(d => {
-			let x = cell.x + DIFFS[d][0];
-			let y = cell.y + DIFFS[d][1];
-			let neighbor = ctx.cells.at(x, y);
+			let neighbor = getNeighbor(cell, d, ctx.cells);
 			if (neighbor.border || !neighbor.tile) { return; }
 			if (ctx.lockedCells.has(neighbor)) { return; }
 
@@ -160,9 +155,7 @@ function isDeadend(deadend: Deadend, cells: CellRepo) {
 	let edge = tile.getEdge(deadend.direction).type;
 	if (edge != RAIL && edge != ROAD) { return false; }
 
-	let x = cell.x + DIFFS[deadend.direction][0];
-	let y = cell.y + DIFFS[deadend.direction][1];
-	let neighbor = cells.at(x, y);
+	let neighbor = getNeighbor(cell, deadend.direction, cells);
 	if (neighbor.border) { return false; }
 
 	if (!neighbor.tile) { return true; }

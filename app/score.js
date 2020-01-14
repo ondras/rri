@@ -1,12 +1,11 @@
-import { clamp, all as allDirections } from "./direction.js";
+import { clamp, all as allDirections, Vector } from "./direction.js";
 import { NONE, ROAD, RAIL } from "./edge.js";
 import * as html from "./html.js";
-const DIFFS = [
-    [0, -1],
-    [1, 0],
-    [0, 1],
-    [-1, 0]
-];
+function getNeighbor(cell, direction, cells) {
+    let x = cell.x + Vector[direction][0];
+    let y = cell.y + Vector[direction][1];
+    return cells.at(x, y);
+}
 function getCenterCount(cells) {
     return cells.filter(cell => cell.center && cell.tile).length;
 }
@@ -34,9 +33,7 @@ function getSubgraph(start, cells) {
             if (edgeType == NONE) {
                 return;
             }
-            let x = cell.x + DIFFS[d][0];
-            let y = cell.y + DIFFS[d][1];
-            let neighbor = cells.at(x, y);
+            let neighbor = getNeighbor(cell, d, cells);
             if (!neighbor.tile) {
                 return;
             }
@@ -83,9 +80,7 @@ function getLongestFrom(cell, from, ctx) {
     outDirections
         .filter(d => tile.getEdge(d).type == ctx.edgeType)
         .forEach(d => {
-        let x = cell.x + DIFFS[d][0];
-        let y = cell.y + DIFFS[d][1];
-        let neighbor = ctx.cells.at(x, y);
+        let neighbor = getNeighbor(cell, d, ctx.cells);
         if (neighbor.border || !neighbor.tile) {
             return;
         }
@@ -136,9 +131,7 @@ function isDeadend(deadend, cells) {
     if (edge != RAIL && edge != ROAD) {
         return false;
     }
-    let x = cell.x + DIFFS[deadend.direction][0];
-    let y = cell.y + DIFFS[deadend.direction][1];
-    let neighbor = cells.at(x, y);
+    let neighbor = getNeighbor(cell, deadend.direction, cells);
     if (neighbor.border) {
         return false;
     }
