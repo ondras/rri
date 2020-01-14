@@ -144,7 +144,9 @@ export default class BoardCanvas extends Board {
         node.appendChild(canvas);
         const SIZE = 2 * (BTILE + BORDER) + BOARD * TILE + (BOARD - 1) * THIN;
         canvas.width = canvas.height = SIZE * DPR;
-        canvas.style.width = canvas.style.height = `${SIZE}px`;
+        const PX = `${SIZE}px`;
+        canvas.style.width = canvas.style.height = PX;
+        document.body.style.setProperty("--board-width", PX);
         const ctx = canvas.getContext("2d");
         ctx.scale(DPR, DPR);
         this._ctx = ctx;

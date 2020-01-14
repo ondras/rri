@@ -1,5 +1,6 @@
 import Board from "./board.js";
 import * as html from "./html.js";
+import { TILE } from "./conf.js";
 import { DOWN, UP } from "./event.js";
 import { HOLD } from "./conf.js";
 export default class BoardTable extends Board {
@@ -74,6 +75,8 @@ export default class BoardTable extends Board {
                 td.classList.toggle("bottom", cell.y == 5);
             }
         });
+        const width = 9 * TILE + 8 + 2 * 3;
+        document.body.style.setProperty("--board-width", `${width}px`);
         return table;
     }
     _tableCellAt(x, y) {
