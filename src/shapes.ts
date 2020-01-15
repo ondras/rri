@@ -2,7 +2,6 @@ import { Transform, get as getTransform, all as allTransforms } from "./transfor
 import { N, E, S, W, all as allDirections } from "./direction.js";
 import { Edge, NONE, RAIL, ROAD } from "./edge.js";
 import DrawContext from "./draw-context.js";
-import { TILE } from "./conf.js";
 import * as html from "./html.js";
 
 type Edges = [Edge, Edge, Edge, Edge];
@@ -333,4 +332,3 @@ function shapeFromTemplate(template: ShapeTemplate) {
 
 
 Object.entries(templates).forEach(([k, v]) => repo[k] = shapeFromTemplate(v));
-document.body.style.setProperty("--cell-size", TILE.toString());

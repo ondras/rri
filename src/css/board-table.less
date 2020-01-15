@@ -5,8 +5,8 @@ table.board {
 		position: relative;
 		border: 1px solid transparent;
 		padding: 0;
-		--border-strong: 3px solid black;
-		--border-normal: 1px solid black;
+		--b-thick: calc(1px * var(--border-thick)) solid black;
+		--b-thin: calc(1px * var(--border-thin)) solid black;
 
 		&.signal::after {
 			content: "";
@@ -34,8 +34,8 @@ table.board {
 		}
 
 		&.center {
+			background-color: var(--center-bg);
 			--suffix: inset red;
-			background-color: rgba(255, 255, 255, 0.2);
 
 			&.left   { box-shadow: 4px 0 1px -2px var(--suffix); }
 			&.right  { box-shadow: -4px 0 1px -2px var(--suffix); }
@@ -50,27 +50,27 @@ table.board {
 	}
 
 	tr:not(:first-child):not(:last-child) td:not(:first-child):not(:last-child) {
-		border: var(--border-normal);
+		border: var(--b-thin);
 	}
 
 	tr:first-child td:not(:first-child):not(:last-child) {
-		border-bottom: var(--border-strong);
+		border-bottom: var(--b-thick);
 	}
 
 	tr:last-child td:not(:first-child):not(:last-child) {
-		border-top: var(--border-strong);
+		border-top: var(--b-thick);
 	}
 
 	tr:not(:first-child):not(:last-child) td:first-child {
-		border-right: var(--border-strong);
+		border-right: var(--b-thick);
 	}
 
 	tr:not(:first-child):not(:last-child) td:last-child {
-		border-left: var(--border-strong);
+		border-left: var(--b-thick);
 	}
 
 	.dummy {
-		width: calc(var(--cell-size) * 1px);
-		height: calc(var(--cell-size) * 1px);
+		width: calc(var(--tile-size) * 1px);
+		height: calc(var(--tile-size) * 1px);
 	}
 }

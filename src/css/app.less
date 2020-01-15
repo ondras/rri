@@ -4,7 +4,7 @@ body {
 	font-family: sans-serif;
 	margin: 0;
 	background-color: #def;
-	min-width: var(--board-width, auto);
+	min-width: var(--board-width);
 }
 
 main {
@@ -21,8 +21,8 @@ footer {
 
 .tile {
 	transition: all 300ms;
-	width: calc(var(--cell-size) * 1px);
-	height: calc(var(--cell-size) * 1px);
+	width: calc(var(--tile-size) * 1px);
+	height: calc(var(--tile-size) * 1px);
 	display: block;
 	user-select: none;
 }
@@ -35,6 +35,7 @@ button {
 	box-shadow: inset 0 0 5px 5px @color;
 }
 
+@import "variables.less";
 @import "board.less";
 @import "pool.less";
 @import "score.less";

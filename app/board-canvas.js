@@ -5,8 +5,9 @@ import { BOARD, TILE, HOLD } from "./conf.js";
 import { N, E, S, W, Vector } from "./direction.js";
 const DPR = devicePixelRatio;
 const BTILE = TILE / 2;
-const BORDER = 3;
-const THIN = 1;
+const bodyStyle = getComputedStyle(document.body);
+const BORDER = Number(bodyStyle.getPropertyValue("--border-thick"));
+const THIN = Number(bodyStyle.getPropertyValue("--border-thin"));
 function pxToCell(px) {
     for (let i = 0; i < BOARD + 2; i++) {
         let cellPx = cellToPx(i);
@@ -118,10 +119,10 @@ export default class BoardCanvas extends Board {
     }
     showScore(score) {
         const ctx = this._ctx;
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = "lime";
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = "rgba(0, 255, 0, 0.5)";
         this._drawPolyline(score.rail);
-        ctx.strokeStyle = "blue";
+        ctx.strokeStyle = "rgba(0, 0, 255, 0.5)";
         this._drawPolyline(score.road);
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
@@ -155,6 +156,13 @@ export default class BoardCanvas extends Board {
     }
     _drawGrid() {
         const ctx = this._ctx;
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        // fill center
+        ctx.fillStyle = bodyStyle.getPropertyValue("--center-bg");
+        let start = cellToPx(3) - THIN / 2;
+        let length = 3 * (TILE + THIN);
+        ctx.fillRect(start, start, length, length);
+        // grid
         ctx.beginPath();
         let offsetOdd = 0, offsetEven = 0, lineWidth = THIN;
         switch (DPR) {
@@ -168,8 +176,8 @@ export default class BoardCanvas extends Board {
                 break;
         }
         ctx.lineWidth = lineWidth;
-        let start = BTILE + BORDER;
-        let length = BOARD * TILE + (BOARD - 1) * THIN;
+        start = BTILE + BORDER;
+        length = BOARD * TILE + (BOARD - 1) * THIN;
         for (let i = 0; i < BOARD - 1; i++) {
             let x = start + TILE + i * (TILE + THIN);
             let y = start + TILE + i * (TILE + THIN);
@@ -181,10 +189,12 @@ export default class BoardCanvas extends Board {
             ctx.lineTo(x, start + length);
         }
         ctx.stroke();
+        // grid border
         start = BTILE + BORDER / 2;
         length = length + BORDER;
         ctx.lineWidth = BORDER;
         ctx.strokeRect(start, start, length, length);
+        // center border
         ctx.strokeStyle = "red";
         ctx.lineWidth = BORDER;
         start = cellToPx(3) - THIN / 2;
