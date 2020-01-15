@@ -29,10 +29,17 @@ function cellToPx(cell: number) {
 	return offset + BOARD*TILE + (BOARD-1)*THIN + BORDER;
 }
 
+interface PendingCell {
+	tile: Tile;
+	node: HTMLElement;
+	round: number;
+	x: number;
+	y: number;
+}
 
 export default class BoardCanvas extends Board {
 	_ctx!: CanvasRenderingContext2D;
-	_pendingTiles!: Map<string, Tile>; // FIXME fakt klicovat stringem?
+	_pendingCells!: PendingCell[];
 	_signals = [] as HTMLElement[];
 
 	constructor() {
@@ -90,21 +97,23 @@ export default class BoardCanvas extends Board {
 	place(tile: Tile, x: number, y: number, round: number) {
 		super.place(tile, x, y, round);
 
-		let key = [x,y].join("/");
-		let oldTile = this._pendingTiles.get(key);
-		if (oldTile) {
-			oldTile.node.remove();
-			this._pendingTiles.delete(key);
+		let index = this._pendingCells.findIndex(cell => cell.x == x && cell.y == y);
+		if (index > -1) {
+			this._pendingCells[index].node.remove();
+			this._pendingCells.splice(index, 1);
 		}
 
 		if (!tile) { return; }
 
-		let pxx = cellToPx(x);
-		let pxy = cellToPx(y);
-		this.node.appendChild(tile.node);
-		tile.node.style.left = `${pxx}px`;
-		tile.node.style.top = `${pxy}px`;
-		this._pendingTiles.set(key, tile);
+		let node = html.node("div", {className:"cell"});
+		node.style.left = `${cellToPx(x)}px`;
+		node.style.top = `${cellToPx(y)}px`;
+		node.appendChild(tile.node);
+
+		round && node.appendChild(html.node("div", {className:"round"}, round.toString()));
+
+		this.node.appendChild(node);
+		this._pendingCells.push({x, y, node, tile, round});
 	}
 
 	commit() {
@@ -113,17 +122,31 @@ export default class BoardCanvas extends Board {
 		ctx.save();
 		ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-		this._pendingTiles.forEach((tile, key) => {
-			let [x, y] = key.split("/").map(Number);
-			let pxx = cellToPx(x) * DPR;
-			let pxy = cellToPx(y) * DPR;
-			ctx.drawImage(tile.createCanvas(), pxx, pxy);
-			tile.node.remove();
+		this._pendingCells.forEach(cell => {
+			let pxx = cellToPx(cell.x) * DPR;
+			let pxy = cellToPx(cell.y) * DPR;
+			ctx.drawImage(cell.tile.createCanvas(), pxx, pxy);
+			cell.node.remove();
 		});
 
 		ctx.restore();
 
-		this._pendingTiles.clear();
+		ctx.font = bodyStyle.getPropertyValue("--round-font");
+		const size = Number(bodyStyle.getPropertyValue("--round-size"));
+		const bg = bodyStyle.getPropertyValue("--round-bg");
+		this._pendingCells.forEach(cell => {
+			if (!cell.round) { return; }
+			const pxx = cellToPx(cell.x) + TILE;
+			const pxy = cellToPx(cell.y);
+
+			ctx.fillStyle = bg;
+			ctx.fillRect(pxx - size, pxy, size, size);
+
+			ctx.fillStyle = "#000";
+			ctx.fillText(cell.round.toString(), pxx - size/2, pxy + size/2);
+		});
+
+		this._pendingCells = [];
 	}
 
 	signal(cells: Cell[]) {
@@ -151,8 +174,6 @@ export default class BoardCanvas extends Board {
 		ctx.strokeStyle = "rgba(0, 0, 255, 0.5)";
 		this._drawPolyline(score.road);
 
-		ctx.textAlign = "center";
-		ctx.textBaseline = "middle";
 		ctx.font = "14px sans-serif";
 		ctx.fillStyle = "red";
 
@@ -168,7 +189,7 @@ export default class BoardCanvas extends Board {
 	}
 
 	_build() {
-		this._pendingTiles = new Map();
+		this._pendingCells = [];
 
 		let node = html.node("div", {className:"board"});
 
@@ -182,6 +203,8 @@ export default class BoardCanvas extends Board {
 		document.body.style.setProperty("--board-width", PX);
 
 		const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+		ctx.textAlign = "center";
+		ctx.textBaseline = "middle";
 		ctx.scale(DPR, DPR);
 		this._ctx = ctx;
 

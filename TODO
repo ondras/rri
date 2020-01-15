@@ -6,4 +6,15 @@
 - pwa
 - lakes
 - controls/help
-- canvas round number
+
+
+intro:
+  - start single, volba typu
+  - start multi, volba parametru
+
+
+outro:
+  - score
+  - board
+  - download as image
+  - play again

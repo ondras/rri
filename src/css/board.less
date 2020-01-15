@@ -1,2 +1,17 @@
 @import "board-table.less";
 @import "board-canvas.less";
+
+.board {
+	.round {
+		--size: calc(1px * var(--round-size));
+		position: absolute;
+		right: 0;
+		top: 0;
+		width: var(--size);
+		height: var(--size);
+		line-height: var(--size);
+		background-color: var(--round-bg);
+		text-align: center;
+		font: var(--round-font);
+	}
+}

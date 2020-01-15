@@ -33,6 +33,7 @@ async function play() {
 		let round = new Round(num, board, bonusPool);
 		parent.insertBefore(round.node, board.node);
 		await round.start("");
+		board.commit();
 		round.node.remove();
 		num++;
 	}

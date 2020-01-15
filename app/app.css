@@ -52,18 +52,6 @@ table.board td.signal::after {
   bottom: 0;
   box-shadow: inset 0 0 5px 5px lime;
 }
-table.board td .round {
-  --size: calc(1px * var(--round-size));
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: var(--size);
-  height: var(--size);
-  line-height: var(--size);
-  background-color: var(--round-bg);
-  text-align: center;
-  font: var(--round-font);
-}
 table.board td.center {
   background-color: var(--center-bg);
   --suffix: inset red;
@@ -117,14 +105,26 @@ div.board {
 div.board canvas {
   display: block;
 }
-div.board .tile,
+div.board .cell,
 div.board .signal {
   position: absolute;
-}
-div.board .signal {
   width: calc(var(--tile-size) * 1px);
   height: calc(var(--tile-size) * 1px);
+}
+div.board .signal {
   box-shadow: inset 0 0 5px 5px lime;
+}
+.board .round {
+  --size: calc(1px * var(--round-size));
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: var(--size);
+  height: var(--size);
+  line-height: var(--size);
+  background-color: var(--round-bg);
+  text-align: center;
+  font: var(--round-font);
 }
 .pool {
   display: flex;
@@ -192,8 +192,12 @@ footer {
 footer ul {
   list-style: none;
   display: flex;
+  flex-flow: row wrap;
   justify-content: center;
   padding: 0;
+}
+footer li {
+  white-space: nowrap;
 }
 footer li + li::before {
   content: "•";

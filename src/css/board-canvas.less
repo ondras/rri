@@ -3,11 +3,13 @@ div.board {
 
 	canvas { display: block; }
 
-	.tile, .signal { position: absolute; }
-
-	.signal {
+	.cell, .signal {
+		position: absolute;
 		width: calc(var(--tile-size) * 1px);
 		height: calc(var(--tile-size) * 1px);
+	}
+
+	.signal {
 		.-signal(lime);
 	}
 }
