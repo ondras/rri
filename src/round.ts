@@ -61,6 +61,16 @@ export default class Round {
 		});
 	}
 
+	end() {
+		this._board.commit();
+
+		function noop() {};
+		this._pool.onClick = noop;
+		this._bonusPool.onClick = noop;
+		this._board.onClick = noop;
+		this._board.onHold = noop;
+	}
+
 	_onPoolClick(dice: Dice) {
 		if (this._pending == dice) {
 			this._pending = null;

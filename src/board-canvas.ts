@@ -75,7 +75,9 @@ export default class BoardCanvas extends Board {
 				if (x === null || y === null) { return; }
 
 				let cell = this._cells.at(x, y);
-				this.onClick(cell);
+
+				// firefox bug: does not fire pointerup otherwise
+				setTimeout(() => this.onClick(cell), 0);
 
 				function removeEvent() { window.removeEventListener(UP, cancelHold); }
 
@@ -180,7 +182,7 @@ export default class BoardCanvas extends Board {
 		score.deadends.forEach(deadend => {
 			let pxx = cellToPx(deadend.cell.x) + TILE/2;
 			let pxy = cellToPx(deadend.cell.y) + TILE/2;
-			const offset = TILE/2 + 8;
+			const offset = TILE/2 + 10;
 			let vec = Vector[deadend.direction];
 			pxx += vec[0]*offset;
 			pxy += vec[1]*offset;
@@ -293,7 +295,7 @@ export default class BoardCanvas extends Board {
 				} else if (outDir !== null) {
 					let vec = Vector[outDir];
 					let endpoint = [cx + TILE/2*vec[0], cy + TILE/2*vec[1]];
-					ctx.arcTo(cx, cy, endpoint[0], endpoint[1], 10);
+					ctx.arcTo(cx, cy, endpoint[0], endpoint[1], 12);
 				}
 			}
 		});

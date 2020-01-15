@@ -42,6 +42,15 @@ export default class Round {
             this._end.addEventListener(DOWN, () => resolve());
         });
     }
+    end() {
+        this._board.commit();
+        function noop() { }
+        ;
+        this._pool.onClick = noop;
+        this._bonusPool.onClick = noop;
+        this._board.onClick = noop;
+        this._board.onHold = noop;
+    }
     _onPoolClick(dice) {
         if (this._pending == dice) {
             this._pending = null;
