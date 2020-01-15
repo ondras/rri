@@ -18,7 +18,6 @@ function gameOver() {
 	let s = board.getScore();
 	board.showScore(s);
 	let table = score.render(s);
-	console.log(board.getScore())
 	main.insertBefore(table, main.firstChild);
 	while (table.nextSibling && table.nextSibling != board.node) { table.nextSibling.remove(); }
 }
@@ -52,12 +51,6 @@ function init() {
 	start.addEventListener(DOWN, () => play());
 
 	menu.appendChild(html.node("span", {className:"rounds"}, `Rounds: ${MAX_ROUNDS}`));
-
-	menu.appendChild(html.node("span", {className:"dummy"}));
-	menu.appendChild(html.node("span", {className:"dummy"}));
-
-	menu.appendChild(html.node("a", {href:"https://github.com/ondras/rri/issues", target:"_blank"}, "Report issue"));
-	menu.appendChild(html.node("a", {href:"https://www.horrible-games.com/wp-content/uploads/2018/07/RRI_BLU_Rulebook_ENG_v05_light.pdf", target:"_blank"}, "Read rules"));
 
 	/**
 	board.place(new Tile("rail-i", "1"), 1, 2, 0);

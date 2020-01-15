@@ -20,17 +20,16 @@ table.board {
 		}
 
 		.round {
-			--size: 18px;
+			--size: calc(1px * var(--round-size));
 			position: absolute;
 			right: 0;
 			top: 0;
 			width: var(--size);
 			height: var(--size);
 			line-height: var(--size);
-			background-color: rgba(255, 255, 255, 0.5);
+			background-color: var(--round-bg);
 			text-align: center;
-			font-family: cursive;
-			font-size: 14px;
+			font: var(--round-font);
 		}
 
 		&.center {

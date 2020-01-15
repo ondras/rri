@@ -12,11 +12,6 @@ main {
   flex-direction: column;
   align-items: center;
 }
-footer {
-  text-align: center;
-  border-top: 1px solid #000;
-  padding: 8px 0;
-}
 .tile {
   transition: all 300ms;
   width: calc(var(--tile-size) * 1px);
@@ -33,6 +28,9 @@ button {
   --center-bg: rgba(255, 255, 255, 0.2);
   --border-thick: 3;
   --border-thin: 1;
+  --round-bg: rgba(255, 255, 255, 0.5);
+  --round-size: 18;
+  --round-font: 14px cursive;
 }
 table.board {
   border-collapse: collapse;
@@ -55,17 +53,16 @@ table.board td.signal::after {
   box-shadow: inset 0 0 5px 5px lime;
 }
 table.board td .round {
-  --size: 18px;
+  --size: calc(1px * var(--round-size));
   position: absolute;
   right: 0;
   top: 0;
   width: var(--size);
   height: var(--size);
   line-height: var(--size);
-  background-color: rgba(255, 255, 255, 0.5);
+  background-color: var(--round-bg);
   text-align: center;
-  font-family: cursive;
-  font-size: 14px;
+  font: var(--round-font);
 }
 table.board td.center {
   background-color: var(--center-bg);
@@ -188,4 +185,17 @@ div.board .signal {
 .menu button {
   font-weight: bold;
   height: var(--size);
+}
+footer {
+  border-top: 1px solid #000;
+}
+footer ul {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  padding: 0;
+}
+footer li + li::before {
+  content: "•";
+  margin: 0 0.5em;
 }
