@@ -271,7 +271,7 @@ function shapeFromTemplate(template) {
     let canvas = html.node("canvas");
     let ctx = new DrawContext(canvas);
     template.render(ctx);
-    let image = html.node("img", { src: canvas.toDataURL("image/png") });
+    let image = html.node("img", { alt: "tile", src: canvas.toDataURL("image/png") });
     return {
         edges: template.edges,
         transforms: getTransforms(template.edges),

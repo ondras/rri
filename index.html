@@ -1,8 +1,11 @@
 <!doctype html>
-<html>
+<html lang="en">
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width" />
+		<meta name="theme-color" content="#def" />
+
+		<link rel="manifest" href="manifest.webmanifest" />
 		<link rel="stylesheet" href="app/app.css" />
 		<title>Railroad Ink</title>
 	</head>
@@ -18,5 +21,6 @@
 			</ul>
 		</footer>
 		<script type="module" src="app/game.js"></script>
+		<script>navigator.serviceWorker.register("sw.js");</script>
 	</body>
-</html>
+</html >

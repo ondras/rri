@@ -1,0 +1,8 @@
+{
+	"name": "Railroad Ink",
+	"short_name": "Railroad Ink",
+	"start_url": ".",
+	"display": "standalone",
+	"theme_color": "#def",
+	"background_color": "#def"
+}
