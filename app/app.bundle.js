@@ -586,7 +586,10 @@ class Tile {
                 errors++;
             }
         });
-        return (errors == 0 && connections > 0);
+        if (errors > 0) {
+            return 0;
+        }
+        return connections;
     }
 }
 
@@ -877,10 +880,17 @@ class Board {
             return neighbor.getEdge(clamp(dir + 2)).type;
         });
         let clone = tile.clone();
+        function compare(t1, t2) {
+            clone.transform = t1;
+            let c1 = clone.fitsNeighbors(neighborEdges);
+            clone.transform = t2;
+            let c2 = clone.fitsNeighbors(neighborEdges);
+            return c2 - c1;
+        }
         return tile.getTransforms().filter(t => {
             clone.transform = t;
             return clone.fitsNeighbors(neighborEdges);
-        });
+        }).sort(compare);
     }
     _placeInitialTiles() {
         this._cells.forEach(cell => {
@@ -1424,7 +1434,6 @@ class Round {
     }
 }
 
-// import Tile from "./tile.js";
 const dataset = document.body.dataset;
 let board;
 let blob = null;
@@ -1489,7 +1498,9 @@ function init() {
     document.querySelector("[name=again]").addEventListener(DOWN, () => goIntro());
     document.querySelector("[name=download]").addEventListener(DOWN, e => download(e.target));
     goIntro();
-    /**
+    /**/
+    if (!board)
+        return;
     board.place(new Tile("rail-i", "1"), 1, 2, 0);
     board.place(new Tile("road-i", "0"), 2, 1, 0);
     board.place(new Tile("bridge", "0"), 2, 2, 0);
@@ -1499,7 +1510,6 @@ function init() {
     board.place(new Tile("cross-road-rail-rail-rail", "2"), 4, 3, 0);
     board.place(new Tile("cross-rail", "0"), 4, 2, 0);
     board.place(new Tile("rail-i", "0"), 4, 1, 0);
-
     board.place(new Tile("cross-road", "0"), 4, 4, 0);
     board.place(new Tile("cross-road", "0"), 5, 4, 0);
     board.place(new Tile("cross-road", "0"), 6, 4, 0);

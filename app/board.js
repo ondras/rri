@@ -60,10 +60,17 @@ export default class Board {
             return neighbor.getEdge(clamp(dir + 2)).type;
         });
         let clone = tile.clone();
+        function compare(t1, t2) {
+            clone.transform = t1;
+            let c1 = clone.fitsNeighbors(neighborEdges);
+            clone.transform = t2;
+            let c2 = clone.fitsNeighbors(neighborEdges);
+            return c2 - c1;
+        }
         return tile.getTransforms().filter(t => {
             clone.transform = t;
             return clone.fitsNeighbors(neighborEdges);
-        });
+        }).sort(compare);
     }
     _placeInitialTiles() {
         this._cells.forEach(cell => {

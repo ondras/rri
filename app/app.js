@@ -4,7 +4,7 @@ import { BonusPool } from "./pool.js";
 import * as score from "./score.js";
 import * as html from "./html.js";
 import { DOWN } from "./event.js";
-// import Tile from "./tile.js";
+import Tile from "./tile.js";
 const dataset = document.body.dataset;
 let board;
 let blob = null;
@@ -69,7 +69,9 @@ function init() {
     document.querySelector("[name=again]").addEventListener(DOWN, () => goIntro());
     document.querySelector("[name=download]").addEventListener(DOWN, e => download(e.target));
     goIntro();
-    /**
+    /**/
+    if (!board)
+        return;
     board.place(new Tile("rail-i", "1"), 1, 2, 0);
     board.place(new Tile("road-i", "0"), 2, 1, 0);
     board.place(new Tile("bridge", "0"), 2, 2, 0);
@@ -79,7 +81,6 @@ function init() {
     board.place(new Tile("cross-road-rail-rail-rail", "2"), 4, 3, 0);
     board.place(new Tile("cross-rail", "0"), 4, 2, 0);
     board.place(new Tile("rail-i", "0"), 4, 1, 0);
-
     board.place(new Tile("cross-road", "0"), 4, 4, 0);
     board.place(new Tile("cross-road", "0"), 5, 4, 0);
     board.place(new Tile("cross-road", "0"), 6, 4, 0);

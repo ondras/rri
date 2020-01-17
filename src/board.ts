@@ -3,6 +3,7 @@ import { clamp, all as allDirections, Vector } from "./direction.js";
 import { NONE } from "./edge.js";
 import { Score, get as getScore } from "./score.js";
 import CellRepo, { Cell } from "./cell-repo.js";
+import { Transform } from "./transform.js";
 
 export default abstract class Board {
 	node: HTMLElement;
@@ -66,10 +67,19 @@ export default abstract class Board {
 		});
 
 		let clone = tile.clone();
+
+		function compare(t1: Transform, t2: Transform) {
+			clone.transform = t1;
+			let c1 = clone.fitsNeighbors(neighborEdges);
+			clone.transform = t2;
+			let c2 = clone.fitsNeighbors(neighborEdges);
+			return c2-c1;
+		}
+
 		return tile.getTransforms().filter(t => {
 			clone.transform = t;
 			return clone.fitsNeighbors(neighborEdges);
-		});
+		}).sort(compare);
 	}
 
 	_placeInitialTiles() {

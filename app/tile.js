@@ -51,6 +51,9 @@ export default class Tile {
                 errors++;
             }
         });
-        return (errors == 0 && connections > 0);
+        if (errors > 0) {
+            return 0;
+        }
+        return connections;
     }
 }
