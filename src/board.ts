@@ -15,6 +15,7 @@ export default abstract class Board {
 
 	abstract _build(): HTMLElement;
 	abstract signal(cells: Cell[]): void;
+	abstract async toBlob(): Promise<Blob | null>;
 	showScore(score: Score) { console.log(score); }
 	onClick(cell: Cell) { console.log(cell); }
 	onHold(cell: Cell) {  console.log(cell); }

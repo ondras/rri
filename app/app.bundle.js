@@ -1073,6 +1073,12 @@ class BoardCanvas extends Board {
             ctx.fillText("✘", pxx, pxy);
         });
     }
+    toBlob() {
+        const ctx = this._ctx;
+        return new Promise(resolve => {
+            ctx.canvas.toBlob(resolve);
+        });
+    }
     _build() {
         this._pendingCells = [];
         let node$1 = node("div", { className: "board" });
@@ -1300,8 +1306,6 @@ class BonusPool extends Pool {
     unlock() {
         this._locked = false;
     }
-    disableAll() { this._dices.forEach(d => d.disabled = true); }
-    enableAll() { this._dices.forEach(d => d.disabled = false); }
 }
 
 const DEMO = ["bridge", "rail-i", "road-i", "rail-road-l", "rail-road-i", "rail-t", "road-l", "rail-l", "road-t"];
@@ -1318,7 +1322,7 @@ class Round {
         this.node = this._pool.node;
         this._end.textContent = `End round #${this._num}`;
     }
-    start(type = "") {
+    start(type = "normal") {
         this._pool.onClick = dice => this._onPoolClick(dice);
         this._bonusPool.onClick = dice => this._onPoolClick(dice);
         this._board.onClick = cell => this._onBoardClick(cell);
@@ -1421,44 +1425,70 @@ class Round {
 }
 
 // import Tile from "./tile.js";
-const main = document.querySelector("main");
-let board = new BoardCanvas();
-let bonusPool = new BonusPool();
-let menu = node("div", { className: "menu" });
-const MAX_ROUNDS = 7;
-function gameOver() {
+const dataset = document.body.dataset;
+let board;
+let blob = null;
+function download(parent) {
+    if (!blob) {
+        return;
+    }
+    const href = URL.createObjectURL(blob);
+    let a = node("a", { href, download: "railroad-ink.png" });
+    parent.appendChild(a);
+    a.click();
+    a.remove();
+}
+async function goOutro() {
+    dataset.stage = "outro";
+    if (!board) {
+        return;
+    }
     let s = board.getScore();
     board.showScore(s);
-    let table = render(s);
-    main.insertBefore(table, main.firstChild);
-    while (table.nextSibling && table.nextSibling != board.node) {
-        table.nextSibling.remove();
-    }
+    const placeholder = document.querySelector("#outro div");
+    placeholder.innerHTML = "";
+    placeholder.appendChild(render(s));
+    blob = null;
+    blob = await board.toBlob();
 }
-async function play() {
-    bonusPool.enableAll();
-    menu.remove();
+function goIntro() {
+    dataset.stage = "intro";
+    let newBoard = new BoardCanvas();
+    if (board) {
+        board.node.replaceWith(newBoard.node);
+    }
+    else {
+        const main = document.querySelector("main");
+        main.appendChild(newBoard.node);
+    }
+    board = newBoard;
+}
+async function goGame(type) {
+    dataset.stage = "game";
+    if (!board) {
+        return;
+    }
+    const maxRounds = (type == "normal" ? 7 : 6);
+    const parent = document.querySelector("#game");
+    parent.innerHTML = "";
+    const bonusPool = new BonusPool();
+    parent.appendChild(bonusPool.node);
     let num = 1;
-    let parent = board.node.parentNode;
-    while (num <= MAX_ROUNDS) {
+    while (num <= maxRounds) {
         let round = new Round(num, board, bonusPool);
-        parent.insertBefore(round.node, board.node);
-        await round.start("");
+        parent.appendChild(round.node);
+        await round.start(type);
         round.end();
         round.node.remove();
         num++;
     }
-    gameOver();
+    goOutro();
 }
 function init() {
-    main.appendChild(bonusPool.node);
-    main.appendChild(menu);
-    main.appendChild(board.node);
-    bonusPool.disableAll();
-    let start = node("button", {}, "Start the game");
-    menu.appendChild(start);
-    start.addEventListener(DOWN, () => play());
-    menu.appendChild(node("span", { className: "rounds" }, `Rounds: ${MAX_ROUNDS}`));
+    document.querySelector("[name=start-normal]").addEventListener(DOWN, () => goGame("normal"));
+    document.querySelector("[name=again]").addEventListener(DOWN, () => goIntro());
+    document.querySelector("[name=download]").addEventListener(DOWN, e => download(e.target));
+    goIntro();
     /**
     board.place(new Tile("rail-i", "1"), 1, 2, 0);
     board.place(new Tile("road-i", "0"), 2, 1, 0);
@@ -1482,8 +1512,6 @@ function init() {
     board.place(new Tile("cross-road", "0"), 6, 6, 0);
     board.place(new Tile("rail-road-i", "1"), 7, 6, 0);
     board.commit();
-
-    gameOver();
     /**/
 }
 init();

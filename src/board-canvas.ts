@@ -190,6 +190,13 @@ export default class BoardCanvas extends Board {
 		});
 	}
 
+	toBlob(): Promise<Blob | null> {
+		const ctx = this._ctx;
+		return new Promise(resolve => {
+			ctx.canvas.toBlob(resolve);
+		});
+	}
+
 	_build() {
 		this._pendingCells = [];
 

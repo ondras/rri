@@ -1,0 +1,24 @@
+#outro {
+	min-width: var(--board-width);
+	.-menu;
+
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+
+	.score {
+		border-collapse: collapse;
+
+		td:last-child {
+			text-align: right;
+			padding-left: 1ch;
+		}
+
+		tfoot td {
+			border-top: 3px double #000;
+			font-size: 120%;
+
+			&:last-child { font-weight: bold; }
+		}
+	}
+}

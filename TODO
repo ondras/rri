@@ -1,17 +1,6 @@
 - signalizovat vypouzivany bonus pool?
-- download as image
 - multiplayer
 - lakes
 - controls/help
-
-
-intro:
-  - start single, volba typu
-  - start multi, volba parametru
-
-
-outro:
-  - score
-  - board
-  - download as image
-  - play again
+- autoplay
+- smarter auto-transform

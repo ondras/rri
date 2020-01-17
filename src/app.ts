@@ -6,52 +6,81 @@ import * as html from "./html.js";
 import { DOWN } from "./event.js";
 // import Tile from "./tile.js";
 
-const main = document.querySelector("main") as HTMLElement;
-let board = new Board();
-let bonusPool = new BonusPool();
-let menu = html.node("div", {className:"menu"});
+const dataset = document.body.dataset;
+let board: Board | undefined;
+let blob: Blob | null = null;
 
+function download(parent: HTMLElement) {
+	if (!blob) { return; }
 
-const MAX_ROUNDS = 7;
+	const href = URL.createObjectURL(blob);
 
-function gameOver() {
-	let s = board.getScore();
-	board.showScore(s);
-	let table = score.render(s);
-	main.insertBefore(table, main.firstChild);
-	while (table.nextSibling && table.nextSibling != board.node) { table.nextSibling.remove(); }
+	let a = html.node("a", {href, download:"railroad-ink.png"});
+	parent.appendChild(a);
+	a.click();
+	a.remove();
 }
 
-async function play() {
-	bonusPool.enableAll();
-	menu.remove();
+async function goOutro() {
+	dataset.stage = "outro";
+	if (!board) { return; }
+
+	let s = board.getScore();
+	board.showScore(s);
+
+	const placeholder = document.querySelector("#outro div") as HTMLElement;
+	placeholder.innerHTML = "";
+	placeholder.appendChild(score.render(s));
+
+	blob = null;
+	blob = await board.toBlob();
+}
+
+function goIntro() {
+	dataset.stage = "intro";
+
+	let newBoard = new Board();
+
+	if (board) {
+		board.node.replaceWith(newBoard.node);
+	} else {
+		const main = document.querySelector("main") as HTMLElement;
+		main.appendChild(newBoard.node);
+	}
+
+	board = newBoard;
+}
+
+async function goGame(type: string) {
+	dataset.stage = "game";
+	if (!board) { return; }
+
+	const maxRounds = (type == "normal" ? 7 : 6);
+
+	const parent = document.querySelector("#game") as HTMLElement;
+	parent.innerHTML = "";
+
+	const bonusPool = new BonusPool();
+	parent.appendChild(bonusPool.node);
 
 	let num = 1;
-	let parent = board.node.parentNode as HTMLElement;
-
-	while (num <= MAX_ROUNDS) {
+	while (num <= maxRounds) {
 		let round = new Round(num, board, bonusPool);
-		parent.insertBefore(round.node, board.node);
-		await round.start("");
+		parent.appendChild(round.node);
+		await round.start(type);
 		round.end();
 		round.node.remove();
 		num++;
 	}
 
-	gameOver();
+	goOutro();
 }
 
 function init() {
-	main.appendChild(bonusPool.node);
-	main.appendChild(menu);
-	main.appendChild(board.node);
-	bonusPool.disableAll();
-
-	let start = html.node("button", {}, "Start the game");
-	menu.appendChild(start);
-	start.addEventListener(DOWN, () => play());
-
-	menu.appendChild(html.node("span", {className:"rounds"}, `Rounds: ${MAX_ROUNDS}`));
+	(document.querySelector("[name=start-normal]") as HTMLElement).addEventListener(DOWN, () => goGame("normal"));
+	(document.querySelector("[name=again]") as HTMLElement).addEventListener(DOWN, () => goIntro());
+	(document.querySelector("[name=download]") as HTMLElement).addEventListener(DOWN, e => download(e.target as HTMLElement));
+	goIntro();
 
 	/**
 	board.place(new Tile("rail-i", "1"), 1, 2, 0);
@@ -76,8 +105,6 @@ function init() {
 	board.place(new Tile("cross-road", "0"), 6, 6, 0);
 	board.place(new Tile("rail-road-i", "1"), 7, 6, 0);
 	board.commit();
-
-	gameOver();
 	/**/
 }
 

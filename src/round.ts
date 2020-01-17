@@ -30,7 +30,7 @@ export default class Round {
 		this._end.textContent = `End round #${this._num}`;
 	}
 
-	start(type = "") {
+	start(type="normal") {
 		this._pool.onClick = dice => this._onPoolClick(dice);
 		this._bonusPool.onClick = dice => this._onPoolClick(dice);
 		this._board.onClick = cell => this._onBoardClick(cell);

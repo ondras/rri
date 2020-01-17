@@ -86,6 +86,4 @@ export class BonusPool extends Pool {
     unlock() {
         this._locked = false;
     }
-    disableAll() { this._dices.forEach(d => d.disabled = true); }
-    enableAll() { this._dices.forEach(d => d.disabled = false); }
 }
