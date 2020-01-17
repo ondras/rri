@@ -4,7 +4,7 @@ import { BonusPool } from "./pool.js";
 import * as score from "./score.js";
 import * as html from "./html.js";
 import { DOWN } from "./event.js";
- import Tile from "./tile.js";
+// import Tile from "./tile.js";
 
 const dataset = document.body.dataset;
 let board: Board | undefined;
@@ -82,7 +82,7 @@ function init() {
 	(document.querySelector("[name=download]") as HTMLElement).addEventListener(DOWN, e => download(e.target as HTMLElement));
 	goIntro();
 
-	/**/
+	/**
 	if (!board) return;
 	board.place(new Tile("rail-i", "1"), 1, 2, 0);
 	board.place(new Tile("road-i", "0"), 2, 1, 0);
