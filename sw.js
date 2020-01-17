@@ -1,20 +1,26 @@
 const CACHE_NAME = "offline";
+const urlsToCache = [".", "app/app.css", "app/app.bundle.js", "img/icon.svg"];
 
 async function precache() {
-	const urlsToCache = [".", "app/app.css"];
 	const cache = await caches.open(CACHE_NAME);
 	return cache.addAll(urlsToCache);
 };
 
 async function respondTo(request) {
-	const cache = await caches.open(CACHE_NAME);
-	try {
-		let response = await fetch(request);
-		await cache.put(request, response.clone());
-		return response;
-	} catch (e) {
-		const response = await cache.match(request);
-		return response || e;
+	let f = fetch(request);
+	const cached = await caches.match(request);
+
+	if (cached) { // try updating the cache first
+		try {
+			let response = await f;
+			let cache = await caches.open(CACHE_NAME);
+			cache.put(request, response.clone());
+			return response;
+		} catch (e) { // offline
+			return cached;
+		}
+	} else { // not cached, forward to network
+		return f;
 	}
 };
 

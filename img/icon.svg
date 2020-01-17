@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<svg xmlns="http://www.w3.org/2000/svg" width="64px" height="64px">
+	<g stroke="#000" stroke-width="2">
+		<rect x="1" y="1" rx="6" ry="6" width="62" height="62" fill="#def" />
+		<path d="M 0 32 L 64 32 M 25 0 L 25 64 M 39 0 L 39 64" />
+		<g stroke-dasharray="1 6" stroke-dashoffset="3" stroke-width="12">
+			<path d="M 0 32 L 32 32" />
+			<path d="M 64 32 L 32 32" />
+		</g>
+		<g stroke-dasharray="6 4" stroke-dashoffset="-3">
+			<path d="M 32 0 L 32 32" />
+			<path d="M 32 64 L 32 32" />
+		</g>
+	</g>
+	<rect x="23" y="23" width="18" height="18" fill="#000" />
+</svg>
