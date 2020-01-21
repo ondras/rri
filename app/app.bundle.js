@@ -60,7 +60,7 @@ const ROAD = 2;
 
 const BOARD = 7;
 const TILE = Number(getComputedStyle(document.body).getPropertyValue("--tile-size"));
-const HOLD = 400;
+const DBLCLICK = 400;
 
 const RAIL_TICK_WIDTH = 1;
 const LINE_WIDTH = 2;
@@ -831,7 +831,6 @@ class Board {
     }
     showScore(score) { console.log(score); }
     onClick(cell) { console.log(cell); }
-    onHold(cell) { console.log(cell); }
     commit() { }
     getScore() { return get$2(this._cells); }
     cycleTransform(x, y) {
@@ -934,7 +933,6 @@ class Board {
 }
 
 const DOWN = ("onpointerdown" in window ? "pointerdown" : "touchstart");
-const UP = ("onpointerdown" in window ? "pointerup" : "touchend");
 
 const DPR = devicePixelRatio;
 const BTILE = TILE / 2;
@@ -965,13 +963,9 @@ class BoardCanvas extends Board {
         super();
         this._signals = [];
         this.node.addEventListener(DOWN, this);
-        this.node.addEventListener("contextmenu", this);
     }
     handleEvent(e) {
         switch (e.type) {
-            case "contextmenu":
-                e.preventDefault();
-                break;
             case DOWN:
                 let pxx = null;
                 let pxy = null;
@@ -992,18 +986,7 @@ class BoardCanvas extends Board {
                     return;
                 }
                 let cell = this._cells.at(x, y);
-                // firefox bug: does not fire pointerup otherwise
-                setTimeout(() => this.onClick(cell), 0);
-                function removeEvent() { window.removeEventListener(UP, cancelHold); }
-                function cancelHold() {
-                    clearTimeout(timeout);
-                    removeEvent();
-                }
-                let timeout = setTimeout(() => {
-                    this.onHold(cell);
-                    removeEvent();
-                }, HOLD);
-                window.addEventListener(UP, cancelHold);
+                this.onClick(cell);
                 break;
         }
     }
@@ -1325,6 +1308,7 @@ class Round {
         this._pending = null;
         this._end = node("button");
         this._placedTiles = new Map();
+        this._lastClickTs = 0;
         this._num = num;
         this._board = board;
         this._bonusPool = bonusPool;
@@ -1336,7 +1320,6 @@ class Round {
         this._pool.onClick = dice => this._onPoolClick(dice);
         this._bonusPool.onClick = dice => this._onPoolClick(dice);
         this._board.onClick = cell => this._onBoardClick(cell);
-        this._board.onHold = cell => this._onBoardHold(cell);
         switch (type) {
             case "demo":
                 DEMO.map(type => Dice.withTile(type, "0"))
@@ -1364,7 +1347,6 @@ class Round {
         this._pool.onClick = noop;
         this._bonusPool.onClick = noop;
         this._board.onClick = noop;
-        this._board.onHold = noop;
     }
     _onPoolClick(dice) {
         if (this._pending == dice) {
@@ -1382,38 +1364,19 @@ class Round {
         }
     }
     _onBoardClick(cell) {
-        const x = cell.x;
-        const y = cell.y;
-        if (this._pending) {
-            let tile = this._pending.tile;
-            let available = this._board.getAvailableCells(tile);
-            if (!available.includes(cell)) {
-                return false;
-            }
-            let clone = tile.clone();
-            this._board.placeBest(clone, x, y, this._num);
-            this._board.signal([]);
-            this._pool.pending(null);
-            this._bonusPool.pending(null);
-            this._pool.disable(this._pending);
-            this._bonusPool.disable(this._pending);
-            this._placedTiles.set(clone, this._pending);
-            this._pending = null;
-            this._syncEnd();
+        const ts = Date.now();
+        if (ts - this._lastClickTs < DBLCLICK) {
+            this._tryToRemove(cell);
+        }
+        else if (this._pending) {
+            this._tryToAdd(cell);
         }
         else {
-            let tile = cell.tile;
-            if (!tile) {
-                return;
-            }
-            if (!this._placedTiles.has(tile)) {
-                return;
-            }
-            this._board.cycleTransform(x, y);
-            this._syncEnd();
+            this._tryToCycle(cell);
+            this._lastClickTs = ts;
         }
     }
-    _onBoardHold(cell) {
+    _tryToRemove(cell) {
         let tile = cell.tile;
         if (!tile) {
             return;
@@ -1426,6 +1389,39 @@ class Round {
         this._board.place(null, cell.x, cell.y, 0);
         this._pool.enable(dice);
         this._bonusPool.enable(dice);
+        this._syncEnd();
+    }
+    _tryToAdd(cell) {
+        if (!this._pending) {
+            return;
+        }
+        let tile = this._pending.tile;
+        let available = this._board.getAvailableCells(tile);
+        if (!available.includes(cell)) {
+            return false;
+        }
+        const x = cell.x;
+        const y = cell.y;
+        const clone = tile.clone();
+        this._board.placeBest(clone, x, y, this._num);
+        this._board.signal([]);
+        this._pool.pending(null);
+        this._bonusPool.pending(null);
+        this._pool.disable(this._pending);
+        this._bonusPool.disable(this._pending);
+        this._placedTiles.set(clone, this._pending);
+        this._pending = null;
+        this._syncEnd();
+    }
+    _tryToCycle(cell) {
+        let tile = cell.tile;
+        if (!tile) {
+            return;
+        }
+        if (!this._placedTiles.has(tile)) {
+            return;
+        }
+        this._board.cycleTransform(cell.x, cell.y);
         this._syncEnd();
     }
     _syncEnd() {

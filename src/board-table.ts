@@ -2,9 +2,8 @@ import Tile from "./tile.js";
 import Board from "./board.js";
 import * as html from "./html.js";
 import { TILE } from "./conf.js";
-import { DOWN, UP } from "./event.js";
+import { DOWN } from "./event.js";
 import { Cell } from "./cell-repo.js";
-import { HOLD } from "./conf.js";
 
 export default class BoardTable extends Board {
 	node!: HTMLTableElement;
@@ -13,37 +12,16 @@ export default class BoardTable extends Board {
 		super();
 
 		this.node.addEventListener(DOWN, this);
-		this.node.addEventListener("contextmenu", this);
 	}
 
 	handleEvent(e: Event) {
 		switch (e.type) {
-			case "contextmenu": e.preventDefault(); break;
-
 			case DOWN:
 				let td = (e.target as HTMLElement).closest("td") as HTMLElement;
 				if (!td) { return; }
 
 				let cell = this._cellByNode(td);
 				cell && this.onClick(cell);
-
-				function removeEvents() {
-					td.removeEventListener(UP, cancelHold);
-					td.removeEventListener("pointerleave", cancelHold);
-				}
-
-				function cancelHold() {
-					clearTimeout(timeout);
-					removeEvents();
-				}
-
-				let timeout = setTimeout(() => {
-					this.onHold(cell);
-					removeEvents();
-				}, HOLD);
-
-				td.addEventListener(UP, cancelHold);
-				td.addEventListener("pointerleave", cancelHold);
 			break;
 		}
 	}

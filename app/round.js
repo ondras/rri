@@ -2,6 +2,7 @@ import Pool from "./pool.js";
 import Dice, { DICE_1, DICE_2, DICE_3, DICE_4 } from "./dice.js";
 import * as html from "./html.js";
 import { DOWN } from "./event.js";
+import { DBLCLICK } from "./conf.js";
 const DEMO = ["bridge", "rail-i", "road-i", "rail-road-l", "rail-road-i", "rail-t", "road-l", "rail-l", "road-t"];
 //const DEMO = ["bridge"];
 export default class Round {
@@ -9,6 +10,7 @@ export default class Round {
         this._pending = null;
         this._end = html.node("button");
         this._placedTiles = new Map();
+        this._lastClickTs = 0;
         this._num = num;
         this._board = board;
         this._bonusPool = bonusPool;
@@ -20,7 +22,6 @@ export default class Round {
         this._pool.onClick = dice => this._onPoolClick(dice);
         this._bonusPool.onClick = dice => this._onPoolClick(dice);
         this._board.onClick = cell => this._onBoardClick(cell);
-        this._board.onHold = cell => this._onBoardHold(cell);
         switch (type) {
             case "demo":
                 DEMO.map(type => Dice.withTile(type, "0"))
@@ -49,7 +50,6 @@ export default class Round {
         this._pool.onClick = noop;
         this._bonusPool.onClick = noop;
         this._board.onClick = noop;
-        this._board.onHold = noop;
     }
     _onPoolClick(dice) {
         if (this._pending == dice) {
@@ -67,38 +67,19 @@ export default class Round {
         }
     }
     _onBoardClick(cell) {
-        const x = cell.x;
-        const y = cell.y;
-        if (this._pending) {
-            let tile = this._pending.tile;
-            let available = this._board.getAvailableCells(tile);
-            if (!available.includes(cell)) {
-                return false;
-            }
-            let clone = tile.clone();
-            this._board.placeBest(clone, x, y, this._num);
-            this._board.signal([]);
-            this._pool.pending(null);
-            this._bonusPool.pending(null);
-            this._pool.disable(this._pending);
-            this._bonusPool.disable(this._pending);
-            this._placedTiles.set(clone, this._pending);
-            this._pending = null;
-            this._syncEnd();
+        const ts = Date.now();
+        if (ts - this._lastClickTs < DBLCLICK) {
+            this._tryToRemove(cell);
+        }
+        else if (this._pending) {
+            this._tryToAdd(cell);
         }
         else {
-            let tile = cell.tile;
-            if (!tile) {
-                return;
-            }
-            if (!this._placedTiles.has(tile)) {
-                return;
-            }
-            this._board.cycleTransform(x, y);
-            this._syncEnd();
+            this._tryToCycle(cell);
+            this._lastClickTs = ts;
         }
     }
-    _onBoardHold(cell) {
+    _tryToRemove(cell) {
         let tile = cell.tile;
         if (!tile) {
             return;
@@ -111,6 +92,39 @@ export default class Round {
         this._board.place(null, cell.x, cell.y, 0);
         this._pool.enable(dice);
         this._bonusPool.enable(dice);
+        this._syncEnd();
+    }
+    _tryToAdd(cell) {
+        if (!this._pending) {
+            return;
+        }
+        let tile = this._pending.tile;
+        let available = this._board.getAvailableCells(tile);
+        if (!available.includes(cell)) {
+            return false;
+        }
+        const x = cell.x;
+        const y = cell.y;
+        const clone = tile.clone();
+        this._board.placeBest(clone, x, y, this._num);
+        this._board.signal([]);
+        this._pool.pending(null);
+        this._bonusPool.pending(null);
+        this._pool.disable(this._pending);
+        this._bonusPool.disable(this._pending);
+        this._placedTiles.set(clone, this._pending);
+        this._pending = null;
+        this._syncEnd();
+    }
+    _tryToCycle(cell) {
+        let tile = cell.tile;
+        if (!tile) {
+            return;
+        }
+        if (!this._placedTiles.has(tile)) {
+            return;
+        }
+        this._board.cycleTransform(cell.x, cell.y);
         this._syncEnd();
     }
     _syncEnd() {

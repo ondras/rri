@@ -4,6 +4,7 @@
 h1,
 h2 {
   text-align: center;
+  margin-bottom: 0;
 }
 body {
   font-family: sans-serif;
@@ -49,7 +50,7 @@ button:disabled {
 }
 .-menu ul {
   list-style: none;
-  padding: 0;
+  padding: 0 8px;
   display: flex;
   width: 100%;
 }
@@ -77,9 +78,12 @@ button:disabled {
 #intro {
   min-width: var(--board-width);
 }
+#intro p {
+  text-align: center;
+}
 #intro ul {
   list-style: none;
-  padding: 0;
+  padding: 0 8px;
   display: flex;
   width: 100%;
 }
@@ -102,7 +106,7 @@ button:disabled {
 }
 #outro ul {
   list-style: none;
-  padding: 0;
+  padding: 0 8px;
   display: flex;
   width: 100%;
 }

@@ -11,7 +11,6 @@ export default class Board {
     }
     showScore(score) { console.log(score); }
     onClick(cell) { console.log(cell); }
-    onHold(cell) { console.log(cell); }
     commit() { }
     getScore() { return getScore(this._cells); }
     cycleTransform(x, y) {

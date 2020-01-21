@@ -19,7 +19,6 @@ export default abstract class Board {
 	abstract async toBlob(): Promise<Blob | null>;
 	showScore(score: Score) { console.log(score); }
 	onClick(cell: Cell) { console.log(cell); }
-	onHold(cell: Cell) {  console.log(cell); }
 	commit() {}
 	getScore() { return getScore(this._cells); }
 

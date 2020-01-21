@@ -5,6 +5,7 @@ import Tile from "./tile.js";
 import * as html from "./html.js";
 import { DOWN } from "./event.js";
 import { Cell } from "./cell-repo.js";
+import { DBLCLICK } from "./conf.js";
 
 const DEMO = ["bridge", "rail-i", "road-i", "rail-road-l", "rail-road-i", "rail-t", "road-l", "rail-l", "road-t"];
 //const DEMO = ["bridge"];
@@ -18,6 +19,7 @@ export default class Round {
 	_board: Board;
 	_end: HTMLButtonElement = html.node("button");
 	_placedTiles = new Map<Tile, Dice>();
+	_lastClickTs = 0;
 
 	constructor(num: number, board: Board, bonusPool: BonusPool) {
 		this._num = num;
@@ -34,7 +36,6 @@ export default class Round {
 		this._pool.onClick = dice => this._onPoolClick(dice);
 		this._bonusPool.onClick = dice => this._onPoolClick(dice);
 		this._board.onClick = cell => this._onBoardClick(cell);
-		this._board.onHold = cell => this._onBoardHold(cell);
 
 		switch (type) {
 			case "demo":
@@ -68,7 +69,6 @@ export default class Round {
 		this._pool.onClick = noop;
 		this._bonusPool.onClick = noop;
 		this._board.onClick = noop;
-		this._board.onHold = noop;
 	}
 
 	_onPoolClick(dice: Dice) {
@@ -87,37 +87,18 @@ export default class Round {
 	}
 
 	_onBoardClick(cell: Cell) {
-		const x = cell.x;
-		const y = cell.y;
-		if (this._pending) {
-			let tile = this._pending.tile;
-			let available = this._board.getAvailableCells(tile);
-			if (!available.includes(cell)) { return false; }
-
-			let clone = tile.clone();
-			this._board.placeBest(clone, x, y, this._num);
-			this._board.signal([]);
-
-			this._pool.pending(null);
-			this._bonusPool.pending(null);
-
-			this._pool.disable(this._pending);
-			this._bonusPool.disable(this._pending);
-
-			this._placedTiles.set(clone, this._pending);
-			this._pending = null;
-			this._syncEnd();
-
+		const ts = Date.now();
+		if (ts-this._lastClickTs < DBLCLICK) {
+			this._tryToRemove(cell);
+		} else if (this._pending) {
+			this._tryToAdd(cell);
 		} else {
-			let tile = cell.tile;
-			if (!tile) { return; }
-			if (!this._placedTiles.has(tile)) { return; }
-			this._board.cycleTransform(x, y);
-			this._syncEnd();
+			this._tryToCycle(cell);
+			this._lastClickTs = ts;
 		}
 	}
 
-	_onBoardHold(cell: Cell) {
+	_tryToRemove(cell: Cell) {
 		let tile = cell.tile;
 		if (!tile) { return; }
 
@@ -130,6 +111,40 @@ export default class Round {
 		this._pool.enable(dice);
 		this._bonusPool.enable(dice);
 
+		this._syncEnd();
+	}
+
+	_tryToAdd(cell: Cell) {
+		if (!this._pending) { return; }
+
+		let tile = this._pending.tile;
+		let available = this._board.getAvailableCells(tile);
+		if (!available.includes(cell)) { return false; }
+
+		const x = cell.x;
+		const y = cell.y;
+		const clone = tile.clone();
+		this._board.placeBest(clone, x, y, this._num);
+		this._board.signal([]);
+
+		this._pool.pending(null);
+		this._bonusPool.pending(null);
+
+		this._pool.disable(this._pending);
+		this._bonusPool.disable(this._pending);
+
+		this._placedTiles.set(clone, this._pending);
+		this._pending = null;
+		this._syncEnd();
+
+	}
+
+	_tryToCycle(cell: Cell) {
+		let tile = cell.tile;
+		if (!tile) { return; }
+		if (!this._placedTiles.has(tile)) { return; }
+
+		this._board.cycleTransform(cell.x, cell.y);
 		this._syncEnd();
 	}
 

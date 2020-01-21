@@ -1,9 +1,9 @@
 import Board from "./board.js";
 import * as html from "./html.js";
-import { DOWN, UP } from "./event.js";
+import { DOWN } from "./event.js";
 import Tile from "./tile.js";
 import { Score } from "./score.js";
-import { BOARD, TILE, HOLD } from "./conf.js";
+import { BOARD, TILE } from "./conf.js";
 import { Cell } from "./cell-repo.js";
 import { N, E, S, W, Vector } from "./direction.js";
 
@@ -46,13 +46,10 @@ export default class BoardCanvas extends Board {
 		super();
 
 		this.node.addEventListener(DOWN, this);
-		this.node.addEventListener("contextmenu", this);
 	}
 
 	handleEvent(e: PointerEvent | TouchEvent) {
 		switch (e.type) {
-			case "contextmenu": e.preventDefault(); break;
-
 			case DOWN:
 				let pxx: number | null = null;
 				let pxy: number | null = null;
@@ -75,23 +72,7 @@ export default class BoardCanvas extends Board {
 				if (x === null || y === null) { return; }
 
 				let cell = this._cells.at(x, y);
-
-				// firefox bug: does not fire pointerup otherwise
-				setTimeout(() => this.onClick(cell), 0);
-
-				function removeEvent() { window.removeEventListener(UP, cancelHold); }
-
-				function cancelHold() {
-					clearTimeout(timeout);
-					removeEvent();
-				}
-
-				let timeout = setTimeout(() => {
-					this.onHold(cell);
-					removeEvent();
-				}, HOLD);
-
-				window.addEventListener(UP, cancelHold);
+				this.onClick(cell);
 			break;
 		}
 	}
