@@ -40,7 +40,9 @@ export default class Round {
         this._syncEnd();
         this._bonusPool.unlock();
         return new Promise(resolve => {
-            this._end.addEventListener(DOWN, () => resolve());
+            this._end.addEventListener(DOWN, () => {
+                !this._end.disabled && resolve();
+            });
         });
     }
     end() {
