@@ -4,6 +4,8 @@ export const DICE_1 = ["road-i", "rail-i", "road-l", "rail-l", "road-t", "rail-t
 export const DICE_2 = DICE_1;
 export const DICE_3 = DICE_1;
 export const DICE_4 = ["bridge", "bridge", "rail-road-i", "rail-road-i", "rail-road-l", "rail-road-l"];
+export const DICE_LAKE_1 = ["lake-1", "lake-2", "lake-3", "lake-rail", "lake-road", "lake-rail-road"];
+export const DICE_LAKE_2 = DICE_LAKE_1;
 export default class Dice {
     constructor(tile) {
         this.node = html.node("div", { className: "dice" });

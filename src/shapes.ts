@@ -1,6 +1,6 @@
 import { Transform, get as getTransform, all as allTransforms } from "./transform.js";
 import { N, E, S, W, all as allDirections } from "./direction.js";
-import { Edge, NONE, RAIL, ROAD } from "./edge.js";
+import { Edge, NONE, RAIL, ROAD, LAKE } from "./edge.js";
 import DrawContext from "./draw-context.js";
 import * as html from "./html.js";
 
@@ -290,6 +290,93 @@ const templates: {[id:string]: ShapeTemplate} = {
 			ctx.roadTicks(S, 0.5);
 			ctx.roadTicks(W, 0.5);
 		}
+	},
+
+	"lake-1": {
+		edges: [
+			{type:LAKE, connects: []},
+			{type:NONE, connects: []},
+			{type:NONE, connects: []},
+			{type:NONE, connects: []}
+		],
+
+		render(ctx: DrawContext) { console.log(ctx)	}
+	},
+
+	"lake-2": {
+		edges: [
+			{type:LAKE, connects: [E]},
+			{type:LAKE, connects: [N]},
+			{type:NONE, connects: []},
+			{type:NONE, connects: []}
+		],
+
+		render(ctx: DrawContext) { console.log(ctx)	}
+	},
+
+	"lake-3": {
+		edges: [
+			{type:LAKE, connects: [E, S]},
+			{type:LAKE, connects: [N, S]},
+			{type:LAKE, connects: [N, E]},
+			{type:NONE, connects: []}
+		],
+
+		render(ctx: DrawContext) { console.log(ctx)	}
+	},
+
+	"lake-4": {
+		edges: [
+			{type:LAKE, connects: [E, S, W]},
+			{type:LAKE, connects: [N, S, W]},
+			{type:LAKE, connects: [N, E, W]},
+			{type:LAKE, connects: [N, E, S]}
+		],
+
+		render(ctx: DrawContext) { console.log(ctx)	}
+	},
+
+	"lake-rail": {
+		edges: [
+			{type:LAKE, connects: [S]},
+			{type:NONE, connects: []},
+			{type:RAIL, connects: [N]},
+			{type:NONE, connects: []}
+		],
+
+		render(ctx: DrawContext) {
+			ctx.rail(S, 0.5);
+			ctx.station();
+		}
+	},
+
+	"lake-road": {
+		edges: [
+			{type:LAKE, connects: [S]},
+			{type:NONE, connects: []},
+			{type:ROAD, connects: [N]},
+			{type:NONE, connects: []}
+		],
+
+		render(ctx: DrawContext) {
+			ctx.road(S, 0.5);
+			ctx.station();
+		}
+	},
+
+	"lake-rail-road": {
+		edges: [
+			{type:LAKE, connects: [E, S, W]},
+			{type:LAKE, connects: [N, S, W]},
+			{type:ROAD, connects: [N, E, W]},
+			{type:RAIL, connects: [N, E, S]}
+		],
+
+		render(ctx: DrawContext) {
+			ctx.road(S, 0.5);
+			ctx.rail(W, 0.5);
+			ctx.station();
+		}
 	}
 };
 
@@ -329,6 +416,5 @@ function shapeFromTemplate(template: ShapeTemplate) {
 		image
 	}
 }
-
 
 Object.entries(templates).forEach(([k, v]) => repo[k] = shapeFromTemplate(v));
