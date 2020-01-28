@@ -300,7 +300,9 @@ const templates: {[id:string]: ShapeTemplate} = {
 			{type:NONE, connects: []}
 		],
 
-		render(ctx: DrawContext) { console.log(ctx)	}
+		render(ctx: DrawContext) {
+			ctx.lake([[0, 0], [1, 0], [.5, .5]]);
+		}
 	},
 
 	"lake-2": {
@@ -311,7 +313,9 @@ const templates: {[id:string]: ShapeTemplate} = {
 			{type:NONE, connects: []}
 		],
 
-		render(ctx: DrawContext) { console.log(ctx)	}
+		render(ctx: DrawContext) {
+			ctx.lake([[0, 0], [1, 0], [1, 1]]);
+		}
 	},
 
 	"lake-3": {
@@ -322,7 +326,9 @@ const templates: {[id:string]: ShapeTemplate} = {
 			{type:NONE, connects: []}
 		],
 
-		render(ctx: DrawContext) { console.log(ctx)	}
+		render(ctx: DrawContext) {
+			ctx.lake([[0, 0], [1, 0], [1, 1], [0, 1], [.5, .5]]);
+		}
 	},
 
 	"lake-4": {
@@ -333,7 +339,9 @@ const templates: {[id:string]: ShapeTemplate} = {
 			{type:LAKE, connects: [N, E, S]}
 		],
 
-		render(ctx: DrawContext) { console.log(ctx)	}
+		render(ctx: DrawContext) {
+			ctx.lake([[0, 0], [1, 0], [1, 1], [0, 1]]);
+		}
 	},
 
 	"lake-rail": {
@@ -345,6 +353,7 @@ const templates: {[id:string]: ShapeTemplate} = {
 		],
 
 		render(ctx: DrawContext) {
+			ctx.lake([[0, 0], [1, 0], [.5, .5]]);
 			ctx.rail(S, 0.5);
 			ctx.station();
 		}
@@ -359,6 +368,7 @@ const templates: {[id:string]: ShapeTemplate} = {
 		],
 
 		render(ctx: DrawContext) {
+			ctx.lake([[0, 0], [1, 0], [.5, .5]]);
 			ctx.road(S, 0.5);
 			ctx.station();
 		}
@@ -373,6 +383,7 @@ const templates: {[id:string]: ShapeTemplate} = {
 		],
 
 		render(ctx: DrawContext) {
+			ctx.lake([[0, 0], [1, 0], [1, 1]]);
 			ctx.road(S, 0.5);
 			ctx.rail(W, 0.5);
 			ctx.station();

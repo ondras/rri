@@ -77,7 +77,8 @@ export default class BoardCanvas extends Board {
         this.node.appendChild(node);
         this._pendingCells.push({ x, y, node, tile, round });
     }
-    commit() {
+    commit(round) {
+        super.commit(round);
         const ctx = this._ctx;
         ctx.save();
         ctx.setTransform(1, 0, 0, 1, 0, 0);

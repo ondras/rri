@@ -1,5 +1,6 @@
 import { Vector, clamp, N, E, S, W } from "./direction.js";
 import { TILE } from "./conf.js";
+import * as html from "./html.js";
 const RAIL_TICK_WIDTH = 1;
 const LINE_WIDTH = 2;
 const STATION = 18;
@@ -11,6 +12,34 @@ const RAIL_TICK_LARGE = [RAIL_TICK_WIDTH, 8];
 const ROAD_TICK = [6, 4];
 const STARTS = [[0.5, 0], [1, 0.5], [0.5, 1], [0, 0.5]];
 const TO_CENTER = Vector.map((_, i, all) => all[clamp(i + 2)]);
+function toAbs(p) {
+    return p.map($ => $ * TILE);
+}
+function createLakeCanvas() {
+    const N = 3;
+    const PX = 2;
+    const canvas = html.node("canvas");
+    canvas.width = canvas.height = N * PX;
+    const ctx = canvas.getContext("2d");
+    for (let i = 0; i < N; i++) {
+        for (let j = 0; j < N; j++) {
+            const H = 180 + ~~(Math.random() * (240 - 180));
+            const S = 100;
+            const V = 50 + ~~(Math.random() * (80 - 50));
+            ctx.fillStyle = `hsl(${H}, ${S}%, ${V}%)`;
+            console.log(ctx.fillStyle);
+            ctx.fillRect(i * PX, j * PX, PX, PX);
+        }
+    }
+    ctx.fillStyle = "#aaf";
+    ctx.fillRect(2, 2, 2, 2);
+    ctx.fillStyle = "#88f";
+    ctx.fillRect(0, 2, 2, 2);
+    ctx.fillStyle = "#ccf";
+    ctx.fillRect(2, 0, 2, 2);
+    return canvas;
+}
+const lakeCanvas = createLakeCanvas();
 export default class DrawContext {
     constructor(canvas) {
         canvas.width = canvas.height = TILE * devicePixelRatio;
@@ -36,9 +65,16 @@ export default class DrawContext {
         ctx.setLineDash(dash);
         ctx.lineDashOffset = offset;
     }
+    styleLake() {
+        const ctx = this._ctx;
+        this.styleLine();
+        ctx.lineWidth = RAIL_TICK_WIDTH;
+        ctx.fillStyle = ctx.createPattern(lakeCanvas, "repeat");
+    }
     station() {
         const ctx = this._ctx;
         let size = [ctx.canvas.width, ctx.canvas.height].map($ => $ / devicePixelRatio);
+        ctx.fillStyle = "#000";
         ctx.fillRect(size[0] / 2 - STATION / 2, size[1] / 2 - STATION / 2, STATION, STATION);
     }
     railCross() {
@@ -57,7 +93,7 @@ export default class DrawContext {
     roadTicks(edge, length) {
         const ctx = this._ctx;
         let pxLength = length * TILE;
-        let start = STARTS[edge].map($ => $ * TILE);
+        let start = toAbs(STARTS[edge]);
         let vec = TO_CENTER[edge];
         let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
         this.styleRoadTicks(ROAD_TICK, -3);
@@ -69,7 +105,7 @@ export default class DrawContext {
     railTicks(edge, length) {
         const ctx = this._ctx;
         let pxLength = length * TILE;
-        let start = STARTS[edge].map($ => $ * TILE);
+        let start = toAbs(STARTS[edge]);
         let vec = TO_CENTER[edge];
         let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
         if (length > 0.5) {
@@ -88,7 +124,7 @@ export default class DrawContext {
         this.styleLine();
         let pxLength = length * TILE;
         let vec = TO_CENTER[edge];
-        let start = STARTS[edge].map($ => $ * TILE);
+        let start = toAbs(STARTS[edge]);
         let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
         ctx.beginPath();
         ctx.moveTo(...start);
@@ -106,7 +142,7 @@ export default class DrawContext {
         let pxLength = length * TILE;
         diff *= ROAD_WIDTH / 2;
         let vec = TO_CENTER[edge];
-        let start = STARTS[edge].map($ => $ * TILE);
+        let start = toAbs(STARTS[edge]);
         let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
         ctx.beginPath();
         switch (edge) {
@@ -127,7 +163,7 @@ export default class DrawContext {
         const ctx = this._ctx;
         let pxLength = length * TILE;
         let vec = TO_CENTER[edge];
-        let start = STARTS[edge].map($ => $ * TILE);
+        let start = toAbs(STARTS[edge]);
         let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
         switch (edge) {
             case N:
@@ -182,11 +218,22 @@ export default class DrawContext {
     }
     redGlow(direction) {
         const ctx = this._ctx;
-        let point = STARTS[direction].map($ => $ * TILE);
+        let point = toAbs(STARTS[direction]);
         const R = 12;
         ctx.beginPath();
         ctx.arc(point[0], point[1], R, 0, Math.PI, false);
         ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
         ctx.fill();
+    }
+    lake(points) {
+        const ctx = this._ctx;
+        points.forEach((point, i) => {
+            point = toAbs(point);
+            (i ? ctx.lineTo(...point) : ctx.moveTo(...point));
+        });
+        ctx.closePath();
+        this.styleLake();
+        ctx.fill();
+        ctx.stroke();
     }
 }

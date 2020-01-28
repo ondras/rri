@@ -63,6 +63,13 @@ const BOARD = 7;
 const TILE = Number(getComputedStyle(document.body).getPropertyValue("--tile-size"));
 const DBLCLICK = 400;
 
+function node(name, attrs = {}, content) {
+    let node = document.createElement(name);
+    Object.assign(node, attrs);
+    content && (node.textContent = content);
+    return node;
+}
+
 const RAIL_TICK_WIDTH = 1;
 const LINE_WIDTH = 2;
 const STATION = 18;
@@ -74,6 +81,34 @@ const RAIL_TICK_LARGE = [RAIL_TICK_WIDTH, 8];
 const ROAD_TICK = [6, 4];
 const STARTS = [[0.5, 0], [1, 0.5], [0.5, 1], [0, 0.5]];
 const TO_CENTER = Vector.map((_, i, all) => all[clamp(i + 2)]);
+function toAbs(p) {
+    return p.map($ => $ * TILE);
+}
+function createLakeCanvas() {
+    const N = 3;
+    const PX = 2;
+    const canvas = node("canvas");
+    canvas.width = canvas.height = N * PX;
+    const ctx = canvas.getContext("2d");
+    for (let i = 0; i < N; i++) {
+        for (let j = 0; j < N; j++) {
+            const H = 180 + ~~(Math.random() * (240 - 180));
+            const S = 100;
+            const V = 50 + ~~(Math.random() * (80 - 50));
+            ctx.fillStyle = `hsl(${H}, ${S}%, ${V}%)`;
+            console.log(ctx.fillStyle);
+            ctx.fillRect(i * PX, j * PX, PX, PX);
+        }
+    }
+    ctx.fillStyle = "#aaf";
+    ctx.fillRect(2, 2, 2, 2);
+    ctx.fillStyle = "#88f";
+    ctx.fillRect(0, 2, 2, 2);
+    ctx.fillStyle = "#ccf";
+    ctx.fillRect(2, 0, 2, 2);
+    return canvas;
+}
+const lakeCanvas = createLakeCanvas();
 class DrawContext {
     constructor(canvas) {
         canvas.width = canvas.height = TILE * devicePixelRatio;
@@ -99,9 +134,16 @@ class DrawContext {
         ctx.setLineDash(dash);
         ctx.lineDashOffset = offset;
     }
+    styleLake() {
+        const ctx = this._ctx;
+        this.styleLine();
+        ctx.lineWidth = RAIL_TICK_WIDTH;
+        ctx.fillStyle = ctx.createPattern(lakeCanvas, "repeat");
+    }
     station() {
         const ctx = this._ctx;
         let size = [ctx.canvas.width, ctx.canvas.height].map($ => $ / devicePixelRatio);
+        ctx.fillStyle = "#000";
         ctx.fillRect(size[0] / 2 - STATION / 2, size[1] / 2 - STATION / 2, STATION, STATION);
     }
     railCross() {
@@ -120,7 +162,7 @@ class DrawContext {
     roadTicks(edge, length) {
         const ctx = this._ctx;
         let pxLength = length * TILE;
-        let start = STARTS[edge].map($ => $ * TILE);
+        let start = toAbs(STARTS[edge]);
         let vec = TO_CENTER[edge];
         let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
         this.styleRoadTicks(ROAD_TICK, -3);
@@ -132,7 +174,7 @@ class DrawContext {
     railTicks(edge, length) {
         const ctx = this._ctx;
         let pxLength = length * TILE;
-        let start = STARTS[edge].map($ => $ * TILE);
+        let start = toAbs(STARTS[edge]);
         let vec = TO_CENTER[edge];
         let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
         if (length > 0.5) {
@@ -151,7 +193,7 @@ class DrawContext {
         this.styleLine();
         let pxLength = length * TILE;
         let vec = TO_CENTER[edge];
-        let start = STARTS[edge].map($ => $ * TILE);
+        let start = toAbs(STARTS[edge]);
         let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
         ctx.beginPath();
         ctx.moveTo(...start);
@@ -169,7 +211,7 @@ class DrawContext {
         let pxLength = length * TILE;
         diff *= ROAD_WIDTH / 2;
         let vec = TO_CENTER[edge];
-        let start = STARTS[edge].map($ => $ * TILE);
+        let start = toAbs(STARTS[edge]);
         let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
         ctx.beginPath();
         switch (edge) {
@@ -190,7 +232,7 @@ class DrawContext {
         const ctx = this._ctx;
         let pxLength = length * TILE;
         let vec = TO_CENTER[edge];
-        let start = STARTS[edge].map($ => $ * TILE);
+        let start = toAbs(STARTS[edge]);
         let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
         switch (edge) {
             case N:
@@ -245,20 +287,24 @@ class DrawContext {
     }
     redGlow(direction) {
         const ctx = this._ctx;
-        let point = STARTS[direction].map($ => $ * TILE);
+        let point = toAbs(STARTS[direction]);
         const R = 12;
         ctx.beginPath();
         ctx.arc(point[0], point[1], R, 0, Math.PI, false);
         ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
         ctx.fill();
     }
-}
-
-function node(name, attrs = {}, content) {
-    let node = document.createElement(name);
-    Object.assign(node, attrs);
-    content && (node.textContent = content);
-    return node;
+    lake(points) {
+        const ctx = this._ctx;
+        points.forEach((point, i) => {
+            point = toAbs(point);
+            (i ? ctx.lineTo(...point) : ctx.moveTo(...point));
+        });
+        ctx.closePath();
+        this.styleLake();
+        ctx.fill();
+        ctx.stroke();
+    }
 }
 
 const repo$1 = {};
@@ -508,7 +554,9 @@ const templates = {
             { type: NONE, connects: [] },
             { type: NONE, connects: [] }
         ],
-        render(ctx) { console.log(ctx); }
+        render(ctx) {
+            ctx.lake([[0, 0], [1, 0], [.5, .5]]);
+        }
     },
     "lake-2": {
         edges: [
@@ -517,7 +565,9 @@ const templates = {
             { type: NONE, connects: [] },
             { type: NONE, connects: [] }
         ],
-        render(ctx) { console.log(ctx); }
+        render(ctx) {
+            ctx.lake([[0, 0], [1, 0], [1, 1]]);
+        }
     },
     "lake-3": {
         edges: [
@@ -526,7 +576,9 @@ const templates = {
             { type: LAKE, connects: [N, E] },
             { type: NONE, connects: [] }
         ],
-        render(ctx) { console.log(ctx); }
+        render(ctx) {
+            ctx.lake([[0, 0], [1, 0], [1, 1], [0, 1], [.5, .5]]);
+        }
     },
     "lake-4": {
         edges: [
@@ -535,7 +587,9 @@ const templates = {
             { type: LAKE, connects: [N, E, W] },
             { type: LAKE, connects: [N, E, S] }
         ],
-        render(ctx) { console.log(ctx); }
+        render(ctx) {
+            ctx.lake([[0, 0], [1, 0], [1, 1], [0, 1]]);
+        }
     },
     "lake-rail": {
         edges: [
@@ -545,6 +599,7 @@ const templates = {
             { type: NONE, connects: [] }
         ],
         render(ctx) {
+            ctx.lake([[0, 0], [1, 0], [.5, .5]]);
             ctx.rail(S, 0.5);
             ctx.station();
         }
@@ -557,6 +612,7 @@ const templates = {
             { type: NONE, connects: [] }
         ],
         render(ctx) {
+            ctx.lake([[0, 0], [1, 0], [.5, .5]]);
             ctx.road(S, 0.5);
             ctx.station();
         }
@@ -569,6 +625,7 @@ const templates = {
             { type: RAIL, connects: [N, E, S] }
         ],
         render(ctx) {
+            ctx.lake([[0, 0], [1, 0], [1, 1]]);
             ctx.road(S, 0.5);
             ctx.rail(W, 0.5);
             ctx.station();
@@ -650,6 +707,10 @@ class Tile {
         let errors = 0;
         neighborEdges.forEach((nEdge, dir) => {
             let ourEdge = this.getEdge(dir).type;
+            if (ourEdge == LAKE) {
+                connections++;
+                return;
+            }
             if (nEdge == NONE || ourEdge == NONE) {
                 return;
             }
@@ -905,8 +966,10 @@ class Board {
     }
     showScore(score) { console.log(score); }
     onClick(cell) { console.log(cell); }
-    commit() { }
     getScore() { return get$2(this._cells); }
+    commit(round) {
+        this._surroundLakes(round);
+    }
     cycleTransform(x, y) {
         let tile = this._cells.at(x, y).tile;
         if (!tile) {
@@ -944,14 +1007,7 @@ class Board {
         });
     }
     _getTransforms(tile, x, y) {
-        let neighborEdges = all.map(dir => {
-            let vector = Vector[dir];
-            let neighbor = this._cells.at(x + vector[0], y + vector[1]).tile;
-            if (!neighbor) {
-                return NONE;
-            }
-            return neighbor.getEdge(clamp(dir + 2)).type;
-        });
+        let neighborEdges = this._getNeighborEdges(x, y);
         let clone = tile.clone();
         function compare(t1, t2) {
             clone.transform = t1;
@@ -964,6 +1020,16 @@ class Board {
             clone.transform = t;
             return clone.fitsNeighbors(neighborEdges);
         }).sort(compare);
+    }
+    _getNeighborEdges(x, y) {
+        return all.map(dir => {
+            let vector = Vector[dir];
+            let neighbor = this._cells.at(x + vector[0], y + vector[1]).tile;
+            if (!neighbor) {
+                return NONE;
+            }
+            return neighbor.getEdge(clamp(dir + 2)).type;
+        });
     }
     _placeInitialTiles() {
         this._cells.forEach(cell => {
@@ -1002,7 +1068,22 @@ class Board {
             }
             this.place(tile, x, y, 0);
         });
-        this.commit();
+        this.commit(0);
+    }
+    _surroundLakes(round) {
+        const isSurrounded = (cell) => {
+            if (cell.tile || cell.border) {
+                return false;
+            }
+            let neighborEdges = this._getNeighborEdges(cell.x, cell.y);
+            return neighborEdges.filter(e => e == LAKE).length >= 3;
+        };
+        let surrounded = this._cells.filter(isSurrounded);
+        surrounded.forEach(cell => {
+            let tile = new Tile("lake-4", "0");
+            this.place(tile, cell.x, cell.y, round);
+        });
+        surrounded.length && this.commit(round);
     }
 }
 
@@ -1082,7 +1163,8 @@ class BoardCanvas extends Board {
         this.node.appendChild(node$1);
         this._pendingCells.push({ x, y, node: node$1, tile, round });
     }
-    commit() {
+    commit(round) {
+        super.commit(round);
         const ctx = this._ctx;
         ctx.save();
         ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -1258,21 +1340,10 @@ class BoardCanvas extends Board {
     }
 }
 
-const DICE_1 = ["road-i", "rail-i", "road-l", "rail-l", "road-t", "rail-t"];
-const DICE_2 = DICE_1;
-const DICE_3 = DICE_1;
-const DICE_4 = ["bridge", "bridge", "rail-road-i", "rail-road-i", "rail-road-l", "rail-road-l"];
 class Dice {
     constructor(tile) {
         this.node = node("div", { className: "dice" });
         this.tile = tile;
-    }
-    static withRandomTile(names) {
-        let name = names[Math.floor(Math.random() * names.length)];
-        return this.withTile(name, "0");
-    }
-    static withTile(name, transform) {
-        return new this(new Tile(name, transform));
     }
     get tile() { return this._tile; }
     set tile(tile) {
@@ -1287,6 +1358,29 @@ class Dice {
         set(flag) { this.node.classList.toggle(prop, flag); }
     });
 });
+class LakeDice extends Dice {
+    constructor(tile) {
+        super(tile);
+        this.node.classList.add("lake");
+    }
+}
+const DICE_REGULAR_1 = {
+    tiles: ["road-i", "rail-i", "road-l", "rail-l", "road-t", "rail-t"],
+    ctor: Dice
+};
+const DICE_REGULAR_2 = {
+    tiles: ["bridge", "bridge", "rail-road-i", "rail-road-i", "rail-road-l", "rail-road-l"],
+    ctor: Dice
+};
+const DICE_LAKE = {
+    tiles: ["lake-1", "lake-2", "lake-3", "lake-rail", "lake-road", "lake-rail-road"],
+    ctor: LakeDice
+};
+function create$1(template) {
+    let names = template.tiles;
+    let name = names[Math.floor(Math.random() * names.length)];
+    return new template.ctor(new Tile(name, "0"));
+}
 
 const MAX_BONUSES = 3;
 class Pool {
@@ -1341,12 +1435,10 @@ class BonusPool extends Pool {
         this._used = 0;
         this._locked = false;
         this.node.classList.add("bonus");
-        this.add(Dice.withTile("cross-road-road-rail-road", "0"));
-        this.add(Dice.withTile("cross-road-rail-rail-rail", "0"));
-        this.add(Dice.withTile("cross-road", "0"));
-        this.add(Dice.withTile("cross-rail", "0"));
-        this.add(Dice.withTile("cross-road-rail-rail-road", "0"));
-        this.add(Dice.withTile("cross-road-rail-road-rail", "0"));
+        ["cross-road-road-rail-road", "cross-road-rail-rail-rail", "cross-road",
+            "cross-rail", "cross-road-rail-rail-road", "cross-road-rail-road-rail"].forEach(name => {
+            this.add(new Dice(new Tile(name, "0")));
+        });
     }
     handleEvent(e) {
         if (this._locked || this._used == MAX_BONUSES) {
@@ -1375,7 +1467,9 @@ class BonusPool extends Pool {
     }
 }
 
-const DEMO = ["bridge", "rail-i", "road-i", "rail-road-l", "rail-road-i", "rail-t", "road-l", "rail-l", "road-t"];
+const DEMO = ["bridge", "rail-i", "road-i", "rail-road-l", "rail-road-i", "rail-t", "road-l", "rail-l", "road-t",
+    "lake-1", "lake-2", "lake-3", "lake-4", "lake-rail", "lake-road", "lake-rail-road"
+];
 //const DEMO = ["bridge"];
 class Round {
     constructor(num, board, bonusPool) {
@@ -1396,15 +1490,29 @@ class Round {
         this._board.onClick = cell => this._onBoardClick(cell);
         switch (type) {
             case "demo":
-                DEMO.map(type => Dice.withTile(type, "0"))
+                DEMO.map(type => new Dice(new Tile(type, "0")))
                     .forEach(dice => this._pool.add(dice));
                 break;
+            case "lake":
+                {
+                    let templates = [DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_2];
+                    while (templates.length) {
+                        let index = Math.floor(Math.random() * templates.length);
+                        let template = templates.splice(index, 1)[0];
+                        this._pool.add(create$1(template));
+                    }
+                    this._pool.add(create$1(DICE_LAKE));
+                    this._pool.add(create$1(DICE_LAKE));
+                }
+                break;
             default:
-                let types = [DICE_1, DICE_2, DICE_3, DICE_4];
-                while (types.length) {
-                    let index = Math.floor(Math.random() * types.length);
-                    let type = types.splice(index, 1)[0];
-                    this._pool.add(Dice.withRandomTile(type));
+                {
+                    let templates = [DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_2];
+                    while (templates.length) {
+                        let index = Math.floor(Math.random() * templates.length);
+                        let template = templates.splice(index, 1)[0];
+                        this._pool.add(create$1(template));
+                    }
                 }
                 break;
         }
@@ -1418,7 +1526,7 @@ class Round {
         });
     }
     end() {
-        this._board.commit();
+        this._board.commit(this._num);
         function noop() { }
         this._pool.onClick = noop;
         this._bonusPool.onClick = noop;
@@ -1567,7 +1675,7 @@ async function goGame(type) {
     goOutro();
 }
 function init() {
-    document.querySelector("[name=start-normal]").addEventListener(DOWN, () => goGame("normal"));
+    document.querySelector("[name=start-normal]").addEventListener(DOWN, () => goGame("lake"));
     document.querySelector("[name=again]").addEventListener(DOWN, () => goIntro());
     document.querySelector("[name=download]").addEventListener(DOWN, e => download(e.target));
     goIntro();

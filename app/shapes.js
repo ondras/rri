@@ -250,7 +250,9 @@ const templates = {
             { type: NONE, connects: [] },
             { type: NONE, connects: [] }
         ],
-        render(ctx) { console.log(ctx); }
+        render(ctx) {
+            ctx.lake([[0, 0], [1, 0], [.5, .5]]);
+        }
     },
     "lake-2": {
         edges: [
@@ -259,7 +261,9 @@ const templates = {
             { type: NONE, connects: [] },
             { type: NONE, connects: [] }
         ],
-        render(ctx) { console.log(ctx); }
+        render(ctx) {
+            ctx.lake([[0, 0], [1, 0], [1, 1]]);
+        }
     },
     "lake-3": {
         edges: [
@@ -268,7 +272,9 @@ const templates = {
             { type: LAKE, connects: [N, E] },
             { type: NONE, connects: [] }
         ],
-        render(ctx) { console.log(ctx); }
+        render(ctx) {
+            ctx.lake([[0, 0], [1, 0], [1, 1], [0, 1], [.5, .5]]);
+        }
     },
     "lake-4": {
         edges: [
@@ -277,7 +283,9 @@ const templates = {
             { type: LAKE, connects: [N, E, W] },
             { type: LAKE, connects: [N, E, S] }
         ],
-        render(ctx) { console.log(ctx); }
+        render(ctx) {
+            ctx.lake([[0, 0], [1, 0], [1, 1], [0, 1]]);
+        }
     },
     "lake-rail": {
         edges: [
@@ -287,6 +295,7 @@ const templates = {
             { type: NONE, connects: [] }
         ],
         render(ctx) {
+            ctx.lake([[0, 0], [1, 0], [.5, .5]]);
             ctx.rail(S, 0.5);
             ctx.station();
         }
@@ -299,6 +308,7 @@ const templates = {
             { type: NONE, connects: [] }
         ],
         render(ctx) {
+            ctx.lake([[0, 0], [1, 0], [.5, .5]]);
             ctx.road(S, 0.5);
             ctx.station();
         }
@@ -311,6 +321,7 @@ const templates = {
             { type: RAIL, connects: [N, E, S] }
         ],
         render(ctx) {
+            ctx.lake([[0, 0], [1, 0], [1, 1]]);
             ctx.road(S, 0.5);
             ctx.rail(W, 0.5);
             ctx.station();

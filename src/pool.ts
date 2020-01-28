@@ -2,6 +2,7 @@ import Dice from "./dice.js";
 import Board from "./board.js";
 import * as html from "./html.js";
 import { DOWN } from "./event.js";
+import Tile from "./tile.js";
 
 const MAX_BONUSES = 3;
 
@@ -60,12 +61,11 @@ export class BonusPool extends Pool {
 	constructor() {
 		super();
 		this.node.classList.add("bonus");
-		this.add(Dice.withTile("cross-road-road-rail-road", "0"));
-		this.add(Dice.withTile("cross-road-rail-rail-rail", "0"));
-		this.add(Dice.withTile("cross-road", "0"));
-		this.add(Dice.withTile("cross-rail", "0"));
-		this.add(Dice.withTile("cross-road-rail-rail-road", "0"));
-		this.add(Dice.withTile("cross-road-rail-road-rail", "0"));
+
+		["cross-road-road-rail-road", "cross-road-rail-rail-rail", "cross-road",
+		 "cross-rail", "cross-road-rail-rail-road", "cross-road-rail-road-rail"].forEach(name => {
+			this.add(new Dice(new Tile(name, "0")));
+		});
 	}
 
 	handleEvent(e: Event) {

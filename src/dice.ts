@@ -1,14 +1,10 @@
 import Tile from "./tile.js";
-import { Transform } from "./transform.js";
 import * as html from "./html.js";
 
-export const DICE_1 = ["road-i", "rail-i", "road-l", "rail-l", "road-t", "rail-t"];
-export const DICE_2 = DICE_1;
-export const DICE_3 = DICE_1;
-export const DICE_4 = ["bridge", "bridge", "rail-road-i", "rail-road-i", "rail-road-l", "rail-road-l"];
-
-export const DICE_LAKE_1 = ["lake-1", "lake-2", "lake-3", "lake-rail", "lake-road", "lake-rail-road"];
-export const DICE_LAKE_2 = DICE_LAKE_1;
+interface DiceTemplate {
+	tiles: string[];
+	ctor: {new(tile: Tile): Dice}
+}
 
 export default class Dice {
 	node: HTMLElement = html.node("div", {className:"dice"});
@@ -16,15 +12,6 @@ export default class Dice {
 	blocked!: boolean;
 	pending!: boolean;
 	disabled!: boolean;
-
-	static withRandomTile(names: string[]) {
-		let name = names[Math.floor(Math.random() * names.length)];
-		return this.withTile(name, "0");
-	}
-
-	static withTile(name: string, transform: Transform) {
-		return new this(new Tile(name, transform));
-	}
 
 	constructor(tile: Tile) {
 		this.tile = tile;
@@ -44,3 +31,31 @@ export default class Dice {
 		set(flag) { this.node.classList.toggle(prop, flag); }
 	});
 });
+
+export class LakeDice extends Dice {
+	constructor(tile: Tile) {
+		super(tile);
+		this.node.classList.add("lake");
+	}
+}
+
+export const DICE_REGULAR_1: DiceTemplate = {
+	tiles: ["road-i", "rail-i", "road-l", "rail-l", "road-t", "rail-t"],
+	ctor: Dice
+}
+
+export const DICE_REGULAR_2: DiceTemplate = {
+	tiles: ["bridge", "bridge", "rail-road-i", "rail-road-i", "rail-road-l", "rail-road-l"],
+	ctor: Dice
+}
+
+export const DICE_LAKE: DiceTemplate = {
+	tiles: ["lake-1", "lake-2", "lake-3", "lake-rail", "lake-road", "lake-rail-road"],
+	ctor: LakeDice
+}
+
+export function create(template: DiceTemplate) {
+	let names = template.tiles;
+	let name = names[Math.floor(Math.random() * names.length)];
+	return new template.ctor(new Tile(name, "0"));
+}

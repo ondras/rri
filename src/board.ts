@@ -4,6 +4,7 @@ import { NONE } from "./edge.js";
 import { Score, get as getScore } from "./score.js";
 import CellRepo, { Cell } from "./cell-repo.js";
 import { Transform } from "./transform.js";
+import { LAKE } from "./edge.js";
 
 export default abstract class Board {
 	node: HTMLElement;
@@ -19,8 +20,11 @@ export default abstract class Board {
 	abstract async toBlob(): Promise<Blob | null>;
 	showScore(score: Score) { console.log(score); }
 	onClick(cell: Cell) { console.log(cell); }
-	commit() {}
 	getScore() { return getScore(this._cells); }
+
+	commit(round: number) {
+		this._surroundLakes(round);
+	}
 
 	cycleTransform(x: number, y: number) {
 		let tile = this._cells.at(x, y).tile;
@@ -58,13 +62,7 @@ export default abstract class Board {
 	}
 
 	_getTransforms(tile: Tile, x: number, y: number) {
-		let neighborEdges = allDirections.map(dir => {
-			let vector = Vector[dir];
-			let neighbor = this._cells.at(x + vector[0], y + vector[1]).tile;
-			if (!neighbor) { return NONE; }
-			return neighbor.getEdge(clamp(dir + 2)).type;
-		});
-
+		let neighborEdges = this._getNeighborEdges(x, y);
 		let clone = tile.clone();
 
 		function compare(t1: Transform, t2: Transform) {
@@ -79,6 +77,15 @@ export default abstract class Board {
 			clone.transform = t;
 			return clone.fitsNeighbors(neighborEdges);
 		}).sort(compare);
+	}
+
+	_getNeighborEdges(x: number, y: number) {
+		return allDirections.map(dir => {
+			let vector = Vector[dir];
+			let neighbor = this._cells.at(x + vector[0], y + vector[1]).tile;
+			if (!neighbor) { return NONE; }
+			return neighbor.getEdge(clamp(dir + 2)).type;
+		});
 	}
 
 	_placeInitialTiles() {
@@ -114,6 +121,23 @@ export default abstract class Board {
 			}
 			this.place(tile, x, y, 0);
 		});
-		this.commit();
+
+		this.commit(0);
+	}
+
+	_surroundLakes(round: number) {
+		const isSurrounded = (cell: Cell) => {
+			if (cell.tile || cell.border) { return false; }
+			let neighborEdges = this._getNeighborEdges(cell.x, cell.y);
+			return neighborEdges.filter(e => e == LAKE).length >= 3;
+		}
+		let surrounded = this._cells.filter(isSurrounded);
+
+		surrounded.forEach(cell => {
+			let tile = new Tile("lake-4", "0");
+			this.place(tile, cell.x, cell.y, round);
+		});
+
+		surrounded.length && this.commit(round);
 	}
 }

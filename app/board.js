@@ -3,6 +3,7 @@ import { clamp, all as allDirections, Vector } from "./direction.js";
 import { NONE } from "./edge.js";
 import { get as getScore } from "./score.js";
 import CellRepo from "./cell-repo.js";
+import { LAKE } from "./edge.js";
 export default class Board {
     constructor() {
         this._cells = new CellRepo();
@@ -11,8 +12,10 @@ export default class Board {
     }
     showScore(score) { console.log(score); }
     onClick(cell) { console.log(cell); }
-    commit() { }
     getScore() { return getScore(this._cells); }
+    commit(round) {
+        this._surroundLakes(round);
+    }
     cycleTransform(x, y) {
         let tile = this._cells.at(x, y).tile;
         if (!tile) {
@@ -50,14 +53,7 @@ export default class Board {
         });
     }
     _getTransforms(tile, x, y) {
-        let neighborEdges = allDirections.map(dir => {
-            let vector = Vector[dir];
-            let neighbor = this._cells.at(x + vector[0], y + vector[1]).tile;
-            if (!neighbor) {
-                return NONE;
-            }
-            return neighbor.getEdge(clamp(dir + 2)).type;
-        });
+        let neighborEdges = this._getNeighborEdges(x, y);
         let clone = tile.clone();
         function compare(t1, t2) {
             clone.transform = t1;
@@ -70,6 +66,16 @@ export default class Board {
             clone.transform = t;
             return clone.fitsNeighbors(neighborEdges);
         }).sort(compare);
+    }
+    _getNeighborEdges(x, y) {
+        return allDirections.map(dir => {
+            let vector = Vector[dir];
+            let neighbor = this._cells.at(x + vector[0], y + vector[1]).tile;
+            if (!neighbor) {
+                return NONE;
+            }
+            return neighbor.getEdge(clamp(dir + 2)).type;
+        });
     }
     _placeInitialTiles() {
         this._cells.forEach(cell => {
@@ -108,6 +114,21 @@ export default class Board {
             }
             this.place(tile, x, y, 0);
         });
-        this.commit();
+        this.commit(0);
+    }
+    _surroundLakes(round) {
+        const isSurrounded = (cell) => {
+            if (cell.tile || cell.border) {
+                return false;
+            }
+            let neighborEdges = this._getNeighborEdges(cell.x, cell.y);
+            return neighborEdges.filter(e => e == LAKE).length >= 3;
+        };
+        let surrounded = this._cells.filter(isSurrounded);
+        surrounded.forEach(cell => {
+            let tile = new Tile("lake-4", "0");
+            this.place(tile, cell.x, cell.y, round);
+        });
+        surrounded.length && this.commit(round);
     }
 }

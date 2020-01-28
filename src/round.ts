@@ -1,13 +1,15 @@
 import Board from "./board.js";
 import Pool, { BonusPool } from "./pool.js";
-import Dice, { DICE_1, DICE_2, DICE_3, DICE_4 } from "./dice.js";
+import Dice, { create as createDice, DICE_REGULAR_1, DICE_REGULAR_2, DICE_LAKE } from "./dice.js";
 import Tile from "./tile.js";
 import * as html from "./html.js";
 import { DOWN } from "./event.js";
 import { Cell } from "./cell-repo.js";
 import { DBLCLICK } from "./conf.js";
 
-const DEMO = ["bridge", "rail-i", "road-i", "rail-road-l", "rail-road-i", "rail-t", "road-l", "rail-l", "road-t"];
+const DEMO = ["bridge", "rail-i", "road-i", "rail-road-l", "rail-road-i", "rail-t", "road-l", "rail-l", "road-t",
+				"lake-1", "lake-2", "lake-3", "lake-4", "lake-rail", "lake-road", "lake-rail-road"
+			];
 //const DEMO = ["bridge"];
 
 export default class Round {
@@ -39,18 +41,29 @@ export default class Round {
 
 		switch (type) {
 			case "demo":
-				DEMO.map(type => Dice.withTile(type, "0"))
+				DEMO.map(type => new Dice(new Tile(type, "0")))
 					.forEach(dice => this._pool.add(dice));
 			break;
 
-			default:
-				let types = [DICE_1, DICE_2, DICE_3, DICE_4];
-				while (types.length) {
-					let index = Math.floor(Math.random()*types.length);
-					let type = types.splice(index, 1)[0];
-					this._pool.add(Dice.withRandomTile(type));
+			case "lake": {
+				let templates = [DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_2];
+				while (templates.length) {
+					let index = Math.floor(Math.random()*templates.length);
+					let template = templates.splice(index, 1)[0];
+					this._pool.add(createDice(template));
 				}
-			break;
+				this._pool.add(createDice(DICE_LAKE));
+				this._pool.add(createDice(DICE_LAKE));
+			} break;
+
+			default: {
+				let templates = [DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_2];
+				while (templates.length) {
+					let index = Math.floor(Math.random()*templates.length);
+					let template = templates.splice(index, 1)[0];
+					this._pool.add(createDice(template));
+				}
+			} break;
 		}
 
 		this.node.appendChild(this._end);
@@ -65,7 +78,7 @@ export default class Round {
 	}
 
 	end() {
-		this._board.commit();
+		this._board.commit(this._num);
 
 		function noop() {};
 		this._pool.onClick = noop;

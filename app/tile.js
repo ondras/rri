@@ -1,6 +1,6 @@
 import { get as getTransform } from "./transform.js";
 import { get as getShape } from "./shapes.js";
-import { NONE } from "./edge.js";
+import { NONE, LAKE } from "./edge.js";
 import * as html from "./html.js";
 export default class Tile {
     constructor(sid, transform) {
@@ -41,6 +41,10 @@ export default class Tile {
         let errors = 0;
         neighborEdges.forEach((nEdge, dir) => {
             let ourEdge = this.getEdge(dir).type;
+            if (ourEdge == LAKE) {
+                connections++;
+                return;
+            }
             if (nEdge == NONE || ourEdge == NONE) {
                 return;
             }

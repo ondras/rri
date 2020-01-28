@@ -65,7 +65,7 @@ async function goGame(type) {
     goOutro();
 }
 function init() {
-    document.querySelector("[name=start-normal]").addEventListener(DOWN, () => goGame("normal"));
+    document.querySelector("[name=start-normal]").addEventListener(DOWN, () => goGame("lake"));
     document.querySelector("[name=again]").addEventListener(DOWN, () => goIntro());
     document.querySelector("[name=download]").addEventListener(DOWN, e => download(e.target));
     goIntro();

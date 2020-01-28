@@ -99,7 +99,9 @@ export default class BoardCanvas extends Board {
 		this._pendingCells.push({x, y, node, tile, round});
 	}
 
-	commit() {
+	commit(round: number) {
+		super.commit(round);
+
 		const ctx = this._ctx;
 
 		ctx.save();
