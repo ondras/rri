@@ -23,8 +23,16 @@ function toAbs(p:Point) {
 	return p.map($ => $*TILE) as Point;
 }
 
+function computeControlPoint(p1: Point, p2: Point): Point {
+	if (p1[0] == p2[0]) {
+		return [1-p1[0], 0.5];
+	} else {
+		return [0.5, 1-p1[1]];
+	}
+}
+
 function createLakeCanvas() {
-	const N = 3;
+	const N = 4;
 	const PX = 2;
 	const canvas = html.node("canvas");
 	canvas.width = canvas.height = N*PX;
@@ -33,25 +41,13 @@ function createLakeCanvas() {
 
 	for (let i=0;i<N;i++) {
 		for (let j=0;j<N;j++) {
-			const H = 180 + ~~(Math.random()*(240-180));
+			const H = 200 + ~~(Math.random()*(240-200));
 			const S = 100;
-			const V = 50 + ~~(Math.random()*(80-50));
+			const V = 70 + ~~(Math.random()*(90-70));
 			ctx.fillStyle = `hsl(${H}, ${S}%, ${V}%)`;
-			console.log(ctx.fillStyle);
 			ctx.fillRect(i*PX, j*PX, PX, PX);
-
 		}
 	}
-
-
-	ctx.fillStyle = "#aaf";
-	ctx.fillRect(2, 2, 2, 2);
-
-	ctx.fillStyle = "#88f";
-	ctx.fillRect(0, 2, 2, 2);
-
-	ctx.fillStyle = "#ccf";
-	ctx.fillRect(2, 0, 2, 2);
 
 	return canvas;
 }
@@ -94,10 +90,6 @@ export default class DrawContext {
 
 	styleLake() {
 		const ctx = this._ctx;
-
-		this.styleLine();
-		ctx.lineWidth = RAIL_TICK_WIDTH;
-
 		ctx.fillStyle = ctx.createPattern(lakeCanvas, "repeat") as CanvasPattern;
 	}
 
@@ -291,16 +283,46 @@ export default class DrawContext {
 	}
 
 	lake(points: Point[]) {
+		points.push(points[0]); // implicitly closed
 		const ctx = this._ctx;
 
-		points.forEach((point, i) => {
-			point = toAbs(point);
-			(i ? ctx.lineTo(...point) : ctx.moveTo(...point));
-		});
-		ctx.closePath();
+		const fillPath = new Path2D();
+		const strokePath = new Path2D();
+
+		for (let i=0;i<points.length; i++) {
+			const point = points[i]
+			const absPoint = toAbs(point);
+			if (i == 0) {
+				fillPath.moveTo(...absPoint);
+				strokePath.moveTo(...absPoint);
+				continue;
+			}
+
+			const prevPoint = points[i-1];
+
+			if (point[0] == 0.5) { // arc
+				let nextPoint = points[i+1];
+				let cp = computeControlPoint(prevPoint, nextPoint);
+				cp = toAbs(cp);
+				nextPoint = toAbs(nextPoint);
+				fillPath.quadraticCurveTo(cp[0], cp[1], ...nextPoint);
+				strokePath.quadraticCurveTo(cp[0], cp[1], ...nextPoint);
+				i++;
+			} else { // straight line
+				fillPath.lineTo(...absPoint);
+				// only diagonals are stroked
+				if (point[0] == prevPoint[0] || point[1] == prevPoint[1]) {
+					strokePath.moveTo(...absPoint);
+				} else {
+					strokePath.lineTo(...absPoint);
+				}
+			}
+		}
 
 		this.styleLake();
-		ctx.fill();
-		ctx.stroke();
+		ctx.fill(fillPath);
+
+		this.styleLine();
+		ctx.stroke(strokePath);
 	}
 }
