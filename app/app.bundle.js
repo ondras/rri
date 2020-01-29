@@ -1372,42 +1372,38 @@ class Dice {
         this.node = node("div", { className: "dice" });
         this.tile = tile;
     }
+    static fromTemplate(template) {
+        let names = template.tiles;
+        let name = names[Math.floor(Math.random() * names.length)];
+        let instance = new this(new Tile(name, "0"));
+        template.flags.forEach(flag => instance.flag(flag, true));
+        return instance;
+    }
     get tile() { return this._tile; }
     set tile(tile) {
         this._tile = tile;
         this.node.innerHTML = "";
         this.node.appendChild(tile.node);
     }
-}
-["blocked", "pending", "disabled"].forEach(prop => {
-    Object.defineProperty(Dice.prototype, prop, {
-        get() { return this.node.classList.contains(prop); },
-        set(flag) { this.node.classList.toggle(prop, flag); }
-    });
-});
-class LakeDice extends Dice {
-    constructor(tile) {
-        super(tile);
-        this.node.classList.add("lake");
+    flag(name, value) {
+        if (arguments.length > 1) {
+            this.node.classList.toggle(name, value);
+        }
+        return this.node.classList.contains(name);
     }
 }
 const DICE_REGULAR_1 = {
     tiles: ["road-i", "rail-i", "road-l", "rail-l", "road-t", "rail-t"],
-    ctor: Dice
+    flags: ["mandatory"]
 };
 const DICE_REGULAR_2 = {
     tiles: ["bridge", "bridge", "rail-road-i", "rail-road-i", "rail-road-l", "rail-road-l"],
-    ctor: Dice
+    flags: ["mandatory"]
 };
 const DICE_LAKE = {
     tiles: ["lake-1", "lake-2", "lake-3", "lake-rail", "lake-road", "lake-rail-road"],
-    ctor: LakeDice
+    flags: ["lake"]
 };
-function create$1(template) {
-    let names = template.tiles;
-    let name = names[Math.floor(Math.random() * names.length)];
-    return new template.ctor(new Tile(name, "0"));
-}
 
 const MAX_BONUSES = 3;
 class Pool {
@@ -1415,13 +1411,13 @@ class Pool {
         this.node = node("div", { className: "pool" });
         this._dices = [];
     }
-    get length() {
-        return this._dices.filter(d => !d.disabled && !d.blocked).length;
+    get remaining() {
+        return this._dices.filter(d => d.flag("mandatory") && !d.flag("disabled") && !d.flag("blocked")).length;
     }
     handleEvent(e) {
         let target = e.currentTarget;
         let dice = this._dices.filter(dice => dice.node == target)[0];
-        if (!dice || dice.disabled || dice.blocked) {
+        if (!dice || dice.flag("disabled") || dice.flag("blocked")) {
             return;
         }
         this.onClick(dice);
@@ -1435,24 +1431,24 @@ class Pool {
         if (!this._dices.includes(dice)) {
             return false;
         }
-        dice.disabled = false;
+        dice.flag("disabled", false);
         return true;
     }
     disable(dice) {
         if (!this._dices.includes(dice)) {
             return false;
         }
-        dice.disabled = true;
+        dice.flag("disabled", true);
         return true;
     }
     pending(dice) {
-        this._dices.forEach(d => d.pending = (dice == d));
+        this._dices.forEach(d => d.flag("pending", dice == d));
     }
     onClick(dice) { console.log(dice); }
     sync(board) {
-        this._dices.filter(dice => !dice.disabled).forEach(dice => {
+        this._dices.filter(dice => !dice.flag("disabled")).forEach(dice => {
             let cells = board.getAvailableCells(dice.tile);
-            dice.blocked = (cells.length == 0);
+            dice.flag("blocked", cells.length == 0);
         });
     }
 }
@@ -1526,10 +1522,10 @@ class Round {
                     while (templates.length) {
                         let index = Math.floor(Math.random() * templates.length);
                         let template = templates.splice(index, 1)[0];
-                        this._pool.add(create$1(template));
+                        this._pool.add(Dice.fromTemplate(template));
                     }
-                    this._pool.add(create$1(DICE_LAKE));
-                    this._pool.add(create$1(DICE_LAKE));
+                    this._pool.add(Dice.fromTemplate(DICE_LAKE));
+                    this._pool.add(Dice.fromTemplate(DICE_LAKE));
                 }
                 break;
             default:
@@ -1538,7 +1534,7 @@ class Round {
                     while (templates.length) {
                         let index = Math.floor(Math.random() * templates.length);
                         let template = templates.splice(index, 1)[0];
-                        this._pool.add(create$1(template));
+                        this._pool.add(Dice.fromTemplate(template));
                     }
                 }
                 break;
@@ -1637,7 +1633,7 @@ class Round {
     }
     _syncEnd() {
         this._pool.sync(this._board);
-        this._end.disabled = (this._pool.length > 0);
+        this._end.disabled = (this._pool.remaining > 0);
     }
 }
 
@@ -1702,7 +1698,7 @@ async function goGame(type) {
     goOutro();
 }
 function init() {
-    document.querySelector("[name=start-normal]").addEventListener(DOWN, () => goGame("demo"));
+    document.querySelector("[name=start-normal]").addEventListener(DOWN, () => goGame("lake"));
     document.querySelector("[name=again]").addEventListener(DOWN, () => goIntro());
     document.querySelector("[name=download]").addEventListener(DOWN, e => download(e.target));
     goIntro();

@@ -1,6 +1,6 @@
 import Board from "./board.js";
 import Pool, { BonusPool } from "./pool.js";
-import Dice, { create as createDice, DICE_REGULAR_1, DICE_REGULAR_2, DICE_LAKE } from "./dice.js";
+import Dice, { DICE_REGULAR_1, DICE_REGULAR_2, DICE_LAKE } from "./dice.js";
 import Tile from "./tile.js";
 import * as html from "./html.js";
 import { DOWN } from "./event.js";
@@ -50,10 +50,10 @@ export default class Round {
 				while (templates.length) {
 					let index = Math.floor(Math.random()*templates.length);
 					let template = templates.splice(index, 1)[0];
-					this._pool.add(createDice(template));
+					this._pool.add(Dice.fromTemplate(template));
 				}
-				this._pool.add(createDice(DICE_LAKE));
-				this._pool.add(createDice(DICE_LAKE));
+				this._pool.add(Dice.fromTemplate(DICE_LAKE));
+				this._pool.add(Dice.fromTemplate(DICE_LAKE));
 			} break;
 
 			default: {
@@ -61,7 +61,7 @@ export default class Round {
 				while (templates.length) {
 					let index = Math.floor(Math.random()*templates.length);
 					let template = templates.splice(index, 1)[0];
-					this._pool.add(createDice(template));
+					this._pool.add(Dice.fromTemplate(template));
 				}
 			} break;
 		}
@@ -165,6 +165,6 @@ export default class Round {
 
 	_syncEnd() {
 		this._pool.sync(this._board);
-		this._end.disabled = (this._pool.length > 0);
+		this._end.disabled = (this._pool.remaining > 0);
 	}
 }

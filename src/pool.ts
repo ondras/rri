@@ -10,14 +10,14 @@ export default class Pool {
 	node: HTMLElement = html.node("div", {className:"pool"});
 	_dices: Dice[] = [];
 
-	get length() {
-		return this._dices.filter(d => !d.disabled && !d.blocked).length;
+	get remaining() {
+		return this._dices.filter(d => d.flag("mandatory") && !d.flag("disabled") && !d.flag("blocked")).length;
 	}
 
 	handleEvent(e: Event) {
 		let target = e.currentTarget as HTMLElement;
 		let dice = this._dices.filter(dice => dice.node == target)[0];
-		if (!dice || dice.disabled || dice.blocked) { return; }
+		if (!dice || dice.flag("disabled") || dice.flag("blocked")) { return; }
 		this.onClick(dice);
 	}
 
@@ -30,26 +30,26 @@ export default class Pool {
 
 	enable(dice: Dice) {
 		if (!this._dices.includes(dice)) { return false; }
-		dice.disabled = false;
+		dice.flag("disabled", false);
 		return true;
 	}
 
 	disable(dice: Dice) {
 		if (!this._dices.includes(dice)) { return false; }
-		dice.disabled = true;
+		dice.flag("disabled", true);
 		return true;
 	}
 
 	pending(dice: Dice | null) {
-		this._dices.forEach(d => d.pending = (dice == d));
+		this._dices.forEach(d => d.flag("pending", dice == d));
 	}
 
 	onClick(dice: Dice) { console.log(dice); }
 
 	sync(board: Board) {
-		this._dices.filter(dice => !dice.disabled).forEach(dice => {
+		this._dices.filter(dice => !dice.flag("disabled")).forEach(dice => {
 			let cells = board.getAvailableCells(dice.tile);
-			dice.blocked = (cells.length == 0);
+			dice.flag("blocked", cells.length == 0);
 		});
 	}
 }
