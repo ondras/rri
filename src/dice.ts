@@ -1,25 +1,32 @@
 import Tile from "./tile.js";
 import * as html from "./html.js";
 
+type DiceType = "plain" | "lake";
+
 interface DiceTemplate {
 	tiles: string[];
-	flags: string[];
+	type: DiceType;
 }
 
 export default class Dice {
 	node: HTMLElement = html.node("div", {className:"dice"});
 	_tile!: Tile;
+	blocked!: boolean;
+	pending!: boolean;
+	disabled!: boolean;
+	readonly type: DiceType;
 
 	static fromTemplate(template: DiceTemplate) {
 		let names = template.tiles;
 		let name = names[Math.floor(Math.random() * names.length)];
-		let instance = new this(new Tile(name, "0"));
-		template.flags.forEach(flag => instance.flag(flag, true));
-		return instance;
+		return new this(new Tile(name, "0"), template.type);
 	}
 
-	constructor(tile: Tile) {
+	constructor(tile: Tile, type: DiceType) {
 		this.tile = tile;
+		this.type = type;
+
+		if (type == "lake") { this.node.classList.add("lake"); }
 	}
 
 	get tile() { return this._tile; }
@@ -28,24 +35,26 @@ export default class Dice {
 		this.node.innerHTML = "";
 		this.node.appendChild(tile.node);
 	}
-
-	flag(name: string, value?: boolean) {
-		if (arguments.length > 1) { this.node.classList.toggle(name, value); }
-		return this.node.classList.contains(name);
-	}
 }
+
+["blocked", "pending", "disabled"].forEach(prop => {
+	Object.defineProperty(Dice.prototype, prop, {
+		get() { return this.node.classList.contains(prop); },
+		set(flag) { this.node.classList.toggle(prop, flag); }
+	});
+});
 
 export const DICE_REGULAR_1: DiceTemplate = {
 	tiles: ["road-i", "rail-i", "road-l", "rail-l", "road-t", "rail-t"],
-	flags: ["mandatory"]
+	type: "plain"
 }
 
 export const DICE_REGULAR_2: DiceTemplate = {
 	tiles: ["bridge", "bridge", "rail-road-i", "rail-road-i", "rail-road-l", "rail-road-l"],
-	flags: ["mandatory"]
+	type: "plain"
 }
 
 export const DICE_LAKE: DiceTemplate = {
 	tiles: ["lake-1", "lake-2", "lake-3", "lake-rail", "lake-road", "lake-rail-road"],
-	flags: ["lake"]
+	type: "lake"
 }

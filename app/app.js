@@ -65,12 +65,18 @@ async function goGame(type) {
     goOutro();
 }
 function init() {
-    document.querySelector("[name=start-normal]").addEventListener(DOWN, () => goGame("lake"));
+    document.querySelector("[name=start-normal]").addEventListener(DOWN, () => goGame("normal"));
+    document.querySelector("[name=start-lake]").addEventListener(DOWN, () => goGame("lake"));
     document.querySelector("[name=again]").addEventListener(DOWN, () => goIntro());
     document.querySelector("[name=download]").addEventListener(DOWN, e => download(e.target));
     goIntro();
     /**
     if (!board) return;
+
+    board.place(new Tile("lake-rail", "1"), 1, 2, 0);
+    board.place(new Tile("lake-road", "2"), 2, 1, 0);
+    board.place(new Tile("lake-3", "0"), 2, 2, 0);
+    /*
     board.place(new Tile("rail-i", "1"), 1, 2, 0);
     board.place(new Tile("road-i", "0"), 2, 1, 0);
     board.place(new Tile("bridge", "0"), 2, 2, 0);
@@ -92,7 +98,10 @@ function init() {
     board.place(new Tile("cross-road", "0"), 5, 6, 0);
     board.place(new Tile("cross-road", "0"), 6, 6, 0);
     board.place(new Tile("rail-road-i", "1"), 7, 6, 0);
-    board.commit();
+    *
+    board.commit(0);
+
+    console.log(board.getScore());
     /**/
 }
 init();

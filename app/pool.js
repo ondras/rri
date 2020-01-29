@@ -9,12 +9,12 @@ export default class Pool {
         this._dices = [];
     }
     get remaining() {
-        return this._dices.filter(d => d.flag("mandatory") && !d.flag("disabled") && !d.flag("blocked")).length;
+        return this._dices.filter(d => d.type == "plain" && !d.disabled && !d.blocked).length;
     }
     handleEvent(e) {
         let target = e.currentTarget;
         let dice = this._dices.filter(dice => dice.node == target)[0];
-        if (!dice || dice.flag("disabled") || dice.flag("blocked")) {
+        if (!dice || dice.disabled || dice.blocked) {
             return;
         }
         this.onClick(dice);
@@ -28,24 +28,24 @@ export default class Pool {
         if (!this._dices.includes(dice)) {
             return false;
         }
-        dice.flag("disabled", false);
+        dice.disabled = false;
         return true;
     }
     disable(dice) {
         if (!this._dices.includes(dice)) {
             return false;
         }
-        dice.flag("disabled", true);
+        dice.disabled = true;
         return true;
     }
     pending(dice) {
-        this._dices.forEach(d => d.flag("pending", dice == d));
+        this._dices.forEach(d => d.pending = (dice == d));
     }
     onClick(dice) { console.log(dice); }
     sync(board) {
-        this._dices.filter(dice => !dice.flag("disabled")).forEach(dice => {
+        this._dices.filter(dice => !dice.disabled).forEach(dice => {
             let cells = board.getAvailableCells(dice.tile);
-            dice.flag("blocked", cells.length == 0);
+            dice.blocked = (cells.length == 0);
         });
     }
 }
@@ -57,7 +57,7 @@ export class BonusPool extends Pool {
         this.node.classList.add("bonus");
         ["cross-road-road-rail-road", "cross-road-rail-rail-rail", "cross-road",
             "cross-rail", "cross-road-rail-rail-road", "cross-road-rail-road-rail"].forEach(name => {
-            this.add(new Dice(new Tile(name, "0")));
+            this.add(new Dice(new Tile(name, "0"), "plain"));
         });
     }
     handleEvent(e) {

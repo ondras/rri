@@ -1,6 +1,6 @@
 import CellRepo, { Cell } from "./cell-repo.js";
 import { Direction, clamp, all as allDirections, Vector } from "./direction.js";
-import { NONE, ROAD, RAIL, EdgeType } from "./edge.js";
+import { NONE, ROAD, RAIL, LAKE, EdgeType } from "./edge.js";
 import * as html from "./html.js";
 
 export interface Deadend {
@@ -14,6 +14,7 @@ export interface Score {
 	deadends: Deadend[];
 	road: Cell[];
 	rail: Cell[];
+	lakes: number[];
 }
 
 interface LongestPathContext {
@@ -176,13 +177,59 @@ function getDeadends(cells: CellRepo) {
 	return deadends;
 }
 
+function extractLake(lakeCells: Cell[], allCells: CellRepo) {
+	let pending = [lakeCells.shift()];
+	let processed: Cell[] = [];
+
+	while (pending.length) {
+		const current = pending.shift() as Cell;
+		processed.push(current);
+
+		const tile = current.tile;
+		if (!tile) { continue; }
+
+		allDirections.filter(d => tile.getEdge(d).type == LAKE).forEach(d => {
+			let neighbor = getNeighbor(current, d, allCells);
+			if (!neighbor.tile) { return; }
+
+			let neighborEdge = clamp(d+2);
+			let neighborEdgeType = neighbor.tile.getEdge(neighborEdge).type;
+			if (neighborEdgeType != LAKE) { return; }
+
+			let index = lakeCells.indexOf(neighbor);
+			if (index == -1) { return; }
+			lakeCells.splice(index, 1);
+			pending.push(neighbor);
+		});
+	}
+
+	return processed;
+}
+
+function getLakes(cells: CellRepo) {
+	function isLake(cell: Cell) {
+		if (!cell.tile) { return; }
+		let tile = cell.tile;
+		return allDirections.some(d => tile.getEdge(d).type == LAKE);
+	}
+	let lakeCells = cells.filter(isLake);
+
+	let sizes = [];
+	while (lakeCells.length) {
+		sizes.push(extractLake(lakeCells, cells).length);
+	}
+
+	return sizes;
+}
+
 export function get(cells: CellRepo): Score {
 	return {
 		exits: getExits(cells),
 		center: getCenterCount(cells),
 		rail: getLongest(RAIL, cells),
 		road: getLongest(ROAD, cells),
-		deadends: getDeadends(cells)
+		deadends: getDeadends(cells),
+		lakes: getLakes(cells)
 	}
 }
 
@@ -213,11 +260,20 @@ export function render(score: Score) {
 	row.insertCell().textContent = "Dead ends";
 	row.insertCell().textContent = (-score.deadends.length).toString();
 
+	let lakeScore = 0;
+	if (score.lakes.length > 0) {
+		lakeScore = score.lakes.sort((a, b) => a-b)[0];
+		row = table.insertRow();
+		row.insertCell().textContent = "Smallest lake";
+		row.insertCell().textContent = lakeScore.toString();
+	}
+
 	let total = exitScore
 					+ score.road.length
 					+ score.rail.length
 					+ score.center
-					- score.deadends.length;
+					- score.deadends.length
+					+ lakeScore;
 
 	let tfoot = html.node("tfoot");
 	table.appendChild(tfoot);

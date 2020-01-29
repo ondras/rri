@@ -905,13 +905,59 @@ function getDeadends(cells) {
     });
     return deadends;
 }
+function extractLake(lakeCells, allCells) {
+    let pending = [lakeCells.shift()];
+    let processed = [];
+    while (pending.length) {
+        const current = pending.shift();
+        processed.push(current);
+        const tile = current.tile;
+        if (!tile) {
+            continue;
+        }
+        all.filter(d => tile.getEdge(d).type == LAKE).forEach(d => {
+            let neighbor = getNeighbor(current, d, allCells);
+            if (!neighbor.tile) {
+                return;
+            }
+            let neighborEdge = clamp(d + 2);
+            let neighborEdgeType = neighbor.tile.getEdge(neighborEdge).type;
+            if (neighborEdgeType != LAKE) {
+                return;
+            }
+            let index = lakeCells.indexOf(neighbor);
+            if (index == -1) {
+                return;
+            }
+            lakeCells.splice(index, 1);
+            pending.push(neighbor);
+        });
+    }
+    return processed;
+}
+function getLakes(cells) {
+    function isLake(cell) {
+        if (!cell.tile) {
+            return;
+        }
+        let tile = cell.tile;
+        return all.some(d => tile.getEdge(d).type == LAKE);
+    }
+    let lakeCells = cells.filter(isLake);
+    let sizes = [];
+    while (lakeCells.length) {
+        sizes.push(extractLake(lakeCells, cells).length);
+    }
+    return sizes;
+}
 function get$2(cells) {
     return {
         exits: getExits(cells),
         center: getCenterCount(cells),
         rail: getLongest(RAIL, cells),
         road: getLongest(ROAD, cells),
-        deadends: getDeadends(cells)
+        deadends: getDeadends(cells),
+        lakes: getLakes(cells)
     };
 }
 function render(score) {
@@ -934,11 +980,19 @@ function render(score) {
     row = table.insertRow();
     row.insertCell().textContent = "Dead ends";
     row.insertCell().textContent = (-score.deadends.length).toString();
+    let lakeScore = 0;
+    if (score.lakes.length > 0) {
+        lakeScore = score.lakes.sort((a, b) => a - b)[0];
+        row = table.insertRow();
+        row.insertCell().textContent = "Smallest lake";
+        row.insertCell().textContent = lakeScore.toString();
+    }
     let total = exitScore
         + score.road.length
         + score.rail.length
         + score.center
-        - score.deadends.length;
+        - score.deadends.length
+        + lakeScore;
     let tfoot = node("tfoot");
     table.appendChild(tfoot);
     row = tfoot.insertRow();
@@ -1368,16 +1422,18 @@ class BoardCanvas extends Board {
 }
 
 class Dice {
-    constructor(tile) {
+    constructor(tile, type) {
         this.node = node("div", { className: "dice" });
         this.tile = tile;
+        this.type = type;
+        if (type == "lake") {
+            this.node.classList.add("lake");
+        }
     }
     static fromTemplate(template) {
         let names = template.tiles;
         let name = names[Math.floor(Math.random() * names.length)];
-        let instance = new this(new Tile(name, "0"));
-        template.flags.forEach(flag => instance.flag(flag, true));
-        return instance;
+        return new this(new Tile(name, "0"), template.type);
     }
     get tile() { return this._tile; }
     set tile(tile) {
@@ -1385,24 +1441,24 @@ class Dice {
         this.node.innerHTML = "";
         this.node.appendChild(tile.node);
     }
-    flag(name, value) {
-        if (arguments.length > 1) {
-            this.node.classList.toggle(name, value);
-        }
-        return this.node.classList.contains(name);
-    }
 }
+["blocked", "pending", "disabled"].forEach(prop => {
+    Object.defineProperty(Dice.prototype, prop, {
+        get() { return this.node.classList.contains(prop); },
+        set(flag) { this.node.classList.toggle(prop, flag); }
+    });
+});
 const DICE_REGULAR_1 = {
     tiles: ["road-i", "rail-i", "road-l", "rail-l", "road-t", "rail-t"],
-    flags: ["mandatory"]
+    type: "plain"
 };
 const DICE_REGULAR_2 = {
     tiles: ["bridge", "bridge", "rail-road-i", "rail-road-i", "rail-road-l", "rail-road-l"],
-    flags: ["mandatory"]
+    type: "plain"
 };
 const DICE_LAKE = {
     tiles: ["lake-1", "lake-2", "lake-3", "lake-rail", "lake-road", "lake-rail-road"],
-    flags: ["lake"]
+    type: "lake"
 };
 
 const MAX_BONUSES = 3;
@@ -1412,12 +1468,12 @@ class Pool {
         this._dices = [];
     }
     get remaining() {
-        return this._dices.filter(d => d.flag("mandatory") && !d.flag("disabled") && !d.flag("blocked")).length;
+        return this._dices.filter(d => d.type == "plain" && !d.disabled && !d.blocked).length;
     }
     handleEvent(e) {
         let target = e.currentTarget;
         let dice = this._dices.filter(dice => dice.node == target)[0];
-        if (!dice || dice.flag("disabled") || dice.flag("blocked")) {
+        if (!dice || dice.disabled || dice.blocked) {
             return;
         }
         this.onClick(dice);
@@ -1431,24 +1487,24 @@ class Pool {
         if (!this._dices.includes(dice)) {
             return false;
         }
-        dice.flag("disabled", false);
+        dice.disabled = false;
         return true;
     }
     disable(dice) {
         if (!this._dices.includes(dice)) {
             return false;
         }
-        dice.flag("disabled", true);
+        dice.disabled = true;
         return true;
     }
     pending(dice) {
-        this._dices.forEach(d => d.flag("pending", dice == d));
+        this._dices.forEach(d => d.pending = (dice == d));
     }
     onClick(dice) { console.log(dice); }
     sync(board) {
-        this._dices.filter(dice => !dice.flag("disabled")).forEach(dice => {
+        this._dices.filter(dice => !dice.disabled).forEach(dice => {
             let cells = board.getAvailableCells(dice.tile);
-            dice.flag("blocked", cells.length == 0);
+            dice.blocked = (cells.length == 0);
         });
     }
 }
@@ -1460,7 +1516,7 @@ class BonusPool extends Pool {
         this.node.classList.add("bonus");
         ["cross-road-road-rail-road", "cross-road-rail-rail-rail", "cross-road",
             "cross-rail", "cross-road-rail-rail-road", "cross-road-rail-road-rail"].forEach(name => {
-            this.add(new Dice(new Tile(name, "0")));
+            this.add(new Dice(new Tile(name, "0"), "plain"));
         });
     }
     handleEvent(e) {
@@ -1513,7 +1569,7 @@ class Round {
         this._board.onClick = cell => this._onBoardClick(cell);
         switch (type) {
             case "demo":
-                DEMO.map(type => new Dice(new Tile(type, "0")))
+                DEMO.map(type => new Dice(new Tile(type, "0"), "plain"))
                     .forEach(dice => this._pool.add(dice));
                 break;
             case "lake":
@@ -1698,12 +1754,18 @@ async function goGame(type) {
     goOutro();
 }
 function init() {
-    document.querySelector("[name=start-normal]").addEventListener(DOWN, () => goGame("lake"));
+    document.querySelector("[name=start-normal]").addEventListener(DOWN, () => goGame("normal"));
+    document.querySelector("[name=start-lake]").addEventListener(DOWN, () => goGame("lake"));
     document.querySelector("[name=again]").addEventListener(DOWN, () => goIntro());
     document.querySelector("[name=download]").addEventListener(DOWN, e => download(e.target));
     goIntro();
     /**
     if (!board) return;
+
+    board.place(new Tile("lake-rail", "1"), 1, 2, 0);
+    board.place(new Tile("lake-road", "2"), 2, 1, 0);
+    board.place(new Tile("lake-3", "0"), 2, 2, 0);
+    /*
     board.place(new Tile("rail-i", "1"), 1, 2, 0);
     board.place(new Tile("road-i", "0"), 2, 1, 0);
     board.place(new Tile("bridge", "0"), 2, 2, 0);
@@ -1725,7 +1787,10 @@ function init() {
     board.place(new Tile("cross-road", "0"), 5, 6, 0);
     board.place(new Tile("cross-road", "0"), 6, 6, 0);
     board.place(new Tile("rail-road-i", "1"), 7, 6, 0);
-    board.commit();
+    *
+    board.commit(0);
+
+    console.log(board.getScore());
     /**/
 }
 init();

@@ -41,7 +41,7 @@ export default class Round {
 
 		switch (type) {
 			case "demo":
-				DEMO.map(type => new Dice(new Tile(type, "0")))
+				DEMO.map(type => new Dice(new Tile(type, "0"), "plain"))
 					.forEach(dice => this._pool.add(dice));
 			break;
 
