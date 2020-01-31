@@ -1,12 +1,6 @@
 import Tile from "./tile.js";
 import * as html from "./html.js";
-
-type DiceType = "plain" | "lake";
-
-interface DiceTemplate {
-	tiles: string[];
-	type: DiceType;
-}
+import { DiceTemplate, DiceType }  from "./rules.js";
 
 export default class Dice {
 	node: HTMLElement = html.node("div", {className:"dice"});
@@ -44,17 +38,3 @@ export default class Dice {
 	});
 });
 
-export const DICE_REGULAR_1: DiceTemplate = {
-	tiles: ["road-i", "rail-i", "road-l", "rail-l", "road-t", "rail-t"],
-	type: "plain"
-}
-
-export const DICE_REGULAR_2: DiceTemplate = {
-	tiles: ["bridge", "bridge", "rail-road-i", "rail-road-i", "rail-road-l", "rail-road-l"],
-	type: "plain"
-}
-
-export const DICE_LAKE: DiceTemplate = {
-	tiles: ["lake-1", "lake-2", "lake-3", "lake-rail", "lake-road", "lake-rail-road"],
-	type: "lake"
-}

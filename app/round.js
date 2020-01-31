@@ -1,13 +1,8 @@
 import Pool from "./pool.js";
-import Dice, { DICE_REGULAR_1, DICE_REGULAR_2, DICE_LAKE } from "./dice.js";
-import Tile from "./tile.js";
 import * as html from "./html.js";
 import { DOWN } from "./event.js";
 import { DBLCLICK } from "./conf.js";
-const DEMO = ["bridge", "rail-i", "road-i", "rail-road-l", "rail-road-i", "rail-t", "road-l", "rail-l", "road-t",
-    "lake-1", "lake-2", "lake-3", "lake-4", "lake-rail", "lake-road", "lake-rail-road"
-];
-//const DEMO = ["bridge"];
+import { createDice } from "./rules.js";
 export default class Round {
     constructor(num, board, bonusPool) {
         this._pending = null;
@@ -21,38 +16,11 @@ export default class Round {
         this.node = this._pool.node;
         this._end.textContent = `End round #${this._num}`;
     }
-    start(type = "normal") {
+    start(type) {
         this._pool.onClick = dice => this._onPoolClick(dice);
         this._bonusPool.onClick = dice => this._onPoolClick(dice);
         this._board.onClick = cell => this._onBoardClick(cell);
-        switch (type) {
-            case "demo":
-                DEMO.map(type => new Dice(new Tile(type, "0"), "plain"))
-                    .forEach(dice => this._pool.add(dice));
-                break;
-            case "lake":
-                {
-                    let templates = [DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_2];
-                    while (templates.length) {
-                        let index = Math.floor(Math.random() * templates.length);
-                        let template = templates.splice(index, 1)[0];
-                        this._pool.add(Dice.fromTemplate(template));
-                    }
-                    this._pool.add(Dice.fromTemplate(DICE_LAKE));
-                    this._pool.add(Dice.fromTemplate(DICE_LAKE));
-                }
-                break;
-            default:
-                {
-                    let templates = [DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_2];
-                    while (templates.length) {
-                        let index = Math.floor(Math.random() * templates.length);
-                        let template = templates.splice(index, 1)[0];
-                        this._pool.add(Dice.fromTemplate(template));
-                    }
-                }
-                break;
-        }
+        createDice(type).forEach(dice => this._pool.add(dice));
         this.node.appendChild(this._end);
         this._syncEnd();
         this._bonusPool.unlock();

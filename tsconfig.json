@@ -7,5 +7,6 @@
 		"noUnusedParameters": true,
 		"noEmitOnError": true,
 		"incremental": true
-	}
+	},
+	"include": ["src"]
 }

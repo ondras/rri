@@ -27,15 +27,3 @@ export default class Dice {
         set(flag) { this.node.classList.toggle(prop, flag); }
     });
 });
-export const DICE_REGULAR_1 = {
-    tiles: ["road-i", "rail-i", "road-l", "rail-l", "road-t", "rail-t"],
-    type: "plain"
-};
-export const DICE_REGULAR_2 = {
-    tiles: ["bridge", "bridge", "rail-road-i", "rail-road-i", "rail-road-l", "rail-road-l"],
-    type: "plain"
-};
-export const DICE_LAKE = {
-    tiles: ["lake-1", "lake-2", "lake-3", "lake-rail", "lake-road", "lake-rail-road"],
-    type: "lake"
-};

@@ -4,6 +4,7 @@ import { BonusPool } from "./pool.js";
 import * as score from "./score.js";
 import * as html from "./html.js";
 import { DOWN } from "./event.js";
+import { GameType, ROUNDS } from "./rules.js";
 // import Tile from "./tile.js";
 
 const dataset = document.body.dataset;
@@ -51,11 +52,11 @@ function goIntro() {
 	board = newBoard;
 }
 
-async function goGame(type: string) {
+async function goGame(type: GameType) {
 	dataset.stage = "game";
 	if (!board) { return; }
 
-	const maxRounds = (type == "normal" ? 7 : 6);
+	const maxRounds = ROUNDS[type];
 
 	const parent = document.querySelector("#game") as HTMLElement;
 	parent.innerHTML = "";
