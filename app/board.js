@@ -10,8 +10,8 @@ export default class Board {
         this.node = this._build();
         this._placeInitialTiles();
     }
-    showScore(score) { console.log(score); }
-    onClick(cell) { console.log(cell); }
+    showScore(_score) { }
+    onClick(_cell) { }
     getScore() { return getScore(this._cells); }
     commit(round) {
         this._surroundLakes(round);

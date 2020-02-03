@@ -2,7 +2,7 @@ import Dice from "./dice.js";
 import Board from "./board.js";
 import * as html from "./html.js";
 import { DOWN } from "./event.js";
-import Tile from "./tile.js";
+import { DiceDescriptor } from "./rules.js";
 
 const MAX_BONUSES = 3;
 
@@ -44,7 +44,7 @@ export default class Pool {
 		this._dices.forEach(d => d.pending = (dice == d));
 	}
 
-	onClick(dice: Dice) { console.log(dice); }
+	onClick(_dice: Dice) {}
 
 	sync(board: Board) {
 		this._dices.filter(dice => !dice.disabled).forEach(dice => {
@@ -64,7 +64,8 @@ export class BonusPool extends Pool {
 
 		["cross-road-road-rail-road", "cross-road-rail-rail-rail", "cross-road",
 		 "cross-rail", "cross-road-rail-rail-road", "cross-road-rail-road-rail"].forEach(name => {
-			this.add(new Dice(new Tile(name, "0"), "plain"));
+			let descriptor: DiceDescriptor = {sid:name, transform:"0", type:"plain"};
+			this.add(Dice.fromDescriptor(descriptor));
 		});
 	}
 

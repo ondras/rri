@@ -1045,8 +1045,8 @@ class Board {
         this.node = this._build();
         this._placeInitialTiles();
     }
-    showScore(score) { console.log(score); }
-    onClick(cell) { console.log(cell); }
+    showScore(_score) { }
+    onClick(_cell) { }
     getScore() { return get$2(this._cells); }
     commit(round) {
         this._surroundLakes(round);
@@ -1531,7 +1531,7 @@ class Pool {
     pending(dice) {
         this._dices.forEach(d => d.pending = (dice == d));
     }
-    onClick(dice) { console.log(dice); }
+    onClick(_dice) { }
     sync(board) {
         this._dices.filter(dice => !dice.disabled).forEach(dice => {
             let cells = board.getAvailableCells(dice.tile);
@@ -1547,7 +1547,8 @@ class BonusPool extends Pool {
         this.node.classList.add("bonus");
         ["cross-road-road-rail-road", "cross-road-rail-rail-rail", "cross-road",
             "cross-rail", "cross-road-rail-rail-road", "cross-road-rail-road-rail"].forEach(name => {
-            this.add(new Dice(new Tile(name, "0"), "plain"));
+            let descriptor = { sid: name, transform: "0", type: "plain" };
+            this.add(Dice.fromDescriptor(descriptor));
         });
     }
     handleEvent(e) {
@@ -1760,7 +1761,7 @@ function goIntro() {
     board = newBoard;
 }
 async function goGame(type) {
-    let game = new SingleGame(type);
+    const game = new SingleGame(type);
     await game.play(board);
     blob = null;
     blob = await board.toBlob();

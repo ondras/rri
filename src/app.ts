@@ -35,7 +35,7 @@ function goIntro() {
 }
 
 async function goGame(type: GameType) {
-	let game = new SingleGame(type);
+	const game = new SingleGame(type);
 	await game.play(board);
 
 	blob = null;

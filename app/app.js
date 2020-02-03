@@ -28,7 +28,7 @@ function goIntro() {
     board = newBoard;
 }
 async function goGame(type) {
-    let game = new SingleGame(type);
+    const game = new SingleGame(type);
     await game.play(board);
     blob = null;
     blob = await board.toBlob();

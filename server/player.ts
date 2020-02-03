@@ -13,7 +13,7 @@ export default class Player {
 	constructor(ws: WebSocket) {
 		const io = {
 			sendData(str: string) { ws.send(str); },
-			onData(str: string) { console.log(str); }
+			onData(_str: string) {}
 		}
 		let jsonrpc = new JsonRpc(io);
 		this.jsonrpc = jsonrpc;

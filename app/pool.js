@@ -1,7 +1,6 @@
 import Dice from "./dice.js";
 import * as html from "./html.js";
 import { DOWN } from "./event.js";
-import Tile from "./tile.js";
 const MAX_BONUSES = 3;
 export default class Pool {
     constructor() {
@@ -41,7 +40,7 @@ export default class Pool {
     pending(dice) {
         this._dices.forEach(d => d.pending = (dice == d));
     }
-    onClick(dice) { console.log(dice); }
+    onClick(_dice) { }
     sync(board) {
         this._dices.filter(dice => !dice.disabled).forEach(dice => {
             let cells = board.getAvailableCells(dice.tile);
@@ -57,7 +56,8 @@ export class BonusPool extends Pool {
         this.node.classList.add("bonus");
         ["cross-road-road-rail-road", "cross-road-rail-rail-rail", "cross-road",
             "cross-rail", "cross-road-rail-rail-road", "cross-road-rail-road-rail"].forEach(name => {
-            this.add(new Dice(new Tile(name, "0"), "plain"));
+            let descriptor = { sid: name, transform: "0", type: "plain" };
+            this.add(Dice.fromDescriptor(descriptor));
         });
     }
     handleEvent(e) {
