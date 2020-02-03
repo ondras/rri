@@ -104,3 +104,14 @@ export default class Game {
 		this._players.forEach(player => player.jsonrpc.notify("game-change", []));
 	}
 }
+
+function logStats() {
+	console.group("Active games:");
+	games.forEach((game, name) => {
+		console.log(name, game.getInfo());
+	});
+	console.groupEnd();
+	console.log("---");
+}
+
+setInterval(logStats, 10*1000);

@@ -1,6 +1,7 @@
 {"imports":{
 "file:///home/ondras/games/rri/src/board.js": "file:///home/ondras/games/rri/src/board.ts",
 "file:///home/ondras/games/rri/src/tile.js": "file:///home/ondras/games/rri/src/tile.ts",
+"file:///home/ondras/games/rri/src/game.js": "file:///home/ondras/games/rri/src/game.ts",
 "file:///home/ondras/games/rri/src/rules.js": "file:///home/ondras/games/rri/src/rules.ts",
 "file:///home/ondras/games/rri/src/pool.js": "file:///home/ondras/games/rri/src/pool.ts",
 "file:///home/ondras/games/rri/src/event.js": "file:///home/ondras/games/rri/src/event.ts",

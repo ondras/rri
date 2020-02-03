@@ -139,3 +139,7 @@ export default class Round {
 		this._end.disabled = (this._pool.remaining > 0);
 	}
 }
+
+export class MultiplayerRound extends Round {
+
+}
