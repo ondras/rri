@@ -22,6 +22,13 @@ export default class Player {
 		this._receive(ws, io);
 	}
 
+	toJSON() {
+		return {
+			name: this.name,
+			roundEnded: this.roundEnded
+		};
+	}
+
 	_exposeInterface(jsonrpc: JsonRpc) {
 		// setup
 

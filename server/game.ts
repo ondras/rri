@@ -1,4 +1,4 @@
-import { GameType } from "../src/rules.ts";
+import { GameType, DiceDescriptor, ROUNDS, createDiceDescriptors } from "../src/rules.ts";
 import Player from "./player.ts";
 
 type State = "starting" | "playing" | "over";
@@ -7,9 +7,9 @@ const games = new Map<string, Game>();
 
 export default class Game {
 	_players: Player[] = [];
+	_round = 0;
+	_diceDescriptors: DiceDescriptor[] = [];
 	state: State;
-	round = 0;
-	dice = [];
 
 	static find(name: string) {
 		return games.get(name);
@@ -23,7 +23,7 @@ export default class Game {
 		return game;
 	}
 
-	constructor(readonly type: GameType, readonly owner: Player) {
+	constructor(readonly _type: GameType, readonly owner: Player) {
 		this.state = "starting";
 		this.addPlayer(owner);
 	}
@@ -69,7 +69,11 @@ export default class Game {
 	}
 
 	getInfo() {
-		return "GAMEINFO";
+		return {
+			dice: this._diceDescriptors,
+			state: this.state,
+			players: this._players.map(p => p.toJSON())
+		};
 	}
 
 	_destroy() {
@@ -87,7 +91,12 @@ export default class Game {
 	}
 
 	_advanceRound() {
-		// FIXME
+		if (this._round < ROUNDS[this._type]) {
+			this._round++;
+			this._diceDescriptors = createDiceDescriptors(this._type);
+		} else {
+			this.state = "over";
+		}
 		this._notifyGameChange();
 	}
 
