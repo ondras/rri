@@ -3,7 +3,6 @@ import { clamp, all as allDirections, Vector } from "./direction.js";
 import { NONE } from "./edge.js";
 import { Score, get as getScore } from "./score.js";
 import CellRepo, { Cell } from "./cell-repo.js";
-import { Transform } from "./transform.js";
 import { LAKE } from "./edge.js";
 
 export default abstract class Board {
@@ -65,7 +64,7 @@ export default abstract class Board {
 		let neighborEdges = this._getNeighborEdges(x, y);
 		let clone = tile.clone();
 
-		function compare(t1: Transform, t2: Transform) {
+		function compare(t1: string, t2: string) {
 			clone.transform = t1;
 			let c1 = clone.fitsNeighbors(neighborEdges);
 			clone.transform = t2;

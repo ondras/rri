@@ -1,6 +1,6 @@
 import Tile from "./tile.js";
 import * as html from "./html.js";
-import { DiceTemplate, DiceType }  from "./rules.js";
+import { DiceDescriptor, DiceType }  from "./rules.js";
 
 export default class Dice {
 	node: HTMLElement = html.node("div", {className:"dice"});
@@ -10,10 +10,9 @@ export default class Dice {
 	disabled!: boolean;
 	readonly type: DiceType;
 
-	static fromTemplate(template: DiceTemplate) {
-		let names = template.tiles;
-		let name = names[Math.floor(Math.random() * names.length)];
-		return new this(new Tile(name, "0"), template.type);
+	static fromDescriptor(descriptor: DiceDescriptor) {
+		let tile = new Tile(descriptor.sid, descriptor.transform);
+		return new this(tile, descriptor.type);
 	}
 
 	constructor(tile: Tile, type: DiceType) {

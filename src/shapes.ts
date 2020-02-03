@@ -1,4 +1,4 @@
-import { Transform, get as getTransform, all as allTransforms } from "./transform.js";
+import { get as getTransform, all as allTransforms } from "./transform.js";
 import { N, E, S, W, all as allDirections } from "./direction.js";
 import { Edge, NONE, RAIL, ROAD, LAKE } from "./edge.js";
 import DrawContext from "./draw-context.js";
@@ -7,7 +7,7 @@ import * as html from "./html.js";
 type Edges = [Edge, Edge, Edge, Edge];
 interface Shape {
 	edges: Edges;
-	transforms: Transform[];
+	transforms: string[];
 	image: HTMLImageElement;
 	canvas: HTMLCanvasElement;
 }
@@ -398,7 +398,7 @@ export function get(id: string) {
 
 function getTransforms(edges: Edges) {
 	let cache = new Set();
-	function filter(t: Transform) {
+	function filter(t: string) {
 		let transform = getTransform(t);
 
 		let key = allDirections.map(d => {

@@ -1,11 +1,9 @@
-import Dice from "./dice.ts";
-import Tile from "./tile.js";
-
 export type DiceType = "plain" | "lake";
 
-export interface DiceTemplate {
-	tiles: string[];
+export interface DiceDescriptor {
 	type: DiceType;
+	sid: string;
+	transform: string;
 }
 
 export type GameType = "normal" | "lake" | "demo";
@@ -16,28 +14,39 @@ export const ROUNDS: {[type in GameType]: number} = {
 	"demo": 1
 }
 
-export function createDice(type: GameType): Dice[] {
+function expandTemplate(template: DiceTemplate): DiceDescriptor {
+	let names = template.tiles;
+	let sid = names[Math.floor(Math.random() * names.length)];
+	return {sid, transform:"0", type:template.type};
+}
+
+export function createDiceDescriptors(type: GameType): DiceDescriptor[] {
 	switch (type) {
 		case "demo":
-			return DEMO.map(type => new Dice(new Tile(type, "0"), "plain"));
+			return DEMO.map(type => ({sid:type, transform:"0", type:"plain"}));
 		break;
 
 		case "lake":
-			return [...createDice("normal"), Dice.fromTemplate(DICE_LAKE), Dice.fromTemplate(DICE_LAKE)];
+			return [...createDiceDescriptors("normal"), expandTemplate(DICE_LAKE), expandTemplate(DICE_LAKE)];
 		break;
 
 		default:
-			let dice = [];
+			let result = [];
 			let templates = [DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_2];
 			while (templates.length) {
 				let index = Math.floor(Math.random()*templates.length);
 				let template = templates.splice(index, 1)[0];
-				dice.push(Dice.fromTemplate(template));
+				result.push(expandTemplate(template));
 			}
-			return dice;
+			return result;
 		break;
 	}
 
+}
+
+interface DiceTemplate {
+	tiles: string[];
+	type: DiceType;
 }
 
 const DEMO = [

@@ -1,9 +1,8 @@
 import { Direction, clamp } from "./direction.js";
 
-export type Transform = string;
-const repo: {[key:string]: TransformImpl} = {};
+const repo: {[key:string]: Transform} = {};
 
-class TransformImpl {
+class Transform {
 	_direction: number;
 	_offset: number;
 
@@ -41,7 +40,7 @@ class TransformImpl {
 function create(id: string) {
 	let offset = Math.abs(Number(id));
 	let direction = (id.startsWith("-") ? -1 : 1);
-	repo[id] = new TransformImpl(direction, offset)
+	repo[id] = new Transform(direction, offset)
 	return get(id);
 }
 

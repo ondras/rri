@@ -10,7 +10,7 @@ const all = [N, E, S, W];
 const Vector = [[0, -1], [1, 0], [0, 1], [-1, 0]];
 
 const repo = {};
-class TransformImpl {
+class Transform {
     constructor(direction, offset) {
         this._direction = direction;
         this._offset = offset;
@@ -42,7 +42,7 @@ class TransformImpl {
 function create(id) {
     let offset = Math.abs(Number(id));
     let direction = (id.startsWith("-") ? -1 : 1);
-    repo[id] = new TransformImpl(direction, offset);
+    repo[id] = new Transform(direction, offset);
     return get(id);
 }
 function get(id) {
@@ -1430,10 +1430,9 @@ class Dice {
             this.node.classList.add("lake");
         }
     }
-    static fromTemplate(template) {
-        let names = template.tiles;
-        let name = names[Math.floor(Math.random() * names.length)];
-        return new this(new Tile(name, "0"), template.type);
+    static fromDescriptor(descriptor) {
+        let tile = new Tile(descriptor.sid, descriptor.transform);
+        return new this(tile, descriptor.type);
     }
     get tile() { return this._tile; }
     set tile(tile) {
@@ -1539,21 +1538,26 @@ const ROUNDS = {
     "lake": 6,
     "demo": 1
 };
-function createDice(type) {
+function expandTemplate(template) {
+    let names = template.tiles;
+    let sid = names[Math.floor(Math.random() * names.length)];
+    return { sid, transform: "0", type: template.type };
+}
+function createDiceDescriptors(type) {
     switch (type) {
         case "demo":
-            return DEMO.map(type => new Dice(new Tile(type, "0"), "plain"));
+            return DEMO.map(type => ({ sid: type, transform: "0", type: "plain" }));
         case "lake":
-            return [...createDice("normal"), Dice.fromTemplate(DICE_LAKE), Dice.fromTemplate(DICE_LAKE)];
+            return [...createDiceDescriptors("normal"), expandTemplate(DICE_LAKE), expandTemplate(DICE_LAKE)];
         default:
-            let dice = [];
+            let result = [];
             let templates = [DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_2];
             while (templates.length) {
                 let index = Math.floor(Math.random() * templates.length);
                 let template = templates.splice(index, 1)[0];
-                dice.push(Dice.fromTemplate(template));
+                result.push(expandTemplate(template));
             }
-            return dice;
+            return result;
     }
 }
 const DEMO = [
@@ -1590,7 +1594,7 @@ class Round {
         this._pool.onClick = dice => this._onPoolClick(dice);
         this._bonusPool.onClick = dice => this._onPoolClick(dice);
         this._board.onClick = cell => this._onBoardClick(cell);
-        createDice(type).forEach(dice => this._pool.add(dice));
+        createDiceDescriptors(type).map(d => Dice.fromDescriptor(d)).forEach(dice => this._pool.add(dice));
         this.node.appendChild(this._end);
         this._syncEnd();
         this._bonusPool.unlock();

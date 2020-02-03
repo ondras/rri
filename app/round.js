@@ -1,8 +1,9 @@
 import Pool from "./pool.js";
+import Dice from "./dice.js";
 import * as html from "./html.js";
 import { DOWN } from "./event.js";
 import { DBLCLICK } from "./conf.js";
-import { createDice } from "./rules.js";
+import { createDiceDescriptors } from "./rules.js";
 export default class Round {
     constructor(num, board, bonusPool) {
         this._pending = null;
@@ -20,7 +21,7 @@ export default class Round {
         this._pool.onClick = dice => this._onPoolClick(dice);
         this._bonusPool.onClick = dice => this._onPoolClick(dice);
         this._board.onClick = cell => this._onBoardClick(cell);
-        createDice(type).forEach(dice => this._pool.add(dice));
+        createDiceDescriptors(type).map(d => Dice.fromDescriptor(d)).forEach(dice => this._pool.add(dice));
         this.node.appendChild(this._end);
         this._syncEnd();
         this._bonusPool.unlock();

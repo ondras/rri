@@ -6,7 +6,7 @@ import * as html from "./html.js";
 import { DOWN } from "./event.js";
 import { Cell } from "./cell-repo.js";
 import { DBLCLICK } from "./conf.js";
-import { GameType, createDice } from "./rules.js";
+import { GameType, createDiceDescriptors } from "./rules.js";
 
 export default class Round {
 	node: HTMLElement;
@@ -35,7 +35,7 @@ export default class Round {
 		this._bonusPool.onClick = dice => this._onPoolClick(dice);
 		this._board.onClick = cell => this._onBoardClick(cell);
 
-		createDice(type).forEach(dice => this._pool.add(dice));
+		createDiceDescriptors(type).map(d => Dice.fromDescriptor(d)).forEach(dice => this._pool.add(dice));
 
 		this.node.appendChild(this._end);
 		this._syncEnd();
