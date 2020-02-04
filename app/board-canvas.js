@@ -136,11 +136,9 @@ export default class BoardCanvas extends Board {
             ctx.fillText("✘", pxx, pxy);
         });
     }
-    toBlob() {
+    createBlob() {
         const ctx = this._ctx;
-        return new Promise(resolve => {
-            ctx.canvas.toBlob(resolve);
-        });
+        ctx.canvas.toBlob(blob => this.blob = blob);
     }
     _build() {
         this._pendingCells = [];

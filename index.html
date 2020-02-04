@@ -21,13 +21,11 @@
 				<ul>
 					<li><button name="start-normal"><strong>Play normal game (7&nbsp;rounds)</strong></button></li>
 					<li><button name="start-lake">Play with lakes (6&nbsp;rounds)</button></li>
-					<li><button disabled>Multiplayer</button></li>
+					<li><button name="start-multi">Multiplayer</button></li>
 				</ul>
 			</section>
 
-			<section id="game">
-
-			</section>
+			<section id="game"></section>
 
 			<section id="outro">
 				<h2>Game over</h2>
@@ -46,7 +44,32 @@
 				<li><a href="https://www.horrible-games.com/wp-content/uploads/2018/07/RRI_BLU_Rulebook_ENG_v05_light.pdf">Read rules</a></li>
 			</ul>
 		</footer>
+
+		<template>
+			<table id="multi-setup">
+				<tr>
+					<td>Your name: </td><td><input name="player-name" value="player" /></td>
+				</tr>
+				<tr>
+					<td>Game name: </td><td><input name="game-name" value="game" /></td>
+				</tr>
+				<tr>
+					<td colspan="2">
+						<button name="join">Join game</button>
+						<button name="create-normal">Create normal game</button>
+						<button name="create-lake">Create game with lakes</button>
+					</td>
+				</tr>
+			</table>
+			</div>
+			<div id="multi-lobby">
+				<h2>Players</h2>
+				<ul></ul>
+				<button name="start"></button>
+			</div>
+		</template>
+
 		<script type="module" src="app/app.bundle.js"></script>
 		<script>navigator.serviceWorker.register("sw.js");</script>
 	</body>
-</html >
+</html>

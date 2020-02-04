@@ -7,6 +7,7 @@ import { LAKE } from "./edge.js";
 
 export default abstract class Board {
 	node: HTMLElement;
+	blob: Blob | null = null;
 	_cells = new CellRepo();
 
 	constructor() {
@@ -16,7 +17,7 @@ export default abstract class Board {
 
 	abstract _build(): HTMLElement;
 	abstract signal(cells: Cell[]): void;
-	abstract async toBlob(): Promise<Blob | null>;
+	createBlob() {}
 	showScore(_score: Score) {}
 	onClick(_cell: Cell) {}
 	getScore() { return getScore(this._cells); }

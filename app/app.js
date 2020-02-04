@@ -1,15 +1,14 @@
 import Board from "./board-canvas.js";
 import * as html from "./html.js";
-import { DOWN } from "./event.js";
-import { SingleGame } from "./game.js";
+import SingleGame from "./game-single.js";
+import MultiGame from "./game-multi.js";
 const dataset = document.body.dataset;
 let board;
-let blob = null;
 function download(parent) {
-    if (!blob) {
+    if (!board.blob) {
         return;
     }
-    const href = URL.createObjectURL(blob);
+    const href = URL.createObjectURL(board.blob);
     let a = html.node("a", { href, download: "railroad-ink.png" });
     parent.appendChild(a);
     a.click();
@@ -28,16 +27,21 @@ function goIntro() {
     board = newBoard;
 }
 async function goGame(type) {
-    const game = new SingleGame(type);
-    await game.play(board);
-    blob = null;
-    blob = await board.toBlob();
+    const game = (type == "multi" ? new MultiGame() : new SingleGame(type));
+    try {
+        await game.play(board);
+    }
+    catch (e) {
+        alert(e.message);
+        goIntro();
+    }
 }
 function init() {
-    document.querySelector("[name=start-normal]").addEventListener(DOWN, () => goGame("normal"));
-    document.querySelector("[name=start-lake]").addEventListener(DOWN, () => goGame("lake"));
-    document.querySelector("[name=again]").addEventListener(DOWN, () => goIntro());
-    document.querySelector("[name=download]").addEventListener(DOWN, e => download(e.target));
+    document.querySelector("[name=start-normal]").addEventListener("click", () => goGame("normal"));
+    document.querySelector("[name=start-lake]").addEventListener("click", () => goGame("lake"));
+    document.querySelector("[name=start-multi]").addEventListener("click", () => goGame("multi"));
+    document.querySelector("[name=again]").addEventListener("click", () => goIntro());
+    document.querySelector("[name=download]").addEventListener("click", e => download(e.target));
     goIntro();
 }
 init();

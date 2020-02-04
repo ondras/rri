@@ -1041,10 +1041,12 @@ class CellRepo {
 
 class Board {
     constructor() {
+        this.blob = null;
         this._cells = new CellRepo();
         this.node = this._build();
         this._placeInitialTiles();
     }
+    createBlob() { }
     showScore(_score) { }
     onClick(_cell) { }
     getScore() { return get$2(this._cells); }
@@ -1303,11 +1305,9 @@ class BoardCanvas extends Board {
             ctx.fillText("✘", pxx, pxy);
         });
     }
-    toBlob() {
+    createBlob() {
         const ctx = this._ctx;
-        return new Promise(resolve => {
-            ctx.canvas.toBlob(resolve);
-        });
+        ctx.canvas.toBlob(blob => this.blob = blob);
     }
     _build() {
         this._pendingCells = [];
@@ -1421,50 +1421,6 @@ class BoardCanvas extends Board {
     }
 }
 
-const ROUNDS = {
-    "normal": 7,
-    "lake": 6,
-    "demo": 1
-};
-function expandTemplate(template) {
-    let names = template.tiles;
-    let sid = names[Math.floor(Math.random() * names.length)];
-    return { sid, transform: "0", type: template.type };
-}
-function createDiceDescriptors(type) {
-    switch (type) {
-        case "demo":
-            return DEMO.map(type => ({ sid: type, transform: "0", type: "plain" }));
-        case "lake":
-            return [...createDiceDescriptors("normal"), expandTemplate(DICE_LAKE), expandTemplate(DICE_LAKE)];
-        default:
-            let result = [];
-            let templates = [DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_2];
-            while (templates.length) {
-                let index = Math.floor(Math.random() * templates.length);
-                let template = templates.splice(index, 1)[0];
-                result.push(expandTemplate(template));
-            }
-            return result;
-    }
-}
-const DEMO = [
-    "bridge", "rail-i", "road-i", "rail-road-l", "rail-road-i", "rail-t", "road-l", "rail-l", "road-t",
-    "lake-1", "lake-2", "lake-3", "lake-4", "lake-rail", "lake-road", "lake-rail-road"
-];
-const DICE_REGULAR_1 = {
-    tiles: ["road-i", "rail-i", "road-l", "rail-l", "road-t", "rail-t"],
-    type: "plain"
-};
-const DICE_REGULAR_2 = {
-    tiles: ["bridge", "bridge", "rail-road-i", "rail-road-i", "rail-road-l", "rail-road-l"],
-    type: "plain"
-};
-const DICE_LAKE = {
-    tiles: ["lake-1", "lake-2", "lake-3", "lake-rail", "lake-road", "lake-rail-road"],
-    type: "lake"
-};
-
 class Dice {
     constructor(tile, type) {
         this.node = node("div", { className: "dice" });
@@ -1577,6 +1533,64 @@ class BonusPool extends Pool {
         this._locked = false;
     }
 }
+
+const dataset = document.body.dataset;
+class Game {
+    constructor() {
+        this._node = document.querySelector("#game");
+        this._bonusPool = new BonusPool();
+    }
+    play(_board) {
+        dataset.stage = "game";
+    }
+    _outro(_board) {
+        dataset.stage = "outro";
+    }
+}
+
+const ROUNDS = {
+    "normal": 7,
+    "lake": 6,
+    "demo": 1
+};
+function expandTemplate(template) {
+    let names = template.tiles;
+    let sid = names[Math.floor(Math.random() * names.length)];
+    return { sid, transform: "0", type: template.type };
+}
+function createDiceDescriptors(type) {
+    switch (type) {
+        case "demo":
+            return DEMO.map(type => ({ sid: type, transform: "0", type: "plain" }));
+        case "lake":
+            return [...createDiceDescriptors("normal"), expandTemplate(DICE_LAKE), expandTemplate(DICE_LAKE)];
+        default:
+            let result = [];
+            let templates = [DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_2];
+            while (templates.length) {
+                let index = Math.floor(Math.random() * templates.length);
+                let template = templates.splice(index, 1)[0];
+                result.push(expandTemplate(template));
+            }
+            return result;
+    }
+}
+const DEMO = [
+    "bridge", "rail-i", "road-i", "rail-road-l", "rail-road-i", "rail-t", "road-l", "rail-l", "road-t",
+    "lake-1", "lake-2", "lake-3", "lake-4", "lake-rail", "lake-road", "lake-rail-road"
+];
+const DICE_REGULAR_1 = {
+    tiles: ["road-i", "rail-i", "road-l", "rail-l", "road-t", "rail-t"],
+    type: "plain"
+};
+const DICE_REGULAR_2 = {
+    tiles: ["bridge", "bridge", "rail-road-i", "rail-road-i", "rail-road-l", "rail-road-l"],
+    type: "plain"
+};
+const DICE_LAKE = {
+    tiles: ["lake-1", "lake-2", "lake-3", "lake-rail", "lake-road", "lake-rail-road"],
+    type: "lake"
+};
 
 class Round {
     constructor(num, board, bonusPool) {
@@ -1694,30 +1708,19 @@ class Round {
     }
 }
 
-const dataset = document.body.dataset;
-class Game {
+class SingleGame extends Game {
     constructor(_type) {
+        super();
         this._type = _type;
     }
-    play(_board) {
-        dataset.stage = "game";
-    }
-    _outro(_board) {
-        dataset.stage = "outro";
-    }
-}
-class SingleGame extends Game {
     async play(board) {
         super.play(board);
-        const maxRounds = ROUNDS[this._type];
-        const parent = document.querySelector("#game");
-        parent.innerHTML = "";
-        const bonusPool = new BonusPool();
-        parent.appendChild(bonusPool.node);
+        this._node.innerHTML = "";
+        this._node.appendChild(this._bonusPool.node);
         let num = 1;
-        while (num <= maxRounds) {
-            let round = new Round(num, board, bonusPool);
-            parent.appendChild(round.node);
+        while (num <= ROUNDS[this._type]) {
+            let round = new Round(num, board, this._bonusPool);
+            this._node.appendChild(round.node);
             await round.start(this._type);
             round.end();
             round.node.remove();
@@ -1735,14 +1738,257 @@ class SingleGame extends Game {
     }
 }
 
+const V = "2.0";
+function debug(msg, ...args) {
+    console.debug(`[jsonrpc] ${msg}`, ...args);
+}
+function warn(msg, ...args) {
+    console.warn(`[jsonrpc] ${msg}`, ...args);
+}
+function createErrorMessage(id, code, message, data) {
+    let error = { code, message };
+    if (data) {
+        error.data = data;
+    }
+    return { id, error, jsonrpc: V };
+}
+function createResultMessage(id, result) {
+    return { id, result, jsonrpc: V };
+}
+function createCallMessage(method, params, id) {
+    let message = { method, params, jsonrpc: V };
+    if (id) {
+        message.id = id;
+    }
+    return message;
+}
+class JsonRpc {
+    constructor(_io) {
+        this._io = _io;
+        this._interface = new Map();
+        this._pendingPromises = new Map();
+        _io.onData = (m) => this._onData(m);
+    }
+    expose(name, method) {
+        this._interface.set(name, method);
+    }
+    async call(method, params) {
+        let id = Math.random().toString();
+        let message = createCallMessage(method, params, id);
+        return new Promise((resolve, reject) => {
+            this._pendingPromises.set(id, { resolve, reject });
+            this._send(message);
+        });
+    }
+    notify(method, params) {
+        let message = createCallMessage(method, params);
+        this._send(message);
+    }
+    _send(message) {
+        const str = JSON.stringify(message);
+        debug("sending", str);
+        this._io.sendData(str);
+    }
+    _onData(str) {
+        debug("received", str);
+        let message;
+        try {
+            message = JSON.parse(str);
+        }
+        catch (e) {
+            let reply = createErrorMessage(null, -32700, e.message);
+            this._send(reply);
+            return;
+        }
+        let reply;
+        if (message instanceof Array) {
+            let mapped = message.map(m => this._processMessage(m)).filter(m => m);
+            reply = (mapped.length ? mapped : null);
+        }
+        else {
+            reply = this._processMessage(message);
+        }
+        reply && this._send(reply);
+    }
+    _processMessage(message) {
+        if ("method" in message) { // call
+            const method = this._interface.get(message.method);
+            if (!method) {
+                return (message.id ? createErrorMessage(message.id, -32601, "method not found") : null);
+            }
+            try {
+                const result = (message.params instanceof Array ? method(...message.params) : method(message.params));
+                return (message.id ? createResultMessage(message.id, result) : null);
+            }
+            catch (e) {
+                warn("caught", e);
+                return (message.id ? createErrorMessage(message.id, -32000, e.message) : null);
+            }
+        }
+        else if (message.id) { // result/error
+            let promise = this._pendingPromises.get(message.id);
+            if (!promise) {
+                throw new Error(`Received a non-matching response id "${message.id}"`);
+            }
+            this._pendingPromises.delete(message.id);
+            ("error" in message ? promise.reject(message.error) : promise.resolve(message.result));
+        }
+        else {
+            throw new Error("Received a non-call non-id JSON-RPC message");
+        }
+        return null;
+    }
+}
+
+const template = document.querySelector("template");
+function createRpc(ws) {
+    let io = {
+        onData(_s) { },
+        sendData(s) { ws.send(s); }
+    };
+    ws.addEventListener("message", e => io.onData(e.data));
+    return new JsonRpc(io);
+}
+function openWebSocket(url) {
+    const ws = new WebSocket(url);
+    return new Promise((resolve, reject) => {
+        ws.addEventListener("open", e => resolve(e.target));
+        ws.addEventListener("error", _ => reject(new Error("Cannot connect to server")));
+    });
+}
+class MultiGame extends Game {
+    constructor() {
+        super();
+        this._nodes = {};
+        this._state = "";
+        this._round = 0;
+        ["setup", "lobby"].forEach(id => {
+            let node = template.content.querySelector(`#multi-${id}`);
+            this._nodes[id] = node.cloneNode(true);
+        });
+        const setup = this._nodes["setup"];
+        setup.querySelector("[name=join]").addEventListener("click", _ => this._joinOrCreate());
+        setup.querySelector("[name=create-normal]").addEventListener("click", _ => this._joinOrCreate("normal"));
+        setup.querySelector("[name=create-lake]").addEventListener("click", _ => this._joinOrCreate("lake"));
+        const lobby = this._nodes["lobby"];
+        lobby.querySelector("button").addEventListener("click", _ => this._start());
+    }
+    async play(board) {
+        super.play(board);
+        return new Promise((_, reject) => {
+            this._reject = reject;
+            this._setup();
+        });
+    }
+    async _setup() {
+        this._rpc = undefined;
+        this._node.innerHTML = "";
+        const setup = this._nodes["setup"];
+        this._node.appendChild(setup);
+        try {
+            const ws = await openWebSocket("ws://localhost:1234"); // FIXME
+            ws.addEventListener("close", e => this._onClose(e));
+            const rpc = createRpc(ws);
+            rpc.expose("game-change", () => this._sync());
+            rpc.expose("game-destroy", () => this._sync()); // FIXME
+            this._rpc = rpc;
+        }
+        catch (e) {
+            this._reject(e);
+        }
+    }
+    _onClose(_e) {
+        this._reject(new Error("Network connection closed"));
+    }
+    async _joinOrCreate(type) {
+        if (!this._rpc) {
+            return;
+        }
+        const setup = this._nodes["setup"];
+        let playerName = setup.querySelector("[name=player-name]").value;
+        if (!playerName) {
+            return alert("Please provide your name");
+        }
+        let gameName = setup.querySelector("[name=game-name]").value;
+        if (!gameName) {
+            return alert("Please provide a game name");
+        }
+        const buttons = setup.querySelectorAll("button");
+        buttons.forEach(b => b.disabled = true);
+        let args = [gameName, playerName];
+        if (type) {
+            args.unshift(type);
+        }
+        try {
+            const lobby = this._nodes["lobby"];
+            lobby.querySelector("button").disabled = (!type);
+            await this._rpc.call(type ? "create-game" : "join-game", args);
+        }
+        catch (e) {
+            alert(e.message);
+        }
+        finally {
+            buttons.forEach(b => b.disabled = false);
+        }
+    }
+    _start() {
+        if (!this._rpc) {
+            return;
+        }
+        this._rpc.call("start-game", []);
+    }
+    async _sync() {
+        if (!this._rpc) {
+            return;
+        }
+        let response = await this._rpc.call("game-info", []);
+        this._setState(response.state);
+        switch (response.state) {
+            case "starting":
+                this._updateLobby(response.players);
+                break;
+            case "playing":
+                this._updateRound(response);
+                break;
+        }
+    }
+    _setState(state) {
+        if (this._state == state) {
+            return;
+        }
+        this._state = state;
+        this._node.innerHTML = "";
+        switch (state) {
+            case "starting":
+                this._node.appendChild(this._nodes["lobby"]);
+                break;
+            case "playing":
+                this._node.appendChild(this._bonusPool.node);
+                break;
+        }
+    }
+    _updateLobby(players) {
+        const lobby = this._nodes["lobby"];
+        const list = lobby.querySelector("ul");
+        list.innerHTML = "";
+        players.forEach(p => {
+            let item = node("li", {}, p.name);
+            list.appendChild(item);
+        });
+        const button = lobby.querySelector("button");
+        button.textContent = (button.disabled ? `Wait for ${players[0].name} to start the game` : "Start the game");
+    }
+    _updateRound(_response) {
+    }
+}
+
 const dataset$1 = document.body.dataset;
 let board;
-let blob = null;
 function download(parent) {
-    if (!blob) {
+    if (!board.blob) {
         return;
     }
-    const href = URL.createObjectURL(blob);
+    const href = URL.createObjectURL(board.blob);
     let a = node("a", { href, download: "railroad-ink.png" });
     parent.appendChild(a);
     a.click();
@@ -1761,16 +2007,21 @@ function goIntro() {
     board = newBoard;
 }
 async function goGame(type) {
-    const game = new SingleGame(type);
-    await game.play(board);
-    blob = null;
-    blob = await board.toBlob();
+    const game = (type == "multi" ? new MultiGame() : new SingleGame(type));
+    try {
+        await game.play(board);
+    }
+    catch (e) {
+        alert(e.message);
+        goIntro();
+    }
 }
 function init() {
-    document.querySelector("[name=start-normal]").addEventListener(DOWN, () => goGame("normal"));
-    document.querySelector("[name=start-lake]").addEventListener(DOWN, () => goGame("lake"));
-    document.querySelector("[name=again]").addEventListener(DOWN, () => goIntro());
-    document.querySelector("[name=download]").addEventListener(DOWN, e => download(e.target));
+    document.querySelector("[name=start-normal]").addEventListener("click", () => goGame("normal"));
+    document.querySelector("[name=start-lake]").addEventListener("click", () => goGame("lake"));
+    document.querySelector("[name=start-multi]").addEventListener("click", () => goGame("multi"));
+    document.querySelector("[name=again]").addEventListener("click", () => goIntro());
+    document.querySelector("[name=download]").addEventListener("click", e => download(e.target));
     goIntro();
 }
 init();

@@ -19,7 +19,6 @@ export default class BoardTable extends Board {
                 break;
         }
     }
-    toBlob() { return Promise.resolve(null); }
     place(tile, x, y, round) {
         super.place(tile, x, y, round);
         let td = this._tableCellAt(x, y);

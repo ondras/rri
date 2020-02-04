@@ -26,8 +26,6 @@ export default class BoardTable extends Board {
 		}
 	}
 
-	toBlob() { return Promise.resolve(null); }
-
 	place(tile: Tile | null, x: number, y: number, round: number) {
 		super.place(tile, x, y, round);
 

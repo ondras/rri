@@ -6,10 +6,12 @@ import CellRepo from "./cell-repo.js";
 import { LAKE } from "./edge.js";
 export default class Board {
     constructor() {
+        this.blob = null;
         this._cells = new CellRepo();
         this.node = this._build();
         this._placeInitialTiles();
     }
+    createBlob() { }
     showScore(_score) { }
     onClick(_cell) { }
     getScore() { return getScore(this._cells); }

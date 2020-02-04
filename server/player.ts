@@ -1,7 +1,6 @@
 import { WebSocket, isWebSocketCloseEvent } from "https://deno.land/std/ws/mod.ts";
 import Game from "./game.ts";
-import JsonRpc from "../../../projects/deno-json-rpc/mod.ts";
-import { IO } from "../../../projects/deno-json-rpc/types.d.ts";
+import JsonRpc, { IO } from "../../../projects/deno-json-rpc/mod.ts";
 import { GameType } from "../src/rules.ts";
 
 export default class Player {
@@ -12,7 +11,7 @@ export default class Player {
 
 	constructor(ws: WebSocket) {
 		const io = {
-			sendData(str: string) { ws.send(str); },
+			sendData(str: string) { return ws.send(str); },
 			onData(_str: string) {}
 		}
 		let jsonrpc = new JsonRpc(io);
@@ -29,12 +28,17 @@ export default class Player {
 		};
 	}
 
+	_log(msg: string, ...args: unknown[]) {
+		return console.log(`[player ${this.name}] ${msg}`, ...args);
+	}
+
 	_exposeInterface(jsonrpc: JsonRpc) {
 		// setup
 
-		jsonrpc.expose("create-game", (gameName: string, gameType: GameType, playerName: string) => {
+		jsonrpc.expose("create-game", (gameType: GameType, gameName: string, playerName: string) => {
 			this.name = playerName;
-			this.game = Game.create(gameName, gameType, this);
+			this.game = Game.create(gameType, gameName, this);
+			this._log("game", gameName, "created");
 		});
 
 		jsonrpc.expose("join-game", (gameName: string, playerName: string) => {
@@ -43,12 +47,14 @@ export default class Player {
 
 			this.name = playerName;
 			game.addPlayer(this); // will notify others
+			this._log("joined game", gameName);
 		});
 
 		jsonrpc.expose("start-game", () => {
 			const game = this.game;
 			if (!game) { throw new Error("Cannot start a non-joined game"); }
 			if (game.owner != this) { throw new Error("Only the game owner can start it"); }
+			this._log("starting the game");
 			game.start(); // will notify all
 		});
 
@@ -58,6 +64,7 @@ export default class Player {
 			const game = this.game;
 			if (!game) { throw new Error("Not playing yet"); }
 			this.roundEnded = true;
+			this._log("round ended");
 			game.checkRoundEnd(); // will notify all
 		});
 
@@ -65,6 +72,7 @@ export default class Player {
 			const game = this.game;
 			if (!game) { throw new Error("Cannot quit a non-joined game"); }
 			game.removePlayer(this); // will notify others
+			this._log("left the game");
 		});
 
 		jsonrpc.expose("game-info", () => {
@@ -80,6 +88,7 @@ export default class Player {
 					io.onData(e);
 				} else if (isWebSocketCloseEvent(e)) { // close
 					const game = this.game;
+					this._log("disconnected");
 					if (!game || game.state == "playing") { return; }
 					game.removePlayer(this);
 				}

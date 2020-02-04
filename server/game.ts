@@ -15,9 +15,8 @@ export default class Game {
 		return games.get(name);
 	}
 
-	static create(name: string, type: GameType, owner: Player) {
+	static create(type: GameType, name: string, owner: Player) {
 		if (this.find(name)) { throw new Error(`The game "${name}" already exists`); }
-
 		let game = new this(type, owner);
 		games.set(name, game);
 		return game;
@@ -101,7 +100,7 @@ export default class Game {
 	}
 
 	_notifyGameChange() {
-		this._players.forEach(player => player.jsonrpc.notify("game-change", []));
+		setTimeout( () => this._players.forEach(player => player.jsonrpc.notify("game-change", [])), 0);
 	}
 }
 
@@ -111,7 +110,6 @@ function logStats() {
 		console.log(name, game.getInfo());
 	});
 	console.groupEnd();
-	console.log("---");
 }
 
 setInterval(logStats, 10*1000);
