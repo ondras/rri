@@ -1,38 +1,37 @@
 import Pool from "./pool.js";
 import Dice from "./dice.js";
 import * as html from "./html.js";
-import { DOWN } from "./event.js";
 import { DBLCLICK } from "./conf.js";
-import { createDiceDescriptors } from "./rules.js";
 export default class Round {
-    constructor(num, board, bonusPool) {
+    constructor(number, _board, _bonusPool) {
+        this.number = number;
+        this._board = _board;
+        this._bonusPool = _bonusPool;
         this._pending = null;
-        this._end = html.node("button");
+        this._endButton = html.node("button");
         this._placedTiles = new Map();
         this._lastClickTs = 0;
-        this._num = num;
-        this._board = board;
-        this._bonusPool = bonusPool;
         this._pool = new Pool();
         this.node = this._pool.node;
-        this._end.textContent = `End round #${this._num}`;
+        this._endButton.textContent = `End round #${this.number}`;
     }
-    start(type) {
+    play(descriptors) {
+        descriptors.map(d => Dice.fromDescriptor(d)).forEach(dice => this._pool.add(dice));
+        this.node.appendChild(this._endButton);
         this._pool.onClick = dice => this._onPoolClick(dice);
         this._bonusPool.onClick = dice => this._onPoolClick(dice);
         this._board.onClick = cell => this._onBoardClick(cell);
-        createDiceDescriptors(type).map(d => Dice.fromDescriptor(d)).forEach(dice => this._pool.add(dice));
-        this.node.appendChild(this._end);
         this._syncEnd();
         this._bonusPool.unlock();
         return new Promise(resolve => {
-            this._end.addEventListener(DOWN, () => {
-                !this._end.disabled && resolve();
+            this._endButton.addEventListener("click", _ => {
+                this._end();
+                resolve();
             });
         });
     }
-    end() {
-        this._board.commit(this._num);
+    _end() {
+        this._board.commit(this.number);
         function noop() { }
         ;
         this._pool.onClick = noop;
@@ -94,7 +93,7 @@ export default class Round {
         const x = cell.x;
         const y = cell.y;
         const clone = tile.clone();
-        this._board.placeBest(clone, x, y, this._num);
+        this._board.placeBest(clone, x, y, this.number);
         this._board.signal([]);
         this._pool.pending(null);
         this._bonusPool.pending(null);
@@ -117,8 +116,6 @@ export default class Round {
     }
     _syncEnd() {
         this._pool.sync(this._board);
-        this._end.disabled = (this._pool.remaining > 0);
+        this._endButton.disabled = (this._pool.remaining > 0);
     }
-}
-export class MultiplayerRound extends Round {
 }

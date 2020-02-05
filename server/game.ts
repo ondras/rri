@@ -64,6 +64,7 @@ export default class Game {
 
 	start() {
 		if (this.state != "starting") { throw new Error("Too late to start this game"); }
+		this.state = "playing";
 		this._advanceRound();
 	}
 
@@ -71,6 +72,7 @@ export default class Game {
 		return {
 			dice: this._diceDescriptors,
 			state: this.state,
+			round: this._round,
 			players: this._players.map(p => p.toJSON())
 		};
 	}

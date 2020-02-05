@@ -27,9 +27,9 @@ function goIntro() {
     board = newBoard;
 }
 async function goGame(type) {
-    const game = (type == "multi" ? new MultiGame() : new SingleGame(type));
+    const game = (type == "multi" ? new MultiGame(board) : new SingleGame(board, type));
     try {
-        await game.play(board);
+        await game.play();
     }
     catch (e) {
         alert(e.message);

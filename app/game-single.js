@@ -1,33 +1,34 @@
 import Game from "./game.js";
 import Round from "./round.js";
-import { ROUNDS } from "./rules.js";
+import { ROUNDS, createDiceDescriptors } from "./rules.js";
 import * as score from "./score.js";
 export default class SingleGame extends Game {
-    constructor(_type) {
-        super();
+    constructor(_board, _type) {
+        super(_board);
         this._type = _type;
     }
-    async play(board) {
-        super.play(board);
+    async play() {
+        super.play();
         this._node.innerHTML = "";
         this._node.appendChild(this._bonusPool.node);
         let num = 1;
         while (num <= ROUNDS[this._type]) {
-            let round = new Round(num, board, this._bonusPool);
+            let round = new Round(num, this._board, this._bonusPool);
+            let descriptors = createDiceDescriptors(this._type);
             this._node.appendChild(round.node);
-            await round.start(this._type);
-            round.end();
+            await round.play(descriptors);
             round.node.remove();
             num++;
         }
-        this._outro(board);
+        this._outro();
     }
-    _outro(board) {
-        super._outro(board);
-        let s = board.getScore();
-        board.showScore(s);
+    _outro() {
+        super._outro();
+        let s = this._board.getScore();
+        this._board.showScore(s);
         const placeholder = document.querySelector("#outro div");
         placeholder.innerHTML = "";
         placeholder.appendChild(score.render(s));
+        this._board.createBlob();
     }
 }

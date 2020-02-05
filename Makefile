@@ -28,5 +28,9 @@ server/importmap.json: src/*.ts
 	done; \
 	echo '"fake-last-item":""}}' >> $@
 
+graph.png: app/*.js
+	$(shell npm bin)/rollup -c .rollup-graph.config.js app/app.js -o /dev/null --silent | dot -Tpng > $@
+
+
 watch: all
 	while inotifywait -e MODIFY -r src; do make $^ ; done

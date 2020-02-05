@@ -1,9 +1,8 @@
 import Board from "./board.js";
 import * as html from "./html.js";
-import { DOWN } from "./event.js";
 import Tile from "./tile.js";
 import { Score } from "./score.js";
-import { BOARD, TILE } from "./conf.js";
+import { BOARD, TILE, DOWN_EVENT } from "./conf.js";
 import { Cell } from "./cell-repo.js";
 import { N, E, S, W, Vector } from "./direction.js";
 
@@ -45,12 +44,12 @@ export default class BoardCanvas extends Board {
 	constructor() {
 		super();
 
-		this.node.addEventListener(DOWN, this);
+		this.node.addEventListener(DOWN_EVENT, this);
 	}
 
 	handleEvent(e: PointerEvent | TouchEvent) {
 		switch (e.type) {
-			case DOWN:
+			case DOWN_EVENT:
 				let pxx: number | null = null;
 				let pxy: number | null = null;
 

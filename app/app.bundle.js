@@ -62,6 +62,7 @@ const LAKE = 3;
 const BOARD = 7;
 const TILE = Number(getComputedStyle(document.body).getPropertyValue("--tile-size"));
 const DBLCLICK = 400;
+const DOWN_EVENT = ("onpointerdown" in window ? "pointerdown" : "touchstart");
 
 function node(name, attrs = {}, content) {
     let node = document.createElement(name);
@@ -1170,8 +1171,6 @@ class Board {
     }
 }
 
-const DOWN = ("onpointerdown" in window ? "pointerdown" : "touchstart");
-
 const DPR = devicePixelRatio;
 const BTILE = TILE / 2;
 const bodyStyle = getComputedStyle(document.body);
@@ -1200,11 +1199,11 @@ class BoardCanvas extends Board {
     constructor() {
         super();
         this._signals = [];
-        this.node.addEventListener(DOWN, this);
+        this.node.addEventListener(DOWN_EVENT, this);
     }
     handleEvent(e) {
         switch (e.type) {
-            case DOWN:
+            case DOWN_EVENT:
                 let pxx = null;
                 let pxy = null;
                 if ("touches" in e) {
@@ -1467,7 +1466,7 @@ class Pool {
     }
     add(dice) {
         this.node.appendChild(dice.node);
-        dice.node.addEventListener(DOWN, this);
+        dice.node.addEventListener(DOWN_EVENT, this);
         this._dices.push(dice);
     }
     enable(dice) {
@@ -1536,91 +1535,49 @@ class BonusPool extends Pool {
 
 const dataset = document.body.dataset;
 class Game {
-    constructor() {
+    constructor(_board) {
+        this._board = _board;
         this._node = document.querySelector("#game");
         this._bonusPool = new BonusPool();
     }
-    play(_board) {
+    play() {
         dataset.stage = "game";
     }
-    _outro(_board) {
+    _outro() {
         dataset.stage = "outro";
     }
 }
 
-const ROUNDS = {
-    "normal": 7,
-    "lake": 6,
-    "demo": 1
-};
-function expandTemplate(template) {
-    let names = template.tiles;
-    let sid = names[Math.floor(Math.random() * names.length)];
-    return { sid, transform: "0", type: template.type };
-}
-function createDiceDescriptors(type) {
-    switch (type) {
-        case "demo":
-            return DEMO.map(type => ({ sid: type, transform: "0", type: "plain" }));
-        case "lake":
-            return [...createDiceDescriptors("normal"), expandTemplate(DICE_LAKE), expandTemplate(DICE_LAKE)];
-        default:
-            let result = [];
-            let templates = [DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_2];
-            while (templates.length) {
-                let index = Math.floor(Math.random() * templates.length);
-                let template = templates.splice(index, 1)[0];
-                result.push(expandTemplate(template));
-            }
-            return result;
-    }
-}
-const DEMO = [
-    "bridge", "rail-i", "road-i", "rail-road-l", "rail-road-i", "rail-t", "road-l", "rail-l", "road-t",
-    "lake-1", "lake-2", "lake-3", "lake-4", "lake-rail", "lake-road", "lake-rail-road"
-];
-const DICE_REGULAR_1 = {
-    tiles: ["road-i", "rail-i", "road-l", "rail-l", "road-t", "rail-t"],
-    type: "plain"
-};
-const DICE_REGULAR_2 = {
-    tiles: ["bridge", "bridge", "rail-road-i", "rail-road-i", "rail-road-l", "rail-road-l"],
-    type: "plain"
-};
-const DICE_LAKE = {
-    tiles: ["lake-1", "lake-2", "lake-3", "lake-rail", "lake-road", "lake-rail-road"],
-    type: "lake"
-};
-
 class Round {
-    constructor(num, board, bonusPool) {
+    constructor(number, _board, _bonusPool) {
+        this.number = number;
+        this._board = _board;
+        this._bonusPool = _bonusPool;
         this._pending = null;
-        this._end = node("button");
+        this._endButton = node("button");
         this._placedTiles = new Map();
         this._lastClickTs = 0;
-        this._num = num;
-        this._board = board;
-        this._bonusPool = bonusPool;
         this._pool = new Pool();
         this.node = this._pool.node;
-        this._end.textContent = `End round #${this._num}`;
+        this._endButton.textContent = `End round #${this.number}`;
     }
-    start(type) {
+    play(descriptors) {
+        descriptors.map(d => Dice.fromDescriptor(d)).forEach(dice => this._pool.add(dice));
+        this.node.appendChild(this._endButton);
         this._pool.onClick = dice => this._onPoolClick(dice);
         this._bonusPool.onClick = dice => this._onPoolClick(dice);
         this._board.onClick = cell => this._onBoardClick(cell);
-        createDiceDescriptors(type).map(d => Dice.fromDescriptor(d)).forEach(dice => this._pool.add(dice));
-        this.node.appendChild(this._end);
         this._syncEnd();
         this._bonusPool.unlock();
         return new Promise(resolve => {
-            this._end.addEventListener(DOWN, () => {
-                !this._end.disabled && resolve();
+            this._endButton.addEventListener("click", _ => {
+                this._end();
+                resolve();
             });
         });
     }
-    end() {
-        this._board.commit(this._num);
+    _end() {
+        this._board.commit(this.number);
         function noop() { }
         this._pool.onClick = noop;
         this._bonusPool.onClick = noop;
@@ -1681,7 +1638,7 @@ class Round {
         const x = cell.x;
         const y = cell.y;
         const clone = tile.clone();
-        this._board.placeBest(clone, x, y, this._num);
+        this._board.placeBest(clone, x, y, this.number);
         this._board.signal([]);
         this._pool.pending(null);
         this._bonusPool.pending(null);
@@ -1704,37 +1661,82 @@ class Round {
     }
     _syncEnd() {
         this._pool.sync(this._board);
-        this._end.disabled = (this._pool.remaining > 0);
+        this._endButton.disabled = (this._pool.remaining > 0);
     }
 }
 
+const ROUNDS = {
+    "normal": 7,
+    "lake": 6,
+    "demo": 1
+};
+function expandTemplate(template) {
+    let names = template.tiles;
+    let sid = names[Math.floor(Math.random() * names.length)];
+    return { sid, transform: "0", type: template.type };
+}
+function createDiceDescriptors(type) {
+    switch (type) {
+        case "demo":
+            return DEMO.map(type => ({ sid: type, transform: "0", type: "plain" }));
+        case "lake":
+            return [...createDiceDescriptors("normal"), expandTemplate(DICE_LAKE), expandTemplate(DICE_LAKE)];
+        default:
+            let result = [];
+            let templates = [DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_2];
+            while (templates.length) {
+                let index = Math.floor(Math.random() * templates.length);
+                let template = templates.splice(index, 1)[0];
+                result.push(expandTemplate(template));
+            }
+            return result;
+    }
+}
+const DEMO = [
+    "bridge", "rail-i", "road-i", "rail-road-l", "rail-road-i", "rail-t", "road-l", "rail-l", "road-t",
+    "lake-1", "lake-2", "lake-3", "lake-4", "lake-rail", "lake-road", "lake-rail-road"
+];
+const DICE_REGULAR_1 = {
+    tiles: ["road-i", "rail-i", "road-l", "rail-l", "road-t", "rail-t"],
+    type: "plain"
+};
+const DICE_REGULAR_2 = {
+    tiles: ["bridge", "bridge", "rail-road-i", "rail-road-i", "rail-road-l", "rail-road-l"],
+    type: "plain"
+};
+const DICE_LAKE = {
+    tiles: ["lake-1", "lake-2", "lake-3", "lake-rail", "lake-road", "lake-rail-road"],
+    type: "lake"
+};
+
 class SingleGame extends Game {
-    constructor(_type) {
-        super();
+    constructor(_board, _type) {
+        super(_board);
         this._type = _type;
     }
-    async play(board) {
-        super.play(board);
+    async play() {
+        super.play();
         this._node.innerHTML = "";
         this._node.appendChild(this._bonusPool.node);
         let num = 1;
         while (num <= ROUNDS[this._type]) {
-            let round = new Round(num, board, this._bonusPool);
+            let round = new Round(num, this._board, this._bonusPool);
+            let descriptors = createDiceDescriptors(this._type);
             this._node.appendChild(round.node);
-            await round.start(this._type);
-            round.end();
+            await round.play(descriptors);
             round.node.remove();
             num++;
         }
-        this._outro(board);
+        this._outro();
     }
-    _outro(board) {
-        super._outro(board);
-        let s = board.getScore();
-        board.showScore(s);
+    _outro() {
+        super._outro();
+        let s = this._board.getScore();
+        this._board.showScore(s);
         const placeholder = document.querySelector("#outro div");
         placeholder.innerHTML = "";
         placeholder.appendChild(render(s));
+        this._board.createBlob();
     }
 }
 
@@ -1857,11 +1859,11 @@ function openWebSocket(url) {
     });
 }
 class MultiGame extends Game {
-    constructor() {
-        super();
+    constructor(board) {
+        super(board);
         this._nodes = {};
         this._state = "";
-        this._round = 0;
+        this._wait = node("p", { className: "wait", hidden: true });
         ["setup", "lobby"].forEach(id => {
             let node = template.content.querySelector(`#multi-${id}`);
             this._nodes[id] = node.cloneNode(true);
@@ -1873,8 +1875,8 @@ class MultiGame extends Game {
         const lobby = this._nodes["lobby"];
         lobby.querySelector("button").addEventListener("click", _ => this._start());
     }
-    async play(board) {
-        super.play(board);
+    async play() {
+        super.play();
         return new Promise((_, reject) => {
             this._reject = reject;
             this._setup();
@@ -1962,9 +1964,6 @@ class MultiGame extends Game {
             case "starting":
                 this._node.appendChild(this._nodes["lobby"]);
                 break;
-            case "playing":
-                this._node.appendChild(this._bonusPool.node);
-                break;
         }
     }
     _updateLobby(players) {
@@ -1978,7 +1977,28 @@ class MultiGame extends Game {
         const button = lobby.querySelector("button");
         button.textContent = (button.disabled ? `Wait for ${players[0].name} to start the game` : "Start the game");
     }
-    _updateRound(_response) {
+    async _updateRound(response) {
+        let waiting = response.players.filter(p => !p.roundEnded).length;
+        this._wait.textContent = `Waiting for ${waiting} player${waiting > 1 ? "s" : ""} to end round`;
+        if (this._round && response.round == this._round.number) {
+            return;
+        }
+        // switch to a new round
+        let number = (this._round ? this._round.number : 0) + 1;
+        this._round = new MultiplayerRound(number, this._board, this._bonusPool);
+        this._node.innerHTML = "";
+        this._node.appendChild(this._bonusPool.node);
+        this._node.appendChild(this._round.node);
+        await this._round.play(response.dice);
+        this._wait.hidden = false;
+        this._node.appendChild(this._wait);
+        this._rpc && this._rpc.call("end-round", []);
+    }
+}
+class MultiplayerRound extends Round {
+    _end() {
+        super._end();
+        this._endButton.disabled = true;
     }
 }
 
@@ -2007,9 +2027,9 @@ function goIntro() {
     board = newBoard;
 }
 async function goGame(type) {
-    const game = (type == "multi" ? new MultiGame() : new SingleGame(type));
+    const game = (type == "multi" ? new MultiGame(board) : new SingleGame(board, type));
     try {
-        await game.play(board);
+        await game.play();
     }
     catch (e) {
         alert(e.message);

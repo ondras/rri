@@ -1,6 +1,7 @@
 import Game from "./game.js";
 import JsonRpc from "./json-rpc.js";
 import * as html from "./html.js";
+import Round from "./round.js";
 const template = document.querySelector("template");
 function createRpc(ws) {
     let io = {
@@ -18,11 +19,11 @@ function openWebSocket(url) {
     });
 }
 export default class MultiGame extends Game {
-    constructor() {
-        super();
+    constructor(board) {
+        super(board);
         this._nodes = {};
         this._state = "";
-        this._round = 0;
+        this._wait = html.node("p", { className: "wait", hidden: true });
         ["setup", "lobby"].forEach(id => {
             let node = template.content.querySelector(`#multi-${id}`);
             this._nodes[id] = node.cloneNode(true);
@@ -34,8 +35,8 @@ export default class MultiGame extends Game {
         const lobby = this._nodes["lobby"];
         lobby.querySelector("button").addEventListener("click", _ => this._start());
     }
-    async play(board) {
-        super.play(board);
+    async play() {
+        super.play();
         return new Promise((_, reject) => {
             this._reject = reject;
             this._setup();
@@ -123,11 +124,8 @@ export default class MultiGame extends Game {
             case "starting":
                 this._node.appendChild(this._nodes["lobby"]);
                 break;
-            case "playing":
-                this._node.appendChild(this._bonusPool.node);
-                break;
             case "over":
-                // FIXME
+                // FIXME send score
                 break;
         }
     }
@@ -142,6 +140,27 @@ export default class MultiGame extends Game {
         const button = lobby.querySelector("button");
         button.textContent = (button.disabled ? `Wait for ${players[0].name} to start the game` : "Start the game");
     }
-    _updateRound(_response) {
+    async _updateRound(response) {
+        let waiting = response.players.filter(p => !p.roundEnded).length;
+        this._wait.textContent = `Waiting for ${waiting} player${waiting > 1 ? "s" : ""} to end round`;
+        if (this._round && response.round == this._round.number) {
+            return;
+        }
+        // switch to a new round
+        let number = (this._round ? this._round.number : 0) + 1;
+        this._round = new MultiplayerRound(number, this._board, this._bonusPool);
+        this._node.innerHTML = "";
+        this._node.appendChild(this._bonusPool.node);
+        this._node.appendChild(this._round.node);
+        await this._round.play(response.dice);
+        this._wait.hidden = false;
+        this._node.appendChild(this._wait);
+        this._rpc && this._rpc.call("end-round", []);
+    }
+}
+class MultiplayerRound extends Round {
+    _end() {
+        super._end();
+        this._endButton.disabled = true;
     }
 }

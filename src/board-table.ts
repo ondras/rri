@@ -1,8 +1,7 @@
 import Tile from "./tile.js";
 import Board from "./board.js";
 import * as html from "./html.js";
-import { TILE } from "./conf.js";
-import { DOWN } from "./event.js";
+import { TILE, DOWN_EVENT } from "./conf.js";
 import { Cell } from "./cell-repo.js";
 
 export default class BoardTable extends Board {
@@ -11,12 +10,12 @@ export default class BoardTable extends Board {
 	constructor() {
 		super();
 
-		this.node.addEventListener(DOWN, this);
+		this.node.addEventListener(DOWN_EVENT, this);
 	}
 
 	handleEvent(e: Event) {
 		switch (e.type) {
-			case DOWN:
+			case DOWN_EVENT:
 				let td = (e.target as HTMLElement).closest("td") as HTMLElement;
 				if (!td) { return; }
 

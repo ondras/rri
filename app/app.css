@@ -167,6 +167,9 @@ button:disabled {
   width: calc(var(--tile-size) * 1px);
   height: calc(var(--tile-size) * 1px);
 }
+#game .wait {
+  text-align: center;
+}
 table.board {
   border-collapse: collapse;
 }

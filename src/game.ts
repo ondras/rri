@@ -1,4 +1,4 @@
-import Board from "./board-canvas.js";
+import Board from "./board.js";
 import { BonusPool } from "./pool.js";
 
 const dataset = document.body.dataset;
@@ -7,11 +7,14 @@ export default class Game {
 	_node = document.querySelector("#game") as HTMLElement;
 	_bonusPool = new BonusPool();
 
-	play(_board: Board) {
+	constructor(readonly _board:Board) {
+	}
+
+	play() {
 		dataset.stage = "game";
 	}
 
-	_outro(_board: Board) {
+	_outro() {
 		dataset.stage = "outro";
 	}
 }

@@ -1,7 +1,6 @@
 import Board from "./board.js";
 import * as html from "./html.js";
-import { DOWN } from "./event.js";
-import { BOARD, TILE } from "./conf.js";
+import { BOARD, TILE, DOWN_EVENT } from "./conf.js";
 import { N, E, S, W, Vector } from "./direction.js";
 const DPR = devicePixelRatio;
 const BTILE = TILE / 2;
@@ -31,11 +30,11 @@ export default class BoardCanvas extends Board {
     constructor() {
         super();
         this._signals = [];
-        this.node.addEventListener(DOWN, this);
+        this.node.addEventListener(DOWN_EVENT, this);
     }
     handleEvent(e) {
         switch (e.type) {
-            case DOWN:
+            case DOWN_EVENT:
                 let pxx = null;
                 let pxy = null;
                 if ("touches" in e) {

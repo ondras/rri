@@ -1,7 +1,7 @@
 import Dice from "./dice.js";
 import Board from "./board.js";
 import * as html from "./html.js";
-import { DOWN } from "./event.js";
+import { DOWN_EVENT } from "./conf.js";
 import { DiceDescriptor } from "./rules.js";
 
 const MAX_BONUSES = 3;
@@ -24,7 +24,7 @@ export default class Pool {
 	add(dice: Dice) {
 		this.node.appendChild(dice.node);
 
-		dice.node.addEventListener(DOWN, this);
+		dice.node.addEventListener(DOWN_EVENT, this);
 		this._dices.push(dice);
 	}
 
