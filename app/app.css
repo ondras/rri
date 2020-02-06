@@ -128,6 +128,9 @@ button:disabled {
   text-align: right;
   padding-left: 1ch;
 }
+#outro .score td:empty {
+  display: none;
+}
 #outro .score tfoot td {
   border-top: 3px double #000;
   font-size: 120%;

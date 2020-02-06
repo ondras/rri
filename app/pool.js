@@ -8,7 +8,7 @@ export default class Pool {
         this._dices = [];
     }
     get remaining() {
-        return this._dices.filter(d => d.type == "plain" && !d.disabled && !d.blocked).length;
+        return this._dices.filter(d => d.type == "plain" && !d.disabled && !d.blocked);
     }
     handleEvent(e) {
         let target = e.currentTarget;

@@ -20,6 +20,22 @@ export default class Round {
 		this.node = this._pool.node;
 
 		this._endButton.textContent = `End round #${this.number}`;
+
+		window.addEventListener("keydown", e => {
+			if (e.ctrlKey && e.key == "a") { // FIXME!
+				e.preventDefault();
+				while (true) {
+					let r = this._pool.remaining;
+					if (!r.length) break;
+					let d = r.shift() as Dice;
+					this._onPoolClick(d);
+					let avail = this._board.getAvailableCells(d.tile);
+					if (!avail.length) break;
+					let cell = avail[Math.floor(Math.random() * avail.length)];
+					this._onBoardClick(cell);
+				}
+			}
+		})
 	}
 
 	play(descriptors: DiceDescriptor[]) {
@@ -128,6 +144,6 @@ export default class Round {
 
 	_syncEnd() {
 		this._pool.sync(this._board);
-		this._endButton.disabled = (this._pool.remaining > 0);
+		this._endButton.disabled = (this._pool.remaining.length > 0);
 	}
 }

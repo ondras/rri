@@ -26,6 +26,8 @@ export default class SingleGame extends Game {
 		}
 
 		this._outro();
+
+		return true;
 	}
 
 	_outro() {

@@ -52,9 +52,9 @@ export default class Game {
 		player.game = null;
 
 		if (this._players.length) { // no players remaining
-			this._destroy();
-		} else {
 			this.notifyGameChange();
+		} else {
+			this._destroy();
 		}
 	}
 

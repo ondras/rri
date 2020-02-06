@@ -1474,7 +1474,7 @@ class Pool {
         this._dices = [];
     }
     get remaining() {
-        return this._dices.filter(d => d.type == "plain" && !d.disabled && !d.blocked).length;
+        return this._dices.filter(d => d.type == "plain" && !d.disabled && !d.blocked);
     }
     handleEvent(e) {
         let target = e.currentTarget;
@@ -1560,8 +1560,9 @@ class Game {
         this._node = document.querySelector("#game");
         this._bonusPool = new BonusPool();
     }
-    play() {
+    async play() {
         dataset.stage = "game";
+        return true;
     }
     _outro() {
         dataset.stage = "outro";
@@ -1580,6 +1581,23 @@ class Round {
         this._pool = new Pool();
         this.node = this._pool.node;
         this._endButton.textContent = `End round #${this.number}`;
+        window.addEventListener("keydown", e => {
+            if (e.ctrlKey && e.key == "a") { // FIXME!
+                e.preventDefault();
+                while (true) {
+                    let r = this._pool.remaining;
+                    if (!r.length)
+                        break;
+                    let d = r.shift();
+                    this._onPoolClick(d);
+                    let avail = this._board.getAvailableCells(d.tile);
+                    if (!avail.length)
+                        break;
+                    let cell = avail[Math.floor(Math.random() * avail.length)];
+                    this._onBoardClick(cell);
+                }
+            }
+        });
     }
     play(descriptors) {
         descriptors.map(d => Dice.fromDescriptor(d)).forEach(dice => this._pool.add(dice));
@@ -1681,7 +1699,7 @@ class Round {
     }
     _syncEnd() {
         this._pool.sync(this._board);
-        this._endButton.disabled = (this._pool.remaining > 0);
+        this._endButton.disabled = (this._pool.remaining.length > 0);
     }
 }
 
@@ -1748,6 +1766,7 @@ class SingleGame extends Game {
             num++;
         }
         this._outro();
+        return true;
     }
     _outro() {
         super._outro();
@@ -1896,13 +1915,12 @@ class MultiGame extends Game {
     }
     async play() {
         super.play();
-        return new Promise((_, reject) => {
-            this._reject = reject;
+        return new Promise(resolve => {
+            this._resolve = resolve;
             this._setup();
         });
     }
     async _setup() {
-        this._rpc = undefined;
         this._node.innerHTML = "";
         const setup = this._nodes["setup"];
         this._node.appendChild(setup);
@@ -1911,15 +1929,22 @@ class MultiGame extends Game {
             ws.addEventListener("close", e => this._onClose(e));
             const rpc = createRpc(ws);
             rpc.expose("game-change", () => this._sync());
-            rpc.expose("game-destroy", () => this._sync()); // FIXME
+            rpc.expose("game-destroy", () => {
+                alert("The game owner has cancelled the game");
+                this._resolve(false);
+            });
             this._rpc = rpc;
         }
         catch (e) {
-            this._reject(e);
+            alert(e.message);
+            this._resolve(false);
         }
     }
-    _onClose(_e) {
-        this._reject(new Error("Network connection closed"));
+    _onClose(e) {
+        if (e.code != 1000 && e.code != 1001) {
+            alert("Network connection closed");
+        }
+        this._resolve(false);
     }
     async _joinOrCreate(type) {
         if (!this._rpc) {
@@ -2024,11 +2049,12 @@ class MultiGame extends Game {
         this._board.showScore(s);
         let ns = toNetworkScore(s);
         this._rpc && this._rpc.call("score", ns);
+        this._resolve(true);
     }
-    _updateScore(_response) {
+    _updateScore(response) {
         const placeholder = document.querySelector("#outro div");
         placeholder.innerHTML = "";
-        placeholder.appendChild(renderMulti(_response.players));
+        placeholder.appendChild(renderMulti(response.players));
     }
 }
 class MultiplayerRound extends Round {
@@ -2064,11 +2090,8 @@ function goIntro() {
 }
 async function goGame(type) {
     const game = (type == "multi" ? new MultiGame(board) : new SingleGame(board, type));
-    try {
-        await game.play();
-    }
-    catch (e) {
-        alert(e.message);
+    let played = await game.play();
+    if (!played) {
         goIntro();
     }
 }

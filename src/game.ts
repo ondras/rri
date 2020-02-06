@@ -10,8 +10,9 @@ export default class Game {
 	constructor(readonly _board:Board) {
 	}
 
-	play() {
+	async play(): Promise<boolean> {
 		dataset.stage = "game";
+		return true;
 	}
 
 	_outro() {

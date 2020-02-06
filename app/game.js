@@ -6,8 +6,9 @@ export default class Game {
         this._node = document.querySelector("#game");
         this._bonusPool = new BonusPool();
     }
-    play() {
+    async play() {
         dataset.stage = "game";
+        return true;
     }
     _outro() {
         dataset.stage = "outro";

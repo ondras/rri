@@ -21,6 +21,7 @@ export default class SingleGame extends Game {
             num++;
         }
         this._outro();
+        return true;
     }
     _outro() {
         super._outro();

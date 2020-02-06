@@ -38,13 +38,12 @@ export default class MultiGame extends Game {
     }
     async play() {
         super.play();
-        return new Promise((_, reject) => {
-            this._reject = reject;
+        return new Promise(resolve => {
+            this._resolve = resolve;
             this._setup();
         });
     }
     async _setup() {
-        this._rpc = undefined;
         this._node.innerHTML = "";
         const setup = this._nodes["setup"];
         this._node.appendChild(setup);
@@ -53,15 +52,22 @@ export default class MultiGame extends Game {
             ws.addEventListener("close", e => this._onClose(e));
             const rpc = createRpc(ws);
             rpc.expose("game-change", () => this._sync());
-            rpc.expose("game-destroy", () => this._sync()); // FIXME
+            rpc.expose("game-destroy", () => {
+                alert("The game owner has cancelled the game");
+                this._resolve(false);
+            });
             this._rpc = rpc;
         }
         catch (e) {
-            this._reject(e);
+            alert(e.message);
+            this._resolve(false);
         }
     }
-    _onClose(_e) {
-        this._reject(new Error("Network connection closed"));
+    _onClose(e) {
+        if (e.code != 1000 && e.code != 1001) {
+            alert("Network connection closed");
+        }
+        this._resolve(false);
     }
     async _joinOrCreate(type) {
         if (!this._rpc) {
@@ -166,11 +172,12 @@ export default class MultiGame extends Game {
         this._board.showScore(s);
         let ns = score.toNetworkScore(s);
         this._rpc && this._rpc.call("score", ns);
+        this._resolve(true);
     }
-    _updateScore(_response) {
+    _updateScore(response) {
         const placeholder = document.querySelector("#outro div");
         placeholder.innerHTML = "";
-        placeholder.appendChild(score.renderMulti(_response.players));
+        placeholder.appendChild(score.renderMulti(response.players));
     }
 }
 class MultiplayerRound extends Round {
