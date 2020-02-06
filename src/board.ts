@@ -17,7 +17,6 @@ export default abstract class Board {
 
 	abstract _build(): HTMLElement;
 	abstract signal(cells: Cell[]): void;
-	createBlob() {}
 	showScore(_score: Score) {}
 	onClick(_cell: Cell) {}
 	getScore() { return getScore(this._cells); }

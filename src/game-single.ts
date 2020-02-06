@@ -36,8 +36,6 @@ export default class SingleGame extends Game {
 
 		const placeholder = document.querySelector("#outro div") as HTMLElement;
 		placeholder.innerHTML = "";
-		placeholder.appendChild(score.render(s));
-
-		this._board.createBlob();
+		placeholder.appendChild(score.renderSingle(s));
 	}
 }

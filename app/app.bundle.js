@@ -961,44 +961,68 @@ function get$2(cells) {
         lakes: getLakes(cells)
     };
 }
-function render(score) {
-    let table = node("table", { className: "score" });
-    let row;
+function buildTable() {
+    const table = node("table", { className: "score" });
+    table.appendChild(node("thead"));
+    table.appendChild(node("tbody"));
+    table.tHead.insertRow().insertCell();
+    const body = table.tBodies[0];
+    ["Connected exists", "Longest road", "Longest rail", "Center tiles", "Dead ends", "Smallest lake"].forEach(label => {
+        body.insertRow().insertCell().textContent = label;
+    });
+    body.rows[body.rows.length - 1].hidden = true;
+    table.appendChild(node("tfoot"));
+    table.tFoot.insertRow().insertCell().textContent = "Score";
+    return table;
+}
+function addColumn(table, score, name = "") {
+    if (name) {
+        table.tHead.rows[0].insertCell().textContent = name;
+    }
+    const body = table.tBodies[0];
     let exits = score.exits.map(count => count == 12 ? 45 : (count - 1) * 4);
     let exitScore = exits.reduce((a, b) => a + b, 0);
-    row = table.insertRow();
-    row.insertCell().textContent = "Connected exits";
-    row.insertCell().textContent = (exitScore ? `${score.exits.join("+")} → ${exitScore}` : "0");
-    row = table.insertRow();
-    row.insertCell().textContent = "Longest road";
-    row.insertCell().textContent = score.road.length.toString();
-    row = table.insertRow();
-    row.insertCell().textContent = "Longest rail";
-    row.insertCell().textContent = score.rail.length.toString();
-    row = table.insertRow();
-    row.insertCell().textContent = "Center tiles";
-    row.insertCell().textContent = score.center.toString();
-    row = table.insertRow();
-    row.insertCell().textContent = "Dead ends";
-    row.insertCell().textContent = (-score.deadends.length).toString();
+    body.rows[0].insertCell().textContent = (exitScore ? `${score.exits.join("+")} → ${exitScore}` : "0");
+    body.rows[1].insertCell().textContent = score.road.toString();
+    body.rows[2].insertCell().textContent = score.rail.toString();
+    body.rows[3].insertCell().textContent = score.center.toString();
+    body.rows[4].insertCell().textContent = (-score.deadends).toString();
+    let lakeRow = body.rows[5];
     let lakeScore = 0;
     if (score.lakes.length > 0) {
         lakeScore = score.lakes.sort((a, b) => a - b)[0];
-        row = table.insertRow();
-        row.insertCell().textContent = "Smallest lake";
-        row.insertCell().textContent = lakeScore.toString();
+        lakeRow.insertCell().textContent = lakeScore.toString();
+        lakeRow.hidden = false;
+    }
+    else {
+        lakeRow.insertCell();
     }
     let total = exitScore
-        + score.road.length
-        + score.rail.length
+        + score.road
+        + score.rail
         + score.center
-        - score.deadends.length
+        - score.deadends
         + lakeScore;
-    let tfoot = node("tfoot");
-    table.appendChild(tfoot);
-    row = tfoot.insertRow();
-    row.insertCell().textContent = "Score";
-    row.insertCell().textContent = total.toString();
+    table.tFoot.rows[0].insertCell().textContent = total.toString();
+}
+function toNetworkScore(score) {
+    return {
+        exits: score.exits,
+        road: score.road.length,
+        rail: score.rail.length,
+        center: score.center,
+        deadends: score.deadends.length,
+        lakes: score.lakes
+    };
+}
+function renderSingle(score) {
+    const table = buildTable();
+    addColumn(table, toNetworkScore(score));
+    return table;
+}
+function renderMulti(players) {
+    const table = buildTable();
+    players.forEach(p => p.score && addColumn(table, p.score, p.name));
     return table;
 }
 
@@ -1047,7 +1071,6 @@ class Board {
         this.node = this._build();
         this._placeInitialTiles();
     }
-    createBlob() { }
     showScore(_score) { }
     onClick(_cell) { }
     getScore() { return get$2(this._cells); }
@@ -1303,9 +1326,6 @@ class BoardCanvas extends Board {
             pxy += vec[1] * offset;
             ctx.fillText("✘", pxx, pxy);
         });
-    }
-    createBlob() {
-        const ctx = this._ctx;
         ctx.canvas.toBlob(blob => this.blob = blob);
     }
     _build() {
@@ -1735,8 +1755,7 @@ class SingleGame extends Game {
         this._board.showScore(s);
         const placeholder = document.querySelector("#outro div");
         placeholder.innerHTML = "";
-        placeholder.appendChild(render(s));
-        this._board.createBlob();
+        placeholder.appendChild(renderSingle(s));
     }
 }
 
@@ -1952,6 +1971,9 @@ class MultiGame extends Game {
             case "playing":
                 this._updateRound(response);
                 break;
+            case "over":
+                this._updateScore(response);
+                break;
         }
     }
     _setState(state) {
@@ -1963,6 +1985,9 @@ class MultiGame extends Game {
         switch (state) {
             case "starting":
                 this._node.appendChild(this._nodes["lobby"]);
+                break;
+            case "over":
+                this._outro();
                 break;
         }
     }
@@ -1983,7 +2008,6 @@ class MultiGame extends Game {
         if (this._round && response.round == this._round.number) {
             return;
         }
-        // switch to a new round
         let number = (this._round ? this._round.number : 0) + 1;
         this._round = new MultiplayerRound(number, this._board, this._bonusPool);
         this._node.innerHTML = "";
@@ -1993,6 +2017,18 @@ class MultiGame extends Game {
         this._wait.hidden = false;
         this._node.appendChild(this._wait);
         this._rpc && this._rpc.call("end-round", []);
+    }
+    _outro() {
+        super._outro();
+        let s = this._board.getScore();
+        this._board.showScore(s);
+        let ns = toNetworkScore(s);
+        this._rpc && this._rpc.call("score", ns);
+    }
+    _updateScore(_response) {
+        const placeholder = document.querySelector("#outro div");
+        placeholder.innerHTML = "";
+        placeholder.appendChild(renderMulti(_response.players));
     }
 }
 class MultiplayerRound extends Round {

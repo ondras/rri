@@ -1,3 +1,4 @@
+import * as colors from "https://deno.land/std/fmt/colors.ts";
 import { GameType, DiceDescriptor, ROUNDS, createDiceDescriptors } from "../src/rules.ts";
 import Player from "./player.ts";
 
@@ -34,31 +35,34 @@ export default class Game {
 		this._players.push(player);
 		player.game = this;
 
-		this._notifyGameChange(); // fixme will notify this player as well
+		this.notifyGameChange(); // fixme will notify this player as well
 	}
 
 	// either by explicit game-quit, or by disconnecting in a non-playing state
 	removePlayer(player: Player) {
+		// owner left during setup/over
+		if (player == this.owner && this.state != "playing") { return this._destroy(); }
+
+		if (this.state == "over") { return; } // leaving in "over" does nothing
+
 		let index = this._players.indexOf(player);
 		if (index == -1) { return; }
 
 		this._players.splice(index, 1);
 		player.game = null;
 
-		// owner left during setup
-		if (this.state == "starting" && player == this.owner) { return this._destroy(); }
-
-		// no players remaining
-		if (!this._players.length) { return this._destroy(); }
-
-		this._notifyGameChange();
+		if (this._players.length) { // no players remaining
+			this._destroy();
+		} else {
+			this.notifyGameChange();
+		}
 	}
 
 	checkRoundEnd() {
 		if (this._players.every(p => p.roundEnded)) {
 			this._advanceRound();
 		} else {
-			this._notifyGameChange();
+			this.notifyGameChange();
 		}
 	}
 
@@ -92,16 +96,16 @@ export default class Game {
 	}
 
 	_advanceRound() {
-		if (this._round < ROUNDS[this._type]) {
+		if (this._round < ROUNDS[this._type]*0 + 1) {
 			this._round++;
 			this._diceDescriptors = createDiceDescriptors(this._type);
 		} else {
 			this.state = "over";
 		}
-		this._notifyGameChange();
+		this.notifyGameChange();
 	}
 
-	_notifyGameChange() {
+	notifyGameChange() {
 		setTimeout( () => this._players.forEach(player => player.jsonrpc.notify("game-change", [])), 0);
 	}
 }
@@ -109,7 +113,21 @@ export default class Game {
 function logStats() {
 	console.group("Active games:");
 	games.forEach((game, name) => {
-		console.log(name, game.getInfo());
+		console.group(colors.bold(name));
+		const info = game.getInfo();
+		console.log(
+			"players:",
+			info.players.map(p => `${p.name} ${p.roundEnded ? "✔️" : "❌"}`).join(", ")
+		);
+		if (info.state == "playing") {
+			console.log(
+				`round ${info.round}:`,
+				info.dice.map(d => d.sid).join(" | ")
+			);
+		} else {
+			console.log(info.state);
+		}
+		console.groupEnd();
 	});
 	console.groupEnd();
 }

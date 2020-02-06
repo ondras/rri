@@ -1,6 +1,7 @@
 import CellRepo, { Cell } from "./cell-repo.js";
 import { Direction, clamp, all as allDirections, Vector } from "./direction.js";
 import { NONE, ROAD, RAIL, LAKE, EdgeType } from "./edge.js";
+import { NetworkScore } from "./rules.js";
 import * as html from "./html.js";
 
 export interface Deadend {
@@ -21,6 +22,11 @@ interface LongestPathContext {
 	cells: CellRepo;
 	edgeType: EdgeType;
 	lockedCells: Set<Cell>;
+}
+
+interface NetworkPlayer {
+	name: string;
+	score: NetworkScore | null;
 }
 
 function getNeighbor(cell: Cell, direction: Direction, cells: CellRepo) {
@@ -233,53 +239,78 @@ export function get(cells: CellRepo): Score {
 	}
 }
 
-export function render(score: Score) {
-	let table = html.node("table", {className:"score"});
+function buildTable() {
+	const table = html.node("table", {className:"score"});
+	table.appendChild(html.node("thead"));
+	table.appendChild(html.node("tbody"));
 
-	let row: HTMLTableRowElement;
+	table.tHead!.insertRow().insertCell();
+
+	const body = table.tBodies[0];
+	["Connected exists", "Longest road", "Longest rail", "Center tiles", "Dead ends", "Smallest lake"].forEach(label => {
+		body.insertRow().insertCell().textContent = label;
+	});
+
+	body.rows[body.rows.length-1].hidden = true;
+
+	table.appendChild(html.node("tfoot"));
+	table.tFoot!.insertRow().insertCell().textContent = "Score";
+
+	return table;
+}
+
+function addColumn(table: HTMLTableElement, score: NetworkScore, name="") {
+	if (name) { table.tHead!.rows[0].insertCell().textContent = name; }
+
+	const body = table.tBodies[0];
 
 	let exits = score.exits.map(count => count == 12 ? 45 : (count-1)*4);
 	let exitScore = exits.reduce((a, b) => a+b, 0);
-	row = table.insertRow();
-	row.insertCell().textContent = "Connected exits";
-	row.insertCell().textContent = (exitScore ? `${score.exits.join("+")} → ${exitScore}` : "0");
+	body.rows[0].insertCell().textContent = (exitScore ? `${score.exits.join("+")} → ${exitScore}` : "0");
+	body.rows[1].insertCell().textContent = score.road.toString();
+	body.rows[2].insertCell().textContent = score.rail.toString();
+	body.rows[3].insertCell().textContent = score.center.toString();
+	body.rows[4].insertCell().textContent = (-score.deadends).toString();
 
-	row = table.insertRow();
-	row.insertCell().textContent = "Longest road";
-
-	row.insertCell().textContent = score.road.length.toString();
-	row = table.insertRow();
-	row.insertCell().textContent = "Longest rail";
-	row.insertCell().textContent = score.rail.length.toString();
-
-	row = table.insertRow();
-	row.insertCell().textContent = "Center tiles";
-	row.insertCell().textContent = score.center.toString();
-
-	row = table.insertRow();
-	row.insertCell().textContent = "Dead ends";
-	row.insertCell().textContent = (-score.deadends.length).toString();
-
+	let lakeRow = body.rows[5];
 	let lakeScore = 0;
 	if (score.lakes.length > 0) {
 		lakeScore = score.lakes.sort((a, b) => a-b)[0];
-		row = table.insertRow();
-		row.insertCell().textContent = "Smallest lake";
-		row.insertCell().textContent = lakeScore.toString();
+		lakeRow.insertCell().textContent = lakeScore.toString();
+		lakeRow.hidden = false;
+	} else {
+		lakeRow.insertCell();
 	}
 
 	let total = exitScore
-					+ score.road.length
-					+ score.rail.length
+					+ score.road
+					+ score.rail
 					+ score.center
-					- score.deadends.length
+					- score.deadends
 					+ lakeScore;
 
-	let tfoot = html.node("tfoot");
-	table.appendChild(tfoot);
-	row = tfoot.insertRow();
-	row.insertCell().textContent = "Score";
-	row.insertCell().textContent = total.toString();
+	table.tFoot!.rows[0].insertCell().textContent = total.toString();
+}
 
+export function toNetworkScore(score: Score): NetworkScore {
+	return {
+		exits: score.exits,
+		road: score.road.length,
+		rail: score.rail.length,
+		center: score.center,
+		deadends: score.deadends.length,
+		lakes: score.lakes
+	};
+}
+
+export function renderSingle(score: Score) {
+	const table = buildTable();
+	addColumn(table, toNetworkScore(score));
+	return table;
+}
+
+export function renderMulti(players: NetworkPlayer[]) {
+	const table = buildTable();
+	players.forEach(p => p.score && addColumn(table, p.score, p.name));
 	return table;
 }

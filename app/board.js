@@ -11,7 +11,6 @@ export default class Board {
         this.node = this._build();
         this._placeInitialTiles();
     }
-    createBlob() { }
     showScore(_score) { }
     onClick(_cell) { }
     getScore() { return getScore(this._cells); }

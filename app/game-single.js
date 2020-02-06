@@ -28,7 +28,6 @@ export default class SingleGame extends Game {
         this._board.showScore(s);
         const placeholder = document.querySelector("#outro div");
         placeholder.innerHTML = "";
-        placeholder.appendChild(score.render(s));
-        this._board.createBlob();
+        placeholder.appendChild(score.renderSingle(s));
     }
 }

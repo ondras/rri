@@ -170,10 +170,7 @@ export default class BoardCanvas extends Board {
 			pxy += vec[1]*offset;
 			ctx.fillText("✘", pxx, pxy);
 		});
-	}
 
-	createBlob() {
-		const ctx = this._ctx;
 		ctx.canvas.toBlob(blob => this.blob = blob);
 	}
 

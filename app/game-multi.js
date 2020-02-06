@@ -1,6 +1,7 @@
 import Game from "./game.js";
 import JsonRpc from "./json-rpc.js";
 import * as html from "./html.js";
+import * as score from "./score.js";
 import Round from "./round.js";
 const template = document.querySelector("template");
 function createRpc(ws) {
@@ -112,6 +113,9 @@ export default class MultiGame extends Game {
             case "playing":
                 this._updateRound(response);
                 break;
+            case "over":
+                this._updateScore(response);
+                break;
         }
     }
     _setState(state) {
@@ -125,7 +129,7 @@ export default class MultiGame extends Game {
                 this._node.appendChild(this._nodes["lobby"]);
                 break;
             case "over":
-                // FIXME send score
+                this._outro();
                 break;
         }
     }
@@ -146,7 +150,6 @@ export default class MultiGame extends Game {
         if (this._round && response.round == this._round.number) {
             return;
         }
-        // switch to a new round
         let number = (this._round ? this._round.number : 0) + 1;
         this._round = new MultiplayerRound(number, this._board, this._bonusPool);
         this._node.innerHTML = "";
@@ -156,6 +159,18 @@ export default class MultiGame extends Game {
         this._wait.hidden = false;
         this._node.appendChild(this._wait);
         this._rpc && this._rpc.call("end-round", []);
+    }
+    _outro() {
+        super._outro();
+        let s = this._board.getScore();
+        this._board.showScore(s);
+        let ns = score.toNetworkScore(s);
+        this._rpc && this._rpc.call("score", ns);
+    }
+    _updateScore(_response) {
+        const placeholder = document.querySelector("#outro div");
+        placeholder.innerHTML = "";
+        placeholder.appendChild(score.renderMulti(_response.players));
     }
 }
 class MultiplayerRound extends Round {

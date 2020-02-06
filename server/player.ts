@@ -1,13 +1,14 @@
 import { WebSocket, isWebSocketCloseEvent } from "https://deno.land/std/ws/mod.ts";
 import Game from "./game.ts";
 import JsonRpc, { IO } from "../../../projects/deno-json-rpc/mod.ts";
-import { GameType } from "../src/rules.ts";
+import { GameType, NetworkScore } from "../src/rules.ts";
 
 export default class Player {
 	name = "";
 	game: Game | null = null;
 	roundEnded = false;
 	jsonrpc: JsonRpc;
+	score: NetworkScore | null = null;
 
 	constructor(ws: WebSocket) {
 		const io = {
@@ -24,7 +25,8 @@ export default class Player {
 	toJSON() {
 		return {
 			name: this.name,
-			roundEnded: this.roundEnded
+			roundEnded: this.roundEnded,
+			score: this.score
 		};
 	}
 
@@ -78,6 +80,13 @@ export default class Player {
 		jsonrpc.expose("game-info", () => {
 			const game = this.game;
 			return (game ? game.getInfo() : null);
+		});
+
+		jsonrpc.expose("score", (score: NetworkScore) => {
+			const game = this.game;
+			if (!game) { throw new Error("Not playing yet"); }
+			this.score = score;
+			game.notifyGameChange();
 		});
 	}
 

@@ -1,14 +1,16 @@
 import Game from "./game.js";
-import { GameType, DiceDescriptor } from "./rules.js";
+import { GameType, DiceDescriptor, NetworkScore } from "./rules.js";
 import JsonRpc from "./json-rpc.js";
 import Board from "./board.js";
 import * as html from "./html.js";
+import * as score from "./score.js";
 import Round from "./round.js";
 
 type GameState = "" | "starting" | "playing" | "over";
 interface Player {
 	name: string;
 	roundEnded: boolean;
+	score: NetworkScore | null;
 }
 interface Response {
 	state: GameState;
@@ -138,6 +140,7 @@ export default class MultiGame extends Game {
 		switch (response.state) {
 			case "starting": this._updateLobby(response.players); break;
 			case "playing": this._updateRound(response); break;
+			case "over": this._updateScore(response); break;
 		}
 	}
 
@@ -148,13 +151,8 @@ export default class MultiGame extends Game {
 		this._node.innerHTML = "";
 
 		switch (state) {
-			case "starting":
-				this._node.appendChild(this._nodes["lobby"]);
-			break;
-
-			case "over":
-				// FIXME send score
-			break;
+			case "starting": this._node.appendChild(this._nodes["lobby"]); break;
+			case "over": this._outro(); break;
 		}
 	}
 
@@ -177,7 +175,6 @@ export default class MultiGame extends Game {
 
 		if (this._round && response.round == this._round.number) { return; }
 
-		// switch to a new round
 		let number = (this._round ? this._round.number : 0)+1;
 		this._round = new MultiplayerRound(number, this._board, this._bonusPool);
 
@@ -189,6 +186,21 @@ export default class MultiGame extends Game {
 		this._wait.hidden = false;
 		this._node.appendChild(this._wait);
 		this._rpc && this._rpc.call("end-round", []);
+	}
+
+	_outro() {
+		super._outro();
+		let s = this._board.getScore();
+		this._board.showScore(s);
+
+		let ns = score.toNetworkScore(s);
+		this._rpc && this._rpc.call("score", ns);
+	}
+
+	_updateScore(_response: Response) {
+		const placeholder = document.querySelector("#outro div") as HTMLElement;
+		placeholder.innerHTML = "";
+		placeholder.appendChild(score.renderMulti(_response.players));
 	}
 }
 
