@@ -88,6 +88,7 @@ export default class MultiGame extends Game {
 			rpc.expose("game-destroy", () => {
 				alert("The game owner has cancelled the game");
 				this._resolve(false);
+				ws.close();
 			});
 			this._rpc = rpc;
 		} catch (e) {
