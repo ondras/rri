@@ -34,10 +34,10 @@ async function goGame(type) {
     }
 }
 function init() {
-    document.querySelector("[name=start-normal]").addEventListener("click", () => goGame("normal"));
-    document.querySelector("[name=start-lake]").addEventListener("click", () => goGame("lake"));
-    document.querySelector("[name=start-multi]").addEventListener("click", () => goGame("multi"));
-    document.querySelector("[name=again]").addEventListener("click", () => goIntro());
+    document.querySelector("[name=start-normal]").addEventListener("click", _ => goGame("normal"));
+    document.querySelector("[name=start-lake]").addEventListener("click", _ => goGame("lake"));
+    document.querySelector("[name=start-multi]").addEventListener("click", _ => goGame("multi"));
+    document.querySelector("[name=again]").addEventListener("click", _ => goIntro());
     document.querySelector("[name=download]").addEventListener("click", e => download(e.target));
     goIntro();
 }

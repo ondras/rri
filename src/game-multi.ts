@@ -103,7 +103,7 @@ export default class MultiGame extends Game {
 			});
 
 			let quit = html.node("button", {}, "Quit game");
-			quit.addEventListener("click", async () => {
+			quit.addEventListener("click", async _ => {
 				if (!(confirm("Really quit the game?"))) { return; }
 				await rpc.call("quit-game", []);
 				ws.close();
