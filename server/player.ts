@@ -48,7 +48,7 @@ export default class Player {
 			if (!game) { throw new Error(`Game "${gameName}" does not exist`); }
 
 			this.name = playerName;
-			game.addPlayer(this); // will notify others
+			game.addPlayer(this); // will notify all
 			this._log("joined game", gameName);
 		});
 

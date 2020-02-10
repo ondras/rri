@@ -1995,10 +1995,7 @@ class MultiGame extends Game {
         }
     }
     _start() {
-        if (!this._rpc) {
-            return;
-        }
-        this._rpc.call("start-game", []);
+        this._rpc && this._rpc.call("start-game", []);
     }
     async _sync() {
         if (!this._rpc) {

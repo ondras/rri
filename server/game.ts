@@ -40,14 +40,14 @@ export default class Game {
 
 	// either by explicit game-quit, or by disconnecting during setup
 	removePlayer(player: Player) {
-		// owner left during setup
-		if (player == this.owner && this.state != "playing") { return this._close("destroy"); }
-
 		let index = this._players.indexOf(player);
 		if (index == -1) { return; }
 
 		this._players.splice(index, 1);
 		player.game = null;
+
+		// owner left during setup
+		if (player == this.owner && this.state != "playing") { return this._close("destroy"); }
 
 		if (this._players.length) {
 			this._notifyGameChange();
@@ -94,23 +94,24 @@ export default class Game {
 	}
 
 	_close(reason: "destroy" | "over") {
-		let score = this.getInfo().players;
+		let name = "";
+		games.forEach((g, n) => {
+			if (g == this) { name = n; }
+		});
+		console.log(`[game ${name}] closed, reason:`, reason);
 
+		let score = this.getInfo().players;
 		while (this._players.length) {
 			let p = this._players.shift() as Player;
 			p.game = null;
 			p.jsonrpc.notify(`game-${reason}`, reason == "over" ? score : []);
 		}
 
-		let name = "";
-		games.forEach((g, n) => {
-			if (g == this) { name = n; }
-		});
 		games.delete(name);
 	}
 
 	_notifyGameChange() {
-		setTimeout( () => this._players.forEach(player => player.jsonrpc.notify("game-change", [])), 0);
+		this._players.forEach(player => player.jsonrpc.notify("game-change", []));
 	}
 }
 
