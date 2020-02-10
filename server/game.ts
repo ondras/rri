@@ -35,7 +35,7 @@ export default class Game {
 		this._players.push(player);
 		player.game = this;
 
-		this._notifyGameChange(); // fixme will notify this player as well
+		this._notifyGameChange();
 	}
 
 	// either by explicit game-quit, or by disconnecting during setup
