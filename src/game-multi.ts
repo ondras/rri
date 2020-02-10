@@ -84,24 +84,32 @@ export default class MultiGame extends Game {
 
 		try {
 			const ws = await openWebSocket("ws://localhost:1234"); // FIXME
-			ws.addEventListener("close", e => this._onClose(e));
-
 			const rpc = createRpc(ws);
+			ws.addEventListener("close", e => this._onClose(e));
 
 			rpc.expose("game-change", () => this._sync());
 
 			rpc.expose("game-destroy", () => {
 				alert("The game owner has cancelled the game");
-				this._resolve(false);
 				ws.close();
+				this._resolve(false);
 			});
 
 			rpc.expose("game-over", (...scores: HasScore[]) => {
 				this._outro();
 				this._showScore(scores);
-				this._resolve(true);
 				ws.close();
+				this._resolve(true);
 			});
+
+			let quit = html.node("button", {}, "Quit game");
+			quit.addEventListener("click", async () => {
+				if (!(confirm("Really quit the game?"))) { return; }
+				await rpc.call("quit-game", []);
+				ws.close();
+				this._resolve(false);
+			});
+			this._bonusPool.node.appendChild(quit);
 
 			this._rpc = rpc;
 		} catch (e) {
@@ -111,7 +119,7 @@ export default class MultiGame extends Game {
 	}
 
 	_onClose(e: CloseEvent) {
-		if (e.code != 1000 && e.code != 1001) { alert("Network connection closed"); }
+		if (e.code != 0 && e.code != 1000 && e.code != 1001) { alert("Network connection closed"); }
 		this._resolve(false);
 	}
 
@@ -126,7 +134,7 @@ export default class MultiGame extends Game {
 		let gameName = (setup.querySelector("[name=game-name]") as HTMLInputElement).value;
 		if (!gameName) { return alert("Please provide a game name"); }
 
-		const buttons = setup.querySelectorAll<HTMLButtonElement>("button")
+		const buttons = setup.querySelectorAll<HTMLButtonElement>("button");
 		buttons.forEach(b => b.disabled = true);
 
 		let args = [gameName, playerName];

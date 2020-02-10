@@ -79,9 +79,6 @@ export default class Game {
 		};
 	}
 
-	_destroy() {
-	}
-
 	_advanceRound() {
 		if (this._round < ROUNDS[this._type]*0 + 1) {
 			this._round++;
