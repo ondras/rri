@@ -6,17 +6,20 @@ import * as html from "./html.js";
 import * as score from "./score.js";
 import Round from "./round.js";
 
-type GameState = "" | "starting" | "playing" | "over";
+type GameState = "" | "starting" | "playing";
 interface Player {
 	name: string;
 	roundEnded: boolean;
-	score: NetworkScore | null;
 }
 interface Response {
 	state: GameState;
 	round: number;
 	dice: DiceDescriptor[];
 	players: Player[];
+}
+interface HasScore {
+	name: string;
+	score: NetworkScore;
 }
 
 const template = document.querySelector("template") as HTMLTemplateElement;
@@ -84,12 +87,22 @@ export default class MultiGame extends Game {
 			ws.addEventListener("close", e => this._onClose(e));
 
 			const rpc = createRpc(ws);
+
 			rpc.expose("game-change", () => this._sync());
+
 			rpc.expose("game-destroy", () => {
 				alert("The game owner has cancelled the game");
 				this._resolve(false);
 				ws.close();
 			});
+
+			rpc.expose("game-over", (...scores: HasScore[]) => {
+				this._outro();
+				this._showScore(scores);
+				this._resolve(true);
+				ws.close();
+			});
+
 			this._rpc = rpc;
 		} catch (e) {
 			alert(e.message);
@@ -139,25 +152,19 @@ export default class MultiGame extends Game {
 	async _sync() {
 		if (!this._rpc) { return; }
 
-		let response: Response = await this._rpc.call("game-info", []);
-		this._setState(response.state);
+		const response: Response = await this._rpc.call("game-info", []);
+		const state = response.state;
+		if (state != this._state) {
+			this._state = state;
+			if (state == "starting") {
+				this._node.innerHTML = "";
+				this._node.appendChild(this._nodes["lobby"]);
+			}
+		}
 
 		switch (response.state) {
 			case "starting": this._updateLobby(response.players); break;
 			case "playing": this._updateRound(response); break;
-			case "over": this._updateScore(response); break;
-		}
-	}
-
-	_setState(state: string) {
-		if (this._state == state) { return; }
-		this._state = state;
-
-		this._node.innerHTML = "";
-
-		switch (state) {
-			case "starting": this._node.appendChild(this._nodes["lobby"]); break;
-			case "over": this._outro(); break;
 		}
 	}
 
@@ -190,24 +197,19 @@ export default class MultiGame extends Game {
 		await this._round.play(response.dice);
 		this._wait.hidden = false;
 		this._node.appendChild(this._wait);
-		this._rpc && this._rpc.call("end-round", []);
+
+		let s = this._board.getScore();
+		let ns = score.toNetworkScore(s);
+		this._rpc && this._rpc.call("end-round", ns);
 	}
 
-	_outro() {
-		super._outro();
+	_showScore(scores: HasScore[]) {
 		let s = this._board.getScore();
 		this._board.showScore(s);
 
-		let ns = score.toNetworkScore(s);
-		this._rpc && this._rpc.call("score", ns);
-
-		this._resolve(true);
-	}
-
-	_updateScore(response: Response) {
 		const placeholder = document.querySelector("#outro div") as HTMLElement;
 		placeholder.innerHTML = "";
-		placeholder.appendChild(score.renderMulti(response.players));
+		placeholder.appendChild(score.renderMulti(scores));
 	}
 }
 

@@ -55,6 +55,13 @@ export default class MultiGame extends Game {
             rpc.expose("game-destroy", () => {
                 alert("The game owner has cancelled the game");
                 this._resolve(false);
+                ws.close();
+            });
+            rpc.expose("game-over", (...scores) => {
+                this._outro();
+                this._showScore(scores);
+                this._resolve(true);
+                ws.close();
             });
             this._rpc = rpc;
         }
@@ -110,32 +117,21 @@ export default class MultiGame extends Game {
         if (!this._rpc) {
             return;
         }
-        let response = await this._rpc.call("game-info", []);
-        this._setState(response.state);
+        const response = await this._rpc.call("game-info", []);
+        const state = response.state;
+        if (state != this._state) {
+            this._state = state;
+            if (state == "starting") {
+                this._node.innerHTML = "";
+                this._node.appendChild(this._nodes["lobby"]);
+            }
+        }
         switch (response.state) {
             case "starting":
                 this._updateLobby(response.players);
                 break;
             case "playing":
                 this._updateRound(response);
-                break;
-            case "over":
-                this._updateScore(response);
-                break;
-        }
-    }
-    _setState(state) {
-        if (this._state == state) {
-            return;
-        }
-        this._state = state;
-        this._node.innerHTML = "";
-        switch (state) {
-            case "starting":
-                this._node.appendChild(this._nodes["lobby"]);
-                break;
-            case "over":
-                this._outro();
                 break;
         }
     }
@@ -164,20 +160,16 @@ export default class MultiGame extends Game {
         await this._round.play(response.dice);
         this._wait.hidden = false;
         this._node.appendChild(this._wait);
-        this._rpc && this._rpc.call("end-round", []);
+        let s = this._board.getScore();
+        let ns = score.toNetworkScore(s);
+        this._rpc && this._rpc.call("end-round", ns);
     }
-    _outro() {
-        super._outro();
+    _showScore(scores) {
         let s = this._board.getScore();
         this._board.showScore(s);
-        let ns = score.toNetworkScore(s);
-        this._rpc && this._rpc.call("score", ns);
-        this._resolve(true);
-    }
-    _updateScore(response) {
         const placeholder = document.querySelector("#outro div");
         placeholder.innerHTML = "";
-        placeholder.appendChild(score.renderMulti(response.players));
+        placeholder.appendChild(score.renderMulti(scores));
     }
 }
 class MultiplayerRound extends Round {

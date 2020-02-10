@@ -2,7 +2,7 @@ import * as colors from "https://deno.land/std/fmt/colors.ts";
 import { GameType, DiceDescriptor, ROUNDS, createDiceDescriptors } from "../src/rules.ts";
 import Player from "./player.ts";
 
-type State = "starting" | "playing" | "over";
+type State = "starting" | "playing";
 
 const games = new Map<string, Game>();
 
@@ -35,15 +35,13 @@ export default class Game {
 		this._players.push(player);
 		player.game = this;
 
-		this.notifyGameChange(); // fixme will notify this player as well
+		this._notifyGameChange(); // fixme will notify this player as well
 	}
 
-	// either by explicit game-quit, or by disconnecting in a non-playing state
+	// either by explicit game-quit, or by disconnecting during setup
 	removePlayer(player: Player) {
-		// owner left during setup/over
-		if (player == this.owner && this.state != "playing") { return this._destroy(); }
-
-		if (this.state == "over") { return; } // leaving in "over" does nothing
+		// owner left during setup
+		if (player == this.owner && this.state != "playing") { return this._close("destroy"); }
 
 		let index = this._players.indexOf(player);
 		if (index == -1) { return; }
@@ -51,10 +49,10 @@ export default class Game {
 		this._players.splice(index, 1);
 		player.game = null;
 
-		if (this._players.length) { // no players remaining
-			this.notifyGameChange();
+		if (this._players.length) {
+			this._notifyGameChange();
 		} else {
-			this._destroy();
+			this._close("destroy");
 		}
 	}
 
@@ -62,7 +60,7 @@ export default class Game {
 		if (this._players.every(p => p.roundEnded)) {
 			this._advanceRound();
 		} else {
-			this.notifyGameChange();
+			this._notifyGameChange();
 		}
 	}
 
@@ -82,10 +80,29 @@ export default class Game {
 	}
 
 	_destroy() {
+	}
+
+	_advanceRound() {
+		if (this._round < ROUNDS[this._type]*0 + 1) {
+			this._round++;
+			this._diceDescriptors = createDiceDescriptors(this._type);
+			this._players.forEach(p => {
+				p.roundEnded = false;
+				p.score = null;
+			});
+			this._notifyGameChange();
+		} else {
+			this._close("over");
+		}
+	}
+
+	_close(reason: "destroy" | "over") {
+		let score = this.getInfo().players;
+
 		while (this._players.length) {
 			let p = this._players.shift() as Player;
 			p.game = null;
-			p.jsonrpc.notify("game-destroy", [])
+			p.jsonrpc.notify(`game-${reason}`, reason == "over" ? score : []);
 		}
 
 		let name = "";
@@ -95,17 +112,7 @@ export default class Game {
 		games.delete(name);
 	}
 
-	_advanceRound() {
-		if (this._round < ROUNDS[this._type]*0 + 1) {
-			this._round++;
-			this._diceDescriptors = createDiceDescriptors(this._type);
-		} else {
-			this.state = "over";
-		}
-		this.notifyGameChange();
-	}
-
-	notifyGameChange() {
+	_notifyGameChange() {
 		setTimeout( () => this._players.forEach(player => player.jsonrpc.notify("game-change", [])), 0);
 	}
 }

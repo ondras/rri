@@ -46,21 +46,20 @@
 		</footer>
 
 		<template>
-			<table id="multi-setup">
-				<tr>
-					<td>Your name: </td><td><input name="player-name" value="player" /></td>
-				</tr>
-				<tr>
-					<td>Game name: </td><td><input name="game-name" value="game" /></td>
-				</tr>
-				<tr>
-					<td colspan="2">
-						<button name="join">Join game</button>
-						<button name="create-normal">Create normal game</button>
-						<button name="create-lake">Create game with lakes</button>
-					</td>
-				</tr>
-			</table>
+			<div id="multi-setup">
+				<table>
+					<tr>
+						<td>Your name: </td><td><input name="player-name" value="player" /></td>
+					</tr>
+					<tr>
+						<td>Game name: </td><td><input name="game-name" value="game" /></td>
+					</tr>
+				</table>
+				<ul>
+					<li><button name="join">Join game</button></li>
+					<li><button name="create-normal">Create normal game</button></li>
+					<li><button name="create-lake">Create game with lakes</button></li>
+				</ul>
 			</div>
 			<div id="multi-lobby">
 				<h2>Players</h2>

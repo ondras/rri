@@ -60,7 +60,7 @@ button:disabled {
 .-menu ul li + li {
   margin-left: 8px;
 }
-.-menu button {
+.-menu ul button {
   display: block;
   width: 100%;
   height: 100%;
@@ -93,7 +93,7 @@ button:disabled {
 #intro ul li + li {
   margin-left: 8px;
 }
-#intro button {
+#intro ul button {
   display: block;
   width: 100%;
   height: 100%;
@@ -116,7 +116,7 @@ button:disabled {
 #outro ul li + li {
   margin-left: 8px;
 }
-#outro button {
+#outro ul button {
   display: block;
   width: 100%;
   height: 100%;
@@ -169,6 +169,29 @@ button:disabled {
   margin-left: 8px;
   width: calc(var(--tile-size) * 1px);
   height: calc(var(--tile-size) * 1px);
+}
+#game #multi-setup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: var(--board-width);
+}
+#game #multi-setup ul {
+  list-style: none;
+  padding: 0 8px;
+  display: flex;
+  width: 100%;
+}
+#game #multi-setup ul li {
+  flex: 1 0 0;
+}
+#game #multi-setup ul li + li {
+  margin-left: 8px;
+}
+#game #multi-setup ul button {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 #game .wait {
   text-align: center;

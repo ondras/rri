@@ -62,10 +62,11 @@ export default class Player {
 
 		// gameplay
 
-		jsonrpc.expose("end-round", () => {
+		jsonrpc.expose("end-round", (score: NetworkScore) => {
 			const game = this.game;
 			if (!game) { throw new Error("Not playing yet"); }
 			this.roundEnded = true;
+			this.score = score;
 			this._log("round ended");
 			game.checkRoundEnd(); // will notify all
 		});
@@ -81,13 +82,6 @@ export default class Player {
 			const game = this.game;
 			return (game ? game.getInfo() : null);
 		});
-
-		jsonrpc.expose("score", (score: NetworkScore) => {
-			const game = this.game;
-			if (!game) { throw new Error("Not playing yet"); }
-			this.score = score;
-			game.notifyGameChange();
-		});
 	}
 
 	async _receive(ws: WebSocket, io: IO) {
@@ -96,10 +90,9 @@ export default class Player {
 				if (typeof(e) == "string") {
 					io.onData(e);
 				} else if (isWebSocketCloseEvent(e)) { // close
-					const game = this.game;
 					this._log("disconnected");
-					if (!game || game.state == "playing") { return; }
-					game.removePlayer(this);
+					const game = this.game;
+					if (game && game.state == "starting") {	game.removePlayer(this); }
 				}
 			}
 		} catch (e) {
