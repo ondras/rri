@@ -1,4 +1,4 @@
-import { serve, ServerRequest } from "https://deno.land/std/http/server.ts";
+import { listenAndServe, ServerRequest } from "https://deno.land/std/http/server.ts";
 import { acceptWebSocket } from "https://deno.land/std/ws/mod.ts";
 import Player from "./player.ts";
 
@@ -19,6 +19,4 @@ async function processUpgradeRequest(req: ServerRequest) {
 
 const port = Deno.args[0] || "8080";
 console.log("websocket server is running on", port);
-for await (const req of serve(`:${port}`)) {
-	processUpgradeRequest(req);
-}
+listenAndServe(`:${port}`, processUpgradeRequest);
