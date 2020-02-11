@@ -14,8 +14,36 @@ export default class Board {
     showScore(_score) { }
     onClick(_cell) { }
     getScore() { return getScore(this._cells); }
+    fromJSON(cells) {
+        this._cells.forEach(cell => {
+            if (!cell.border) {
+                cell.tile = null;
+            }
+        });
+        cells.forEach(cell => {
+            let tile = Tile.fromJSON(cell.tile);
+            this.place(tile, cell.x, cell.y, cell.round);
+        });
+        this.commit(0);
+    }
+    toJSON() {
+        let result = [];
+        this._cells.forEach(cell => {
+            const tile = cell.tile;
+            if (cell.border || !tile) {
+                return;
+            }
+            result.push({
+                x: cell.x,
+                y: cell.y,
+                round: cell.round,
+                tile: tile.toJSON()
+            });
+        });
+        return result;
+    }
     commit(round) {
-        this._surroundLakes(round);
+        round && this._surroundLakes(round);
     }
     cycleTransform(x, y) {
         let tile = this._cells.at(x, y).tile;

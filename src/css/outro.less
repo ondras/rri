@@ -9,13 +9,9 @@
 	.score {
 		border-collapse: collapse;
 
-		td:last-child {
+		td:not(:first-child) {
 			text-align: right;
 			padding-left: 1ch;
-		}
-
-		td:empty {
-			display: none;
 		}
 
 		tfoot td {

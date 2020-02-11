@@ -4,11 +4,19 @@ import { Direction } from "./direction.js";
 import { Edge, EdgeType, NONE, LAKE } from "./edge.js";
 import * as html from "./html.js";
 
+export interface SerializedTile {
+	sid: string;
+	tid: string;
+}
 
 export default class Tile {
 	_sid: string;
 	_tid!: string;
 	node: HTMLImageElement;
+
+	static fromJSON(data: SerializedTile) {
+		return new this(data.sid, data.tid);
+	}
 
 	constructor(sid: string, transform: string) {
 		this._sid = sid;
@@ -16,6 +24,13 @@ export default class Tile {
 		this.node.classList.add("tile");
 
 		this.transform = transform;
+	}
+
+	toJSON(): SerializedTile {
+		return {
+			sid: this._sid,
+			tid: this._tid
+		}
 	}
 
 	clone() {

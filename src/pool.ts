@@ -95,4 +95,13 @@ export class BonusPool extends Pool {
 	unlock() {
 		this._locked = false;
 	}
+
+	toJSON() {
+		return this._dices.filter(d => d.disabled).map(d => this._dices.indexOf(d));
+	}
+
+	fromJSON(indices: number[]) {
+		this._locked = false;
+		indices.forEach(i => this.disable(this._dices[i]));
+	}
 }

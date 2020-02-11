@@ -23,10 +23,14 @@ function createCallMessage(method, params, id) {
     return message;
 }
 export default class JsonRpc {
-    constructor(_io) {
+    constructor(_io, options = {}) {
         this._io = _io;
         this._interface = new Map();
         this._pendingPromises = new Map();
+        this._options = {
+            log: false
+        };
+        Object.assign(this._options, options);
         _io.onData = (m) => this._onData(m);
     }
     expose(name, method) {
@@ -46,11 +50,11 @@ export default class JsonRpc {
     }
     _send(message) {
         const str = JSON.stringify(message);
-        debug("sending", str);
+        this._options.log && debug("sending", str);
         this._io.sendData(str);
     }
     _onData(str) {
-        debug("received", str);
+        this._options.log && debug("received", str);
         let message;
         try {
             message = JSON.parse(str);
@@ -81,7 +85,7 @@ export default class JsonRpc {
                 return (message.id ? createResultMessage(message.id, result) : null);
             }
             catch (e) {
-                warn("caught", e);
+                this._options.log && warn("caught", e);
                 return (message.id ? createErrorMessage(message.id, -32000, e.message) : null);
             }
         }

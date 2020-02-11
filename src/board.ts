@@ -1,9 +1,16 @@
-import Tile from "./tile.js";
+import Tile, { SerializedTile } from "./tile.js";
 import { clamp, all as allDirections, Vector } from "./direction.js";
 import { NONE } from "./edge.js";
 import { Score, get as getScore } from "./score.js";
 import CellRepo, { Cell } from "./cell-repo.js";
 import { LAKE } from "./edge.js";
+
+export interface SerializedCell {
+	x: number;
+	y: number;
+	round: number;
+	tile: SerializedTile;
+}
 
 export default abstract class Board {
 	node: HTMLElement;
@@ -21,8 +28,36 @@ export default abstract class Board {
 	onClick(_cell: Cell) {}
 	getScore() { return getScore(this._cells); }
 
+	fromJSON(cells: SerializedCell[]) {
+		this._cells.forEach(cell => {
+			if (!cell.border) { cell.tile = null; }
+		});
+
+		cells.forEach(cell => {
+			let tile = Tile.fromJSON(cell.tile);
+			this.place(tile, cell.x, cell.y, cell.round);
+		});
+
+		this.commit(0);
+	}
+
+	toJSON() {
+		let result: SerializedCell[] = [];
+		this._cells.forEach(cell => {
+			const tile = cell.tile;
+			if (cell.border || !tile) { return; }
+			result.push({
+				x: cell.x,
+				y: cell.y,
+				round: cell.round,
+				tile: tile.toJSON()
+			});
+		})
+		return result;
+	}
+
 	commit(round: number) {
-		this._surroundLakes(round);
+		round && this._surroundLakes(round);
 	}
 
 	cycleTransform(x: number, y: number) {

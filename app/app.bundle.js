@@ -703,6 +703,15 @@ class Tile {
         this.node.classList.add("tile");
         this.transform = transform;
     }
+    static fromJSON(data) {
+        return new this(data.sid, data.tid);
+    }
+    toJSON() {
+        return {
+            sid: this._sid,
+            tid: this._tid
+        };
+    }
     clone() {
         return new Tile(this._sid, this.transform);
     }
@@ -1074,8 +1083,36 @@ class Board {
     showScore(_score) { }
     onClick(_cell) { }
     getScore() { return get$2(this._cells); }
+    fromJSON(cells) {
+        this._cells.forEach(cell => {
+            if (!cell.border) {
+                cell.tile = null;
+            }
+        });
+        cells.forEach(cell => {
+            let tile = Tile.fromJSON(cell.tile);
+            this.place(tile, cell.x, cell.y, cell.round);
+        });
+        this.commit(0);
+    }
+    toJSON() {
+        let result = [];
+        this._cells.forEach(cell => {
+            const tile = cell.tile;
+            if (cell.border || !tile) {
+                return;
+            }
+            result.push({
+                x: cell.x,
+                y: cell.y,
+                round: cell.round,
+                tile: tile.toJSON()
+            });
+        });
+        return result;
+    }
     commit(round) {
-        this._surroundLakes(round);
+        round && this._surroundLakes(round);
     }
     cycleTransform(x, y) {
         let tile = this._cells.at(x, y).tile;
@@ -1551,6 +1588,13 @@ class BonusPool extends Pool {
     unlock() {
         this._locked = false;
     }
+    toJSON() {
+        return this._dices.filter(d => d.disabled).map(d => this._dices.indexOf(d));
+    }
+    fromJSON(indices) {
+        this._locked = false;
+        indices.forEach(i => this.disable(this._dices[i]));
+    }
 }
 
 const dataset = document.body.dataset;
@@ -1803,10 +1847,14 @@ function createCallMessage(method, params, id) {
     return message;
 }
 class JsonRpc {
-    constructor(_io) {
+    constructor(_io, options = {}) {
         this._io = _io;
         this._interface = new Map();
         this._pendingPromises = new Map();
+        this._options = {
+            log: false
+        };
+        Object.assign(this._options, options);
         _io.onData = (m) => this._onData(m);
     }
     expose(name, method) {
@@ -1826,11 +1874,11 @@ class JsonRpc {
     }
     _send(message) {
         const str = JSON.stringify(message);
-        debug("sending", str);
+        this._options.log && debug("sending", str);
         this._io.sendData(str);
     }
     _onData(str) {
-        debug("received", str);
+        this._options.log && debug("received", str);
         let message;
         try {
             message = JSON.parse(str);
@@ -1861,7 +1909,7 @@ class JsonRpc {
                 return (message.id ? createResultMessage(message.id, result) : null);
             }
             catch (e) {
-                warn("caught", e);
+                this._options.log && warn("caught", e);
                 return (message.id ? createErrorMessage(message.id, -32000, e.message) : null);
             }
         }
@@ -1881,26 +1929,15 @@ class JsonRpc {
 }
 
 const template = document.querySelector("template");
-function createRpc(ws) {
-    let io = {
-        onData(_s) { },
-        sendData(s) { ws.send(s); }
-    };
-    ws.addEventListener("message", e => io.onData(e.data));
-    return new JsonRpc(io);
-}
-function openWebSocket(url) {
-    const ws = new WebSocket(url);
-    return new Promise((resolve, reject) => {
-        ws.addEventListener("open", e => resolve(e.target));
-        ws.addEventListener("error", _ => reject(new Error("Cannot connect to server")));
-    });
-}
 class MultiGame extends Game {
     constructor(board) {
         super(board);
         this._nodes = {};
-        this._state = "";
+        this._progress = {
+            key: "",
+            game: "",
+            player: ""
+        };
         this._wait = node("p", { className: "wait", hidden: true });
         ["setup", "lobby"].forEach(id => {
             let node = template.content.querySelector(`#multi-${id}`);
@@ -1908,10 +1945,11 @@ class MultiGame extends Game {
         });
         const setup = this._nodes["setup"];
         setup.querySelector("[name=join]").addEventListener("click", _ => this._joinOrCreate());
+        setup.querySelector("[name=continue]").addEventListener("click", _ => this._continue());
         setup.querySelector("[name=create-normal]").addEventListener("click", _ => this._joinOrCreate("normal"));
         setup.querySelector("[name=create-lake]").addEventListener("click", _ => this._joinOrCreate("lake"));
         const lobby = this._nodes["lobby"];
-        lobby.querySelector("button").addEventListener("click", _ => this._start());
+        lobby.querySelector("button").addEventListener("click", _ => this._rpc.call("start-game", []));
     }
     async play() {
         super.play();
@@ -1924,6 +1962,16 @@ class MultiGame extends Game {
         this._node.innerHTML = "";
         const setup = this._nodes["setup"];
         this._node.appendChild(setup);
+        ["player", "game"].forEach(key => {
+            let value = load(key);
+            if (value === null) {
+                return;
+            }
+            let input = setup.querySelector(`[name=${key}-name]`);
+            input.value = value;
+        });
+        let cont = setup.querySelector(`[name=continue]`);
+        cont.parentNode.hidden = (load("progress") === null);
         try {
             const ws = await openWebSocket("ws://localhost:1234"); // FIXME
             const rpc = createRpc(ws);
@@ -1935,6 +1983,7 @@ class MultiGame extends Game {
                 this._resolve(false);
             });
             rpc.expose("game-over", (...scores) => {
+                save("progress", null);
                 this._outro();
                 this._showScore(scores);
                 ws.close();
@@ -1945,6 +1994,7 @@ class MultiGame extends Game {
                 if (!(confirm("Really quit the game?"))) {
                     return;
                 }
+                save("progress", null);
                 await rpc.call("quit-game", []);
                 ws.close();
                 this._resolve(false);
@@ -1964,9 +2014,6 @@ class MultiGame extends Game {
         this._resolve(false);
     }
     async _joinOrCreate(type) {
-        if (!this._rpc) {
-            return;
-        }
         const setup = this._nodes["setup"];
         let playerName = setup.querySelector("[name=player-name]").value;
         if (!playerName) {
@@ -1976,6 +2023,8 @@ class MultiGame extends Game {
         if (!gameName) {
             return alert("Please provide a game name");
         }
+        save("player", playerName);
+        save("game", gameName);
         const buttons = setup.querySelectorAll("button");
         buttons.forEach(b => b.disabled = true);
         let args = [gameName, playerName];
@@ -1983,9 +2032,14 @@ class MultiGame extends Game {
             args.unshift(type);
         }
         try {
+            const key = await this._rpc.call(type ? "create-game" : "join-game", args);
+            this._progress.key = key;
+            this._progress.player = playerName;
+            this._progress.game = gameName;
             const lobby = this._nodes["lobby"];
             lobby.querySelector("button").disabled = (!type);
-            await this._rpc.call(type ? "create-game" : "join-game", args);
+            this._node.innerHTML = "";
+            this._node.appendChild(lobby);
         }
         catch (e) {
             alert(e.message);
@@ -1994,22 +2048,25 @@ class MultiGame extends Game {
             buttons.forEach(b => b.disabled = false);
         }
     }
-    _start() {
-        this._rpc && this._rpc.call("start-game", []);
+    async _continue() {
+        const saved = JSON.parse(load("progress") || "");
+        try {
+            this._progress.player = saved.player;
+            this._progress.game = saved.game;
+            this._progress.key = saved.key;
+            await this._rpc.call("continue-game", [saved.game, saved.key]);
+            this._board.fromJSON(saved.board);
+            this._bonusPool.fromJSON(saved.bonusPool);
+            this._sync();
+        }
+        catch (e) {
+            save("progress", null);
+            alert(e.message);
+            this._resolve(false);
+        }
     }
     async _sync() {
-        if (!this._rpc) {
-            return;
-        }
         const response = await this._rpc.call("game-info", []);
-        const state = response.state;
-        if (state != this._state) {
-            this._state = state;
-            if (state == "starting") {
-                this._node.innerHTML = "";
-                this._node.appendChild(this._nodes["lobby"]);
-            }
-        }
         switch (response.state) {
             case "starting":
                 this._updateLobby(response.players);
@@ -2030,23 +2087,37 @@ class MultiGame extends Game {
         const button = lobby.querySelector("button");
         button.textContent = (button.disabled ? `Wait for ${players[0].name} to start the game` : "Start the game");
     }
-    async _updateRound(response) {
+    _updateRound(response) {
         let waiting = response.players.filter(p => !p.roundEnded).length;
         this._wait.textContent = `Waiting for ${waiting} player${waiting > 1 ? "s" : ""} to end round`;
-        if (this._round && response.round == this._round.number) {
-            return;
+        const ended = response.players.filter(p => p.name == this._progress.player)[0].roundEnded;
+        this._wait.hidden = !ended;
+        const round = this._progress.round;
+        if (round && round.number == response.round) {
+            ended && round.end();
         }
-        let number = (this._round ? this._round.number : 0) + 1;
-        this._round = new MultiplayerRound(number, this._board, this._bonusPool);
+        else {
+            this._newRound(response, ended);
+        }
+        this._saveProgress();
+    }
+    async _newRound(response, ended) {
+        const round = new MultiplayerRound(response.round, this._board, this._bonusPool);
+        this._progress.round = round;
         this._node.innerHTML = "";
         this._node.appendChild(this._bonusPool.node);
-        this._node.appendChild(this._round.node);
-        await this._round.play(response.dice);
-        this._wait.hidden = false;
+        this._node.appendChild(round.node);
         this._node.appendChild(this._wait);
-        let s = this._board.getScore();
-        let ns = toNetworkScore(s);
-        this._rpc && this._rpc.call("end-round", ns);
+        let promise = round.play(response.dice);
+        if (ended) {
+            round.end();
+        }
+        else {
+            await promise;
+            let s = this._board.getScore();
+            let ns = toNetworkScore(s);
+            this._rpc.call("end-round", ns);
+        }
     }
     _showScore(scores) {
         let s = this._board.getScore();
@@ -2055,11 +2126,58 @@ class MultiGame extends Game {
         placeholder.innerHTML = "";
         placeholder.appendChild(renderMulti(scores));
     }
+    _saveProgress() {
+        const progress = {
+            board: this._board,
+            bonusPool: this._bonusPool,
+            key: this._progress.key,
+            game: this._progress.game,
+            player: this._progress.player
+        };
+        save("progress", JSON.stringify(progress));
+    }
 }
 class MultiplayerRound extends Round {
     _end() {
         super._end();
+        this.end();
+    }
+    end() {
         this._endButton.disabled = true;
+        this._pool.remaining.forEach(d => this._pool.disable(d));
+    }
+}
+function createRpc(ws) {
+    let io = {
+        onData(_s) { },
+        sendData(s) { ws.send(s); }
+    };
+    ws.addEventListener("message", e => io.onData(e.data));
+    return new JsonRpc(io);
+}
+function openWebSocket(url) {
+    const ws = new WebSocket(url);
+    return new Promise((resolve, reject) => {
+        ws.addEventListener("open", e => resolve(e.target));
+        ws.addEventListener("error", _ => reject(new Error("Cannot connect to server")));
+    });
+}
+function save(key, value) {
+    key = `rri-${key}`;
+    try {
+        (value === null ? localStorage.removeItem(key) : localStorage.setItem(key, value));
+    }
+    catch (e) {
+        console.warn(e);
+    }
+}
+function load(key) {
+    try {
+        return localStorage.getItem(`rri-${key}`);
+    }
+    catch (e) {
+        console.warn(e);
+        return null;
     }
 }
 

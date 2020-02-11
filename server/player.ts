@@ -5,6 +5,7 @@ import { GameType, NetworkScore } from "../src/rules.ts";
 
 export default class Player {
 	name = "";
+	key = Math.random().toString().replace(/\D/g, "");
 	game: Game | null = null;
 	roundEnded = false;
 	jsonrpc: JsonRpc;
@@ -41,6 +42,7 @@ export default class Player {
 			this.name = playerName;
 			this.game = Game.create(gameType, gameName, this);
 			this._log("game", gameName, "created");
+			return this.key;
 		});
 
 		jsonrpc.expose("join-game", (gameName: string, playerName: string) => {
@@ -48,8 +50,9 @@ export default class Player {
 			if (!game) { throw new Error(`Game "${gameName}" does not exist`); }
 
 			this.name = playerName;
-			game.addPlayer(this); // will notify all
 			this._log("joined game", gameName);
+			game.addPlayer(this); // will notify all
+			return this.key;
 		});
 
 		jsonrpc.expose("start-game", () => {
@@ -57,7 +60,18 @@ export default class Player {
 			if (!game) { throw new Error("Cannot start a non-joined game"); }
 			if (game.owner != this) { throw new Error("Only the game owner can start it"); }
 			this._log("starting the game");
-			game.start(); // will notify all
+			game.start(); // notify all
+		});
+
+		jsonrpc.expose("continue-game", (gameName: string, key: string) => {
+			const game = Game.find(gameName);
+			if (!game) { throw new Error(`Game "${gameName}" does not exist`); }
+
+			let previousPlayer = game.playerByKey(key);
+			if (!previousPlayer) { throw new Error("The continuation key is invalid"); }
+
+			game.replacePlayer(this, previousPlayer);
+			this._log("continued game", gameName);
 		});
 
 		// gameplay
@@ -68,14 +82,14 @@ export default class Player {
 			this.roundEnded = true;
 			this.score = score;
 			this._log("round ended");
-			game.checkRoundEnd(); // will notify all
+			game.checkRoundEnd(); // notify all
 		});
 
 		jsonrpc.expose("quit-game", () => {
 			const game = this.game;
 			if (!game) { throw new Error("Cannot quit a non-joined game"); }
-			game.removePlayer(this); // will notify others
 			this._log("left the game");
+			game.removePlayer(this); // notify others
 		});
 
 		jsonrpc.expose("game-info", () => {

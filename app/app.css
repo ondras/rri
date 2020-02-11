@@ -124,12 +124,9 @@ button:disabled {
 #outro .score {
   border-collapse: collapse;
 }
-#outro .score td:last-child {
+#outro .score td:not(:first-child) {
   text-align: right;
   padding-left: 1ch;
-}
-#outro .score td:empty {
-  display: none;
 }
 #outro .score tfoot td {
   border-top: 3px double #000;

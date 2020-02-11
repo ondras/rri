@@ -28,6 +28,10 @@ export default class Game {
 		this.addPlayer(owner);
 	}
 
+	playerByKey(key: string) {
+		return this._players.filter(p => p.key == key)[0];
+	}
+
 	addPlayer(player: Player) {
 		this._players.forEach(p => {
 			if (p.name == player.name) { throw new Error(`Player "${player.name}" already exists in this game`); }
@@ -56,6 +60,18 @@ export default class Game {
 		}
 	}
 
+	replacePlayer(newPlayer: Player, oldPlayer: Player) {
+		newPlayer.name = oldPlayer.name;
+		newPlayer.score = oldPlayer.score;
+		newPlayer.roundEnded = oldPlayer.roundEnded;
+		newPlayer.key = oldPlayer.key;
+		newPlayer.game = this;
+		oldPlayer.game = null;
+
+		const index = this._players.indexOf(oldPlayer);
+		this._players[index] = newPlayer;
+	}
+
 	checkRoundEnd() {
 		if (this._players.every(p => p.roundEnded)) {
 			this._advanceRound();
@@ -80,7 +96,7 @@ export default class Game {
 	}
 
 	_advanceRound() {
-		if (this._round < ROUNDS[this._type]*0 + 1) {
+		if (this._round < ROUNDS[this._type]*0 + 2) {
 			this._round++;
 			this._diceDescriptors = createDiceDescriptors(this._type);
 			this._players.forEach(p => {
@@ -122,7 +138,7 @@ function logStats() {
 		const info = game.getInfo();
 		console.log(
 			"players:",
-			info.players.map(p => `${p.name} ${p.roundEnded ? "✔️" : "❌"}`).join(", ")
+			info.players.map(p => `${p.name} (${p.roundEnded ? "waiting" : "playing"})`).join(", ")
 		);
 		if (info.state == "playing") {
 			console.log(
