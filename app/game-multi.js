@@ -53,7 +53,7 @@ export default class MultiGame extends Game {
             ws.addEventListener("close", e => this._onClose(e));
             rpc.expose("game-change", () => this._sync());
             rpc.expose("game-destroy", () => {
-                alert("The game owner has cancelled the game");
+                alert("The game has been cancelled");
                 ws.close();
                 this._resolve(false);
             });

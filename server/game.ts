@@ -5,12 +5,14 @@ import Player from "./player.ts";
 type State = "starting" | "playing";
 
 const games = new Map<string, Game>();
+const GARBAGE_THRESHOLD = 1000*60*10;
 
 export default class Game {
 	_players: Player[] = [];
 	_round = 0;
 	_diceDescriptors: DiceDescriptor[] = [];
 	state: State;
+	ts = performance.now();
 
 	static find(name: string) {
 		return games.get(name);
@@ -37,6 +39,7 @@ export default class Game {
 			if (p.name == player.name) { throw new Error(`Player "${player.name}" already exists in this game`); }
 		});
 		this._players.push(player);
+		this.ts = performance.now();
 		player.game = this;
 
 		this._notifyGameChange();
@@ -48,15 +51,16 @@ export default class Game {
 		if (index == -1) { return; }
 
 		this._players.splice(index, 1);
+		this.ts = performance.now();
 		player.game = null;
 
 		// owner left during setup
-		if (player == this.owner && this.state != "playing") { return this._close("destroy"); }
+		if (player == this.owner && this.state != "playing") { return this.close("destroy"); }
 
 		if (this._players.length) {
 			this._notifyGameChange();
 		} else {
-			this._close("destroy");
+			this.close("destroy");
 		}
 	}
 
@@ -96,20 +100,21 @@ export default class Game {
 	}
 
 	_advanceRound() {
-		if (this._round < ROUNDS[this._type]*0 + 2) {
+		if (this._round < ROUNDS[this._type]) {
 			this._round++;
 			this._diceDescriptors = createDiceDescriptors(this._type);
 			this._players.forEach(p => {
 				p.roundEnded = false;
 				p.score = null;
 			});
+			this.ts = performance.now();
 			this._notifyGameChange();
 		} else {
-			this._close("over");
+			this.close("over");
 		}
 	}
 
-	_close(reason: "destroy" | "over") {
+	close(reason: "destroy" | "over") {
 		let name = "";
 		games.forEach((g, n) => {
 			if (g == this) { name = n; }
@@ -134,7 +139,7 @@ export default class Game {
 function logStats() {
 	console.group("Active games:");
 	games.forEach((game, name) => {
-		console.group(colors.bold(name));
+		console.group(colors.bold(`${name} (${game.state})`));
 		const info = game.getInfo();
 		console.log(
 			"players:",
@@ -145,12 +150,21 @@ function logStats() {
 				`round ${info.round}:`,
 				info.dice.map(d => d.sid).join(" | ")
 			);
-		} else {
-			console.log(info.state);
 		}
 		console.groupEnd();
 	});
 	console.groupEnd();
 }
 
+function collectGarbage() {
+	let now = performance.now();
+	games.forEach((game, name) => {
+		if ((now-game.ts) < GARBAGE_THRESHOLD) { return; }
+		console.log("Closing idle game", name);
+		game.close("destroy")
+		games.delete(name);
+	});
+}
+
 setInterval(logStats, 10*1000);
+setInterval(collectGarbage, 5*1000);
