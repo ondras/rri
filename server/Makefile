@@ -1,4 +1,10 @@
-DENO := ~/deno/deno_linux_x64
+DENO := ~/deno/deno
 
 run:
-	$(DENO) --allow-net -c tsconfig.json server.ts 1234
+	$(DENO) -r --allow-net -c tsconfig.json server.ts 1234
+
+docker-image:
+	docker build -f Dockerfile -t ondras/rri ..
+
+docker-run:
+	docker run -i --network=host --env PORT=${PORT} ondras/rri

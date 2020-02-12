@@ -14,6 +14,7 @@ async function processUpgradeRequest(req: ServerRequest) {
 		new Player(ws);
 	} catch (e) {
 		console.error("failed to accept websocket", e);
+		req.respond({body:"this is a websocket endpoint"});
 	}
 }
 

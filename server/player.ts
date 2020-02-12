@@ -1,6 +1,6 @@
 import { WebSocket, isWebSocketCloseEvent } from "https://deno.land/std/ws/mod.ts";
 import Game from "./game.ts";
-import JsonRpc, { IO } from "../../../projects/deno-json-rpc/mod.ts";
+import JsonRpc, { IO } from "https://deno.land/x/json_rpc/mod.ts";
 import { GameType, NetworkScore } from "../src/rules.ts";
 
 export default class Player {
