@@ -48,7 +48,7 @@ export default class MultiGame extends Game {
         let cont = setup.querySelector(`[name=continue]`);
         cont.parentNode.hidden = (load("progress") === null);
         try {
-            const url = new URL(location.href).searchParams.get("url") || "ws://localhost:1234";
+            const url = new URL(location.href).searchParams.get("url") || `ws://${location.hostname}:1234`;
             const ws = await openWebSocket(url);
             const rpc = createRpc(ws);
             ws.addEventListener("close", e => this._onClose(e));
