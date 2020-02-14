@@ -86,7 +86,8 @@ export default class MultiGame extends Game {
 		(cont.parentNode as HTMLElement).hidden = (load("progress") === null);
 
 		try {
-			const ws = await openWebSocket("ws://localhost:1234"); // FIXME
+			const url = new URL(location.href).searchParams.get("url") || "ws://localhost:1234";
+			const ws = await openWebSocket(url);
 			const rpc = createRpc(ws);
 			ws.addEventListener("close", e => this._onClose(e));
 
