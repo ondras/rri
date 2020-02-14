@@ -1928,7 +1928,6 @@ class JsonRpc {
     }
 }
 
-const template = document.querySelector("template");
 class MultiGame extends Game {
     constructor(board) {
         super(board);
@@ -1939,6 +1938,7 @@ class MultiGame extends Game {
             player: ""
         };
         this._wait = node("p", { className: "wait", hidden: true });
+        const template = document.querySelector("template");
         ["setup", "lobby"].forEach(id => {
             let node = template.content.querySelector(`#multi-${id}`);
             this._nodes[id] = node.cloneNode(true);
@@ -1958,9 +1958,9 @@ class MultiGame extends Game {
             this._setup();
         });
     }
-    async _setup() {
-        this._node.innerHTML = "";
+    _setup() {
         const setup = this._nodes["setup"];
+        this._node.innerHTML = "";
         this._node.appendChild(setup);
         ["player", "game"].forEach(key => {
             let value = load(key);
@@ -1972,41 +1972,6 @@ class MultiGame extends Game {
         });
         let cont = setup.querySelector(`[name=continue]`);
         cont.parentNode.hidden = (load("progress") === null);
-        try {
-            const url = new URL(location.href).searchParams.get("url") || `ws://${location.hostname}:1234`;
-            const ws = await openWebSocket(url);
-            const rpc = createRpc(ws);
-            ws.addEventListener("close", e => this._onClose(e));
-            rpc.expose("game-change", () => this._sync());
-            rpc.expose("game-destroy", () => {
-                alert("The game has been cancelled");
-                ws.close();
-                this._resolve(false);
-            });
-            rpc.expose("game-over", (...scores) => {
-                save("progress", null);
-                this._outro();
-                this._showScore(scores);
-                ws.close();
-                this._resolve(true);
-            });
-            let quit = node("button", {}, "Quit game");
-            quit.addEventListener("click", async (_) => {
-                if (!(confirm("Really quit the game?"))) {
-                    return;
-                }
-                save("progress", null);
-                await rpc.call("quit-game", []);
-                ws.close();
-                this._resolve(false);
-            });
-            this._bonusPool.node.appendChild(quit);
-            this._rpc = rpc;
-        }
-        catch (e) {
-            alert(e.message);
-            this._resolve(false);
-        }
     }
     _onClose(e) {
         if (e.code != 0 && e.code != 1000 && e.code != 1001) {
@@ -2014,8 +1979,41 @@ class MultiGame extends Game {
         }
         this._resolve(false);
     }
+    async _connectRPC() {
+        const url = new URL(location.href).searchParams.get("url") || `ws://${location.hostname}:1234`;
+        const ws = await openWebSocket(url);
+        const rpc = createRpc(ws);
+        ws.addEventListener("close", e => this._onClose(e));
+        rpc.expose("game-change", () => this._sync());
+        rpc.expose("game-destroy", () => {
+            alert("The game has been cancelled");
+            ws.close();
+            this._resolve(false);
+        });
+        rpc.expose("game-over", (...scores) => {
+            save("progress", null);
+            this._outro();
+            this._showScore(scores);
+            ws.close();
+            this._resolve(true);
+        });
+        let quit = node("button", {}, "Quit game");
+        quit.addEventListener("click", async (_) => {
+            if (!(confirm("Really quit the game?"))) {
+                return;
+            }
+            save("progress", null);
+            await rpc.call("quit-game", []);
+            ws.close();
+            this._resolve(false);
+        });
+        this._bonusPool.node.appendChild(quit);
+        this._rpc = rpc;
+        return rpc;
+    }
     async _joinOrCreate(type) {
         const setup = this._nodes["setup"];
+        const buttons = setup.querySelectorAll("button");
         let playerName = setup.querySelector("[name=player-name]").value;
         if (!playerName) {
             return alert("Please provide your name");
@@ -2026,24 +2024,22 @@ class MultiGame extends Game {
         }
         save("player", playerName);
         save("game", gameName);
-        const buttons = setup.querySelectorAll("button");
         buttons.forEach(b => b.disabled = true);
-        let args = [gameName, playerName];
-        if (type) {
-            args.unshift(type);
-        }
         try {
-            const key = await this._rpc.call(type ? "create-game" : "join-game", args);
-            this._progress.key = key;
+            const rpc = await this._connectRPC();
+            let args = [gameName, playerName];
+            if (type) {
+                args.unshift(type);
+            }
+            const key = await rpc.call(type ? "create-game" : "join-game", args);
             this._progress.player = playerName;
             this._progress.game = gameName;
-            const lobby = this._nodes["lobby"];
-            lobby.querySelector("button").disabled = (!type);
-            this._node.innerHTML = "";
-            this._node.appendChild(lobby);
+            this._progress.key = key;
+            this._enterLobby(type);
         }
         catch (e) {
             alert(e.message);
+            this._resolve(false);
         }
         finally {
             buttons.forEach(b => b.disabled = false);
@@ -2055,7 +2051,8 @@ class MultiGame extends Game {
             this._progress.player = saved.player;
             this._progress.game = saved.game;
             this._progress.key = saved.key;
-            await this._rpc.call("continue-game", [saved.game, saved.key]);
+            let rpc = await this._connectRPC();
+            await rpc.call("continue-game", [saved.game, saved.key]);
             this._board.fromJSON(saved.board);
             this._bonusPool.fromJSON(saved.bonusPool);
             this._sync();
@@ -2076,6 +2073,12 @@ class MultiGame extends Game {
                 this._updateRound(response);
                 break;
         }
+    }
+    _enterLobby(type) {
+        const lobby = this._nodes["lobby"];
+        lobby.querySelector("button").disabled = (!type);
+        this._node.innerHTML = "";
+        this._node.appendChild(lobby);
     }
     _updateLobby(players) {
         const lobby = this._nodes["lobby"];
