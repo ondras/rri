@@ -63,6 +63,7 @@ const BOARD = 7;
 const TILE = Number(getComputedStyle(document.body).getPropertyValue("--tile-size"));
 const DBLCLICK = 400;
 const DOWN_EVENT = ("onpointerdown" in window ? "pointerdown" : "touchstart");
+const SERVER = "wss://ws.toad.cz/";
 
 function node(name, attrs = {}, content) {
     let node = document.createElement(name);
@@ -1980,7 +1981,7 @@ class MultiGame extends Game {
         this._resolve(false);
     }
     async _connectRPC() {
-        const url = new URL(location.href).searchParams.get("url") || `ws://${location.hostname}:1234`;
+        const url = new URL(location.href).searchParams.get("url") || SERVER;
         const ws = await openWebSocket(url);
         const rpc = createRpc(ws);
         ws.addEventListener("close", e => this._onClose(e));
