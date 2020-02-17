@@ -293,6 +293,7 @@ div.board .signal {
 }
 footer {
   border-top: 1px solid #000;
+  font-size: 90%;
 }
 footer ul {
   list-style: none;

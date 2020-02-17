@@ -8,6 +8,7 @@ Implemented features:
   - online multiplayer
   - score visualization
   - works offline
+  - saving the game board as an image
 
 Please report any bugs found to the [issue tracker](https://github.com/ondras/rri/issues).
 
