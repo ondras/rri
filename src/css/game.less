@@ -23,17 +23,18 @@
 			}
 
 			&.disabled {
-				opacity: 0.5;
+				opacity: 0.4;
 			}
 
 			+ .dice { margin-left: 8px; }
 		}
 
 		button {
+			--size: calc(var(--tile-size) + 2);
 			cursor: pointer;
 			margin-left: 8px;
-			width: calc(var(--tile-size) * 1px);
-			height: calc(var(--tile-size) * 1px);
+			width: calc(var(--size) * 1px);
+			height: calc(var(--size) * 1px);
 		}
 	}
 

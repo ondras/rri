@@ -14,23 +14,23 @@ export default class Round {
         this._pool = new Pool();
         this.node = this._pool.node;
         this._endButton.textContent = `End round #${this.number}`;
-        window.addEventListener("keydown", e => {
-            if (e.ctrlKey && e.key == "a") { // FIXME!
-                e.preventDefault();
-                while (true) {
-                    let r = this._pool.remaining;
-                    if (!r.length)
-                        break;
-                    let d = r.shift();
-                    this._onPoolClick(d);
-                    let avail = this._board.getAvailableCells(d.tile);
-                    if (!avail.length)
-                        break;
-                    let cell = avail[Math.floor(Math.random() * avail.length)];
-                    this._onBoardClick(cell);
-                }
-            }
-        });
+        /*
+                window.addEventListener("keydown", e => {
+                    if (e.ctrlKey && e.key == "a") {
+                        e.preventDefault();
+                        while (true) {
+                            let r = this._pool.remaining;
+                            if (!r.length) break;
+                            let d = r.shift() as Dice;
+                            this._onPoolClick(d);
+                            let avail = this._board.getAvailableCells(d.tile);
+                            if (!avail.length) break;
+                            let cell = avail[Math.floor(Math.random() * avail.length)];
+                            this._onBoardClick(cell);
+                        }
+                    }
+                });
+        */
     }
     play(descriptors) {
         descriptors.map(d => Dice.fromDescriptor(d)).forEach(dice => this._pool.add(dice));

@@ -20,9 +20,9 @@ export default class Round {
 		this.node = this._pool.node;
 
 		this._endButton.textContent = `End round #${this.number}`;
-
+/*
 		window.addEventListener("keydown", e => {
-			if (e.ctrlKey && e.key == "a") { // FIXME!
+			if (e.ctrlKey && e.key == "a") {
 				e.preventDefault();
 				while (true) {
 					let r = this._pool.remaining;
@@ -35,7 +35,8 @@ export default class Round {
 					this._onBoardClick(cell);
 				}
 			}
-		})
+		});
+*/
 	}
 
 	play(descriptors: DiceDescriptor[]) {
