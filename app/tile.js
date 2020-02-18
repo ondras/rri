@@ -9,15 +9,6 @@ export default class Tile {
         this.node.classList.add("tile");
         this.transform = transform;
     }
-    static fromJSON(data) {
-        return new this(data.sid, data.tid);
-    }
-    toJSON() {
-        return {
-            sid: this._sid,
-            tid: this._tid
-        };
-    }
     clone() {
         return new Tile(this._sid, this.transform);
     }

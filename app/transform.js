@@ -1,6 +1,6 @@
 import { clamp } from "./direction.js";
 const repo = {};
-class Transform {
+class TransformImpl {
     constructor(direction, offset) {
         this._direction = direction;
         this._offset = offset;
@@ -32,7 +32,7 @@ class Transform {
 function create(id) {
     let offset = Math.abs(Number(id));
     let direction = (id.startsWith("-") ? -1 : 1);
-    repo[id] = new Transform(direction, offset);
+    repo[id] = new TransformImpl(direction, offset);
     return get(id);
 }
 export function get(id) {

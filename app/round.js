@@ -1,54 +1,69 @@
 import Pool from "./pool.js";
-import Dice from "./dice.js";
+import Dice, { DICE_REGULAR_1, DICE_REGULAR_2, DICE_LAKE } from "./dice.js";
+import Tile from "./tile.js";
 import * as html from "./html.js";
+import { DOWN } from "./event.js";
 import { DBLCLICK } from "./conf.js";
+const DEMO = ["bridge", "rail-i", "road-i", "rail-road-l", "rail-road-i", "rail-t", "road-l", "rail-l", "road-t",
+    "lake-1", "lake-2", "lake-3", "lake-4", "lake-rail", "lake-road", "lake-rail-road"
+];
+//const DEMO = ["bridge"];
 export default class Round {
-    constructor(number, _board, _bonusPool) {
-        this.number = number;
-        this._board = _board;
-        this._bonusPool = _bonusPool;
+    constructor(num, board, bonusPool) {
         this._pending = null;
-        this._endButton = html.node("button");
+        this._end = html.node("button");
         this._placedTiles = new Map();
         this._lastClickTs = 0;
+        this._num = num;
+        this._board = board;
+        this._bonusPool = bonusPool;
         this._pool = new Pool();
         this.node = this._pool.node;
-        this._endButton.textContent = `End round #${this.number}`;
-        /*
-                window.addEventListener("keydown", e => {
-                    if (e.ctrlKey && e.key == "a") {
-                        e.preventDefault();
-                        while (true) {
-                            let r = this._pool.remaining;
-                            if (!r.length) break;
-                            let d = r.shift() as Dice;
-                            this._onPoolClick(d);
-                            let avail = this._board.getAvailableCells(d.tile);
-                            if (!avail.length) break;
-                            let cell = avail[Math.floor(Math.random() * avail.length)];
-                            this._onBoardClick(cell);
-                        }
-                    }
-                });
-        */
+        this._end.textContent = `End round #${this._num}`;
     }
-    play(descriptors) {
-        descriptors.map(d => Dice.fromDescriptor(d)).forEach(dice => this._pool.add(dice));
-        this.node.appendChild(this._endButton);
+    start(type = "normal") {
         this._pool.onClick = dice => this._onPoolClick(dice);
         this._bonusPool.onClick = dice => this._onPoolClick(dice);
         this._board.onClick = cell => this._onBoardClick(cell);
+        switch (type) {
+            case "demo":
+                DEMO.map(type => new Dice(new Tile(type, "0"), "plain"))
+                    .forEach(dice => this._pool.add(dice));
+                break;
+            case "lake":
+                {
+                    let templates = [DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_2];
+                    while (templates.length) {
+                        let index = Math.floor(Math.random() * templates.length);
+                        let template = templates.splice(index, 1)[0];
+                        this._pool.add(Dice.fromTemplate(template));
+                    }
+                    this._pool.add(Dice.fromTemplate(DICE_LAKE));
+                    this._pool.add(Dice.fromTemplate(DICE_LAKE));
+                }
+                break;
+            default:
+                {
+                    let templates = [DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_2];
+                    while (templates.length) {
+                        let index = Math.floor(Math.random() * templates.length);
+                        let template = templates.splice(index, 1)[0];
+                        this._pool.add(Dice.fromTemplate(template));
+                    }
+                }
+                break;
+        }
+        this.node.appendChild(this._end);
         this._syncEnd();
         this._bonusPool.unlock();
         return new Promise(resolve => {
-            this._endButton.addEventListener("click", _ => {
-                this._end();
-                resolve();
+            this._end.addEventListener(DOWN, () => {
+                !this._end.disabled && resolve();
             });
         });
     }
-    _end() {
-        this._board.commit(this.number);
+    end() {
+        this._board.commit(this._num);
         function noop() { }
         ;
         this._pool.onClick = noop;
@@ -110,7 +125,7 @@ export default class Round {
         const x = cell.x;
         const y = cell.y;
         const clone = tile.clone();
-        this._board.placeBest(clone, x, y, this.number);
+        this._board.placeBest(clone, x, y, this._num);
         this._board.signal([]);
         this._pool.pending(null);
         this._bonusPool.pending(null);
@@ -133,6 +148,6 @@ export default class Round {
     }
     _syncEnd() {
         this._pool.sync(this._board);
-        this._endButton.disabled = (this._pool.remaining.length > 0);
+        this._end.disabled = (this._pool.remaining > 0);
     }
 }

@@ -1,14 +1,15 @@
 import Board from "./board.js";
 import * as html from "./html.js";
-import { TILE, DOWN_EVENT } from "./conf.js";
+import { TILE } from "./conf.js";
+import { DOWN } from "./event.js";
 export default class BoardTable extends Board {
     constructor() {
         super();
-        this.node.addEventListener(DOWN_EVENT, this);
+        this.node.addEventListener(DOWN, this);
     }
     handleEvent(e) {
         switch (e.type) {
-            case DOWN_EVENT:
+            case DOWN:
                 let td = e.target.closest("td");
                 if (!td) {
                     return;
@@ -18,6 +19,7 @@ export default class BoardTable extends Board {
                 break;
         }
     }
+    toBlob() { return Promise.resolve(null); }
     place(tile, x, y, round) {
         super.place(tile, x, y, round);
         let td = this._tableCellAt(x, y);
