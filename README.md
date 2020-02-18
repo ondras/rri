@@ -1,5 +1,7 @@
 # Railroad Ink
 
+![Screenshot](img/screenshot.png)
+
 This is a web-based version of the [Railroad Ink Board Game](https://boardgamegeek.com/boardgame/245654/railroad-ink-deep-blue-edition).
 Implemented features:
 
