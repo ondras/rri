@@ -9,10 +9,9 @@ export default class Dice {
             this.node.classList.add("lake");
         }
     }
-    static fromTemplate(template) {
-        let names = template.tiles;
-        let name = names[Math.floor(Math.random() * names.length)];
-        return new this(new Tile(name, "0"), template.type);
+    static fromDescriptor(descriptor) {
+        let tile = new Tile(descriptor.sid, descriptor.transform);
+        return new this(tile, descriptor.type);
     }
     get tile() { return this._tile; }
     set tile(tile) {
@@ -27,15 +26,3 @@ export default class Dice {
         set(flag) { this.node.classList.toggle(prop, flag); }
     });
 });
-export const DICE_REGULAR_1 = {
-    tiles: ["road-i", "rail-i", "road-l", "rail-l", "road-t", "rail-t"],
-    type: "plain"
-};
-export const DICE_REGULAR_2 = {
-    tiles: ["bridge", "bridge", "rail-road-i", "rail-road-i", "rail-road-l", "rail-road-l"],
-    type: "plain"
-};
-export const DICE_LAKE = {
-    tiles: ["lake-1", "lake-2", "lake-3", "lake-rail", "lake-road", "lake-rail-road"],
-    type: "lake"
-};

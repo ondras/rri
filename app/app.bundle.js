@@ -10,7 +10,7 @@ const all = [N, E, S, W];
 const Vector = [[0, -1], [1, 0], [0, 1], [-1, 0]];
 
 const repo = {};
-class TransformImpl {
+class Transform {
     constructor(direction, offset) {
         this._direction = direction;
         this._offset = offset;
@@ -42,7 +42,7 @@ class TransformImpl {
 function create(id) {
     let offset = Math.abs(Number(id));
     let direction = (id.startsWith("-") ? -1 : 1);
-    repo[id] = new TransformImpl(direction, offset);
+    repo[id] = new Transform(direction, offset);
     return get(id);
 }
 function get(id) {
@@ -62,6 +62,8 @@ const LAKE = 3;
 const BOARD = 7;
 const TILE = Number(getComputedStyle(document.body).getPropertyValue("--tile-size"));
 const DBLCLICK = 400;
+const DOWN_EVENT = ("onpointerdown" in window ? "pointerdown" : "touchstart");
+const SERVER = "wss://ws.toad.cz/";
 
 function node(name, attrs = {}, content) {
     let node = document.createElement(name);
@@ -702,6 +704,15 @@ class Tile {
         this.node.classList.add("tile");
         this.transform = transform;
     }
+    static fromJSON(data) {
+        return new this(data.sid, data.tid);
+    }
+    toJSON() {
+        return {
+            sid: this._sid,
+            tid: this._tid
+        };
+    }
     clone() {
         return new Tile(this._sid, this.transform);
     }
@@ -960,44 +971,68 @@ function get$2(cells) {
         lakes: getLakes(cells)
     };
 }
-function render(score) {
-    let table = node("table", { className: "score" });
-    let row;
+function buildTable() {
+    const table = node("table", { className: "score" });
+    table.appendChild(node("thead"));
+    table.appendChild(node("tbody"));
+    table.tHead.insertRow().insertCell();
+    const body = table.tBodies[0];
+    ["Connected exists", "Longest road", "Longest rail", "Center tiles", "Dead ends", "Smallest lake"].forEach(label => {
+        body.insertRow().insertCell().textContent = label;
+    });
+    body.rows[body.rows.length - 1].hidden = true;
+    table.appendChild(node("tfoot"));
+    table.tFoot.insertRow().insertCell().textContent = "Score";
+    return table;
+}
+function addColumn(table, score, name = "") {
+    if (name) {
+        table.tHead.rows[0].insertCell().textContent = name;
+    }
+    const body = table.tBodies[0];
     let exits = score.exits.map(count => count == 12 ? 45 : (count - 1) * 4);
     let exitScore = exits.reduce((a, b) => a + b, 0);
-    row = table.insertRow();
-    row.insertCell().textContent = "Connected exits";
-    row.insertCell().textContent = (exitScore ? `${score.exits.join("+")} → ${exitScore}` : "0");
-    row = table.insertRow();
-    row.insertCell().textContent = "Longest road";
-    row.insertCell().textContent = score.road.length.toString();
-    row = table.insertRow();
-    row.insertCell().textContent = "Longest rail";
-    row.insertCell().textContent = score.rail.length.toString();
-    row = table.insertRow();
-    row.insertCell().textContent = "Center tiles";
-    row.insertCell().textContent = score.center.toString();
-    row = table.insertRow();
-    row.insertCell().textContent = "Dead ends";
-    row.insertCell().textContent = (-score.deadends.length).toString();
+    body.rows[0].insertCell().textContent = (exitScore ? `${score.exits.join("+")} → ${exitScore}` : "0");
+    body.rows[1].insertCell().textContent = score.road.toString();
+    body.rows[2].insertCell().textContent = score.rail.toString();
+    body.rows[3].insertCell().textContent = score.center.toString();
+    body.rows[4].insertCell().textContent = (-score.deadends).toString();
+    let lakeRow = body.rows[5];
     let lakeScore = 0;
     if (score.lakes.length > 0) {
         lakeScore = score.lakes.sort((a, b) => a - b)[0];
-        row = table.insertRow();
-        row.insertCell().textContent = "Smallest lake";
-        row.insertCell().textContent = lakeScore.toString();
+        lakeRow.insertCell().textContent = lakeScore.toString();
+        lakeRow.hidden = false;
+    }
+    else {
+        lakeRow.insertCell();
     }
     let total = exitScore
-        + score.road.length
-        + score.rail.length
+        + score.road
+        + score.rail
         + score.center
-        - score.deadends.length
+        - score.deadends
         + lakeScore;
-    let tfoot = node("tfoot");
-    table.appendChild(tfoot);
-    row = tfoot.insertRow();
-    row.insertCell().textContent = "Score";
-    row.insertCell().textContent = total.toString();
+    table.tFoot.rows[0].insertCell().textContent = total.toString();
+}
+function toNetworkScore(score) {
+    return {
+        exits: score.exits,
+        road: score.road.length,
+        rail: score.rail.length,
+        center: score.center,
+        deadends: score.deadends.length,
+        lakes: score.lakes
+    };
+}
+function renderSingle(score) {
+    const table = buildTable();
+    addColumn(table, toNetworkScore(score));
+    return table;
+}
+function renderMulti(players) {
+    const table = buildTable();
+    players.forEach(p => p.score && addColumn(table, p.score, p.name));
     return table;
 }
 
@@ -1041,15 +1076,44 @@ class CellRepo {
 
 class Board {
     constructor() {
+        this.blob = null;
         this._cells = new CellRepo();
         this.node = this._build();
         this._placeInitialTiles();
     }
-    showScore(score) { console.log(score); }
-    onClick(cell) { console.log(cell); }
+    showScore(_score) { }
+    onClick(_cell) { }
     getScore() { return get$2(this._cells); }
+    fromJSON(cells) {
+        this._cells.forEach(cell => {
+            if (!cell.border) {
+                cell.tile = null;
+            }
+        });
+        cells.forEach(cell => {
+            let tile = Tile.fromJSON(cell.tile);
+            this.place(tile, cell.x, cell.y, cell.round);
+        });
+        this.commit(0);
+    }
+    toJSON() {
+        let result = [];
+        this._cells.forEach(cell => {
+            const tile = cell.tile;
+            if (cell.border || !tile) {
+                return;
+            }
+            result.push({
+                x: cell.x,
+                y: cell.y,
+                round: cell.round,
+                tile: tile.toJSON()
+            });
+        });
+        return result;
+    }
     commit(round) {
-        this._surroundLakes(round);
+        round && this._surroundLakes(round);
     }
     cycleTransform(x, y) {
         let tile = this._cells.at(x, y).tile;
@@ -1168,8 +1232,6 @@ class Board {
     }
 }
 
-const DOWN = ("onpointerdown" in window ? "pointerdown" : "touchstart");
-
 const DPR = devicePixelRatio;
 const BTILE = TILE / 2;
 const bodyStyle = getComputedStyle(document.body);
@@ -1198,11 +1260,11 @@ class BoardCanvas extends Board {
     constructor() {
         super();
         this._signals = [];
-        this.node.addEventListener(DOWN, this);
+        this.node.addEventListener(DOWN_EVENT, this);
     }
     handleEvent(e) {
         switch (e.type) {
-            case DOWN:
+            case DOWN_EVENT:
                 let pxx = null;
                 let pxy = null;
                 if ("touches" in e) {
@@ -1302,12 +1364,7 @@ class BoardCanvas extends Board {
             pxy += vec[1] * offset;
             ctx.fillText("✘", pxx, pxy);
         });
-    }
-    toBlob() {
-        const ctx = this._ctx;
-        return new Promise(resolve => {
-            ctx.canvas.toBlob(resolve);
-        });
+        ctx.canvas.toBlob(blob => this.blob = blob);
     }
     _build() {
         this._pendingCells = [];
@@ -1430,10 +1487,9 @@ class Dice {
             this.node.classList.add("lake");
         }
     }
-    static fromTemplate(template) {
-        let names = template.tiles;
-        let name = names[Math.floor(Math.random() * names.length)];
-        return new this(new Tile(name, "0"), template.type);
+    static fromDescriptor(descriptor) {
+        let tile = new Tile(descriptor.sid, descriptor.transform);
+        return new this(tile, descriptor.type);
     }
     get tile() { return this._tile; }
     set tile(tile) {
@@ -1448,18 +1504,6 @@ class Dice {
         set(flag) { this.node.classList.toggle(prop, flag); }
     });
 });
-const DICE_REGULAR_1 = {
-    tiles: ["road-i", "rail-i", "road-l", "rail-l", "road-t", "rail-t"],
-    type: "plain"
-};
-const DICE_REGULAR_2 = {
-    tiles: ["bridge", "bridge", "rail-road-i", "rail-road-i", "rail-road-l", "rail-road-l"],
-    type: "plain"
-};
-const DICE_LAKE = {
-    tiles: ["lake-1", "lake-2", "lake-3", "lake-rail", "lake-road", "lake-rail-road"],
-    type: "lake"
-};
 
 const MAX_BONUSES = 3;
 class Pool {
@@ -1468,7 +1512,7 @@ class Pool {
         this._dices = [];
     }
     get remaining() {
-        return this._dices.filter(d => d.type == "plain" && !d.disabled && !d.blocked).length;
+        return this._dices.filter(d => d.type == "plain" && !d.disabled && !d.blocked);
     }
     handleEvent(e) {
         let target = e.currentTarget;
@@ -1480,7 +1524,7 @@ class Pool {
     }
     add(dice) {
         this.node.appendChild(dice.node);
-        dice.node.addEventListener(DOWN, this);
+        dice.node.addEventListener(DOWN_EVENT, this);
         this._dices.push(dice);
     }
     enable(dice) {
@@ -1500,7 +1544,7 @@ class Pool {
     pending(dice) {
         this._dices.forEach(d => d.pending = (dice == d));
     }
-    onClick(dice) { console.log(dice); }
+    onClick(_dice) { }
     sync(board) {
         this._dices.filter(dice => !dice.disabled).forEach(dice => {
             let cells = board.getAvailableCells(dice.tile);
@@ -1516,7 +1560,8 @@ class BonusPool extends Pool {
         this.node.classList.add("bonus");
         ["cross-road-road-rail-road", "cross-road-rail-rail-rail", "cross-road",
             "cross-rail", "cross-road-rail-rail-road", "cross-road-rail-road-rail"].forEach(name => {
-            this.add(new Dice(new Tile(name, "0"), "plain"));
+            let descriptor = { sid: name, transform: "0", type: "plain" };
+            this.add(Dice.fromDescriptor(descriptor));
         });
     }
     handleEvent(e) {
@@ -1544,68 +1589,78 @@ class BonusPool extends Pool {
     unlock() {
         this._locked = false;
     }
+    toJSON() {
+        return this._dices.filter(d => d.disabled).map(d => this._dices.indexOf(d));
+    }
+    fromJSON(indices) {
+        this._locked = false;
+        indices.forEach(i => this.disable(this._dices[i]));
+    }
 }
 
-const DEMO = ["bridge", "rail-i", "road-i", "rail-road-l", "rail-road-i", "rail-t", "road-l", "rail-l", "road-t",
-    "lake-1", "lake-2", "lake-3", "lake-4", "lake-rail", "lake-road", "lake-rail-road"
-];
-//const DEMO = ["bridge"];
+const dataset = document.body.dataset;
+class Game {
+    constructor(_board) {
+        this._board = _board;
+        this._node = document.querySelector("#game");
+        this._bonusPool = new BonusPool();
+    }
+    async play() {
+        dataset.stage = "game";
+        return true;
+    }
+    _outro() {
+        dataset.stage = "outro";
+    }
+}
+
 class Round {
-    constructor(num, board, bonusPool) {
+    constructor(number, _board, _bonusPool) {
+        this.number = number;
+        this._board = _board;
+        this._bonusPool = _bonusPool;
         this._pending = null;
-        this._end = node("button");
+        this._endButton = node("button");
         this._placedTiles = new Map();
         this._lastClickTs = 0;
-        this._num = num;
-        this._board = board;
-        this._bonusPool = bonusPool;
         this._pool = new Pool();
         this.node = this._pool.node;
-        this._end.textContent = `End round #${this._num}`;
+        this._endButton.textContent = `End round #${this.number}`;
+        /*
+                window.addEventListener("keydown", e => {
+                    if (e.ctrlKey && e.key == "a") {
+                        e.preventDefault();
+                        while (true) {
+                            let r = this._pool.remaining;
+                            if (!r.length) break;
+                            let d = r.shift() as Dice;
+                            this._onPoolClick(d);
+                            let avail = this._board.getAvailableCells(d.tile);
+                            if (!avail.length) break;
+                            let cell = avail[Math.floor(Math.random() * avail.length)];
+                            this._onBoardClick(cell);
+                        }
+                    }
+                });
+        */
     }
-    start(type = "normal") {
+    play(descriptors) {
+        descriptors.map(d => Dice.fromDescriptor(d)).forEach(dice => this._pool.add(dice));
+        this.node.appendChild(this._endButton);
         this._pool.onClick = dice => this._onPoolClick(dice);
         this._bonusPool.onClick = dice => this._onPoolClick(dice);
         this._board.onClick = cell => this._onBoardClick(cell);
-        switch (type) {
-            case "demo":
-                DEMO.map(type => new Dice(new Tile(type, "0"), "plain"))
-                    .forEach(dice => this._pool.add(dice));
-                break;
-            case "lake":
-                {
-                    let templates = [DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_2];
-                    while (templates.length) {
-                        let index = Math.floor(Math.random() * templates.length);
-                        let template = templates.splice(index, 1)[0];
-                        this._pool.add(Dice.fromTemplate(template));
-                    }
-                    this._pool.add(Dice.fromTemplate(DICE_LAKE));
-                    this._pool.add(Dice.fromTemplate(DICE_LAKE));
-                }
-                break;
-            default:
-                {
-                    let templates = [DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_2];
-                    while (templates.length) {
-                        let index = Math.floor(Math.random() * templates.length);
-                        let template = templates.splice(index, 1)[0];
-                        this._pool.add(Dice.fromTemplate(template));
-                    }
-                }
-                break;
-        }
-        this.node.appendChild(this._end);
         this._syncEnd();
         this._bonusPool.unlock();
         return new Promise(resolve => {
-            this._end.addEventListener(DOWN, () => {
-                !this._end.disabled && resolve();
+            this._endButton.addEventListener("click", _ => {
+                this._end();
+                resolve();
             });
         });
     }
-    end() {
-        this._board.commit(this._num);
+    _end() {
+        this._board.commit(this.number);
         function noop() { }
         this._pool.onClick = noop;
         this._bonusPool.onClick = noop;
@@ -1666,7 +1721,7 @@ class Round {
         const x = cell.x;
         const y = cell.y;
         const clone = tile.clone();
-        this._board.placeBest(clone, x, y, this._num);
+        this._board.placeBest(clone, x, y, this.number);
         this._board.signal([]);
         this._pool.pending(null);
         this._bonusPool.pending(null);
@@ -1689,39 +1744,462 @@ class Round {
     }
     _syncEnd() {
         this._pool.sync(this._board);
-        this._end.disabled = (this._pool.remaining > 0);
+        this._endButton.disabled = (this._pool.remaining.length > 0);
     }
 }
 
-// import Tile from "./tile.js";
-const dataset = document.body.dataset;
+const ROUNDS = {
+    "normal": 7,
+    "lake": 6,
+    "demo": 1
+};
+function expandTemplate(template) {
+    let names = template.tiles;
+    let sid = names[Math.floor(Math.random() * names.length)];
+    return { sid, transform: "0", type: template.type };
+}
+function createDiceDescriptors(type) {
+    switch (type) {
+        case "demo":
+            return DEMO.map(type => ({ sid: type, transform: "0", type: "plain" }));
+        case "lake":
+            return [...createDiceDescriptors("normal"), expandTemplate(DICE_LAKE), expandTemplate(DICE_LAKE)];
+        default:
+            let result = [];
+            let templates = [DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_2];
+            while (templates.length) {
+                let index = Math.floor(Math.random() * templates.length);
+                let template = templates.splice(index, 1)[0];
+                result.push(expandTemplate(template));
+            }
+            return result;
+    }
+}
+const DEMO = [
+    "bridge", "rail-i", "road-i", "rail-road-l", "rail-road-i", "rail-t", "road-l", "rail-l", "road-t",
+    "lake-1", "lake-2", "lake-3", "lake-4", "lake-rail", "lake-road", "lake-rail-road"
+];
+const DICE_REGULAR_1 = {
+    tiles: ["road-i", "rail-i", "road-l", "rail-l", "road-t", "rail-t"],
+    type: "plain"
+};
+const DICE_REGULAR_2 = {
+    tiles: ["bridge", "bridge", "rail-road-i", "rail-road-i", "rail-road-l", "rail-road-l"],
+    type: "plain"
+};
+const DICE_LAKE = {
+    tiles: ["lake-1", "lake-2", "lake-3", "lake-rail", "lake-road", "lake-rail-road"],
+    type: "lake"
+};
+
+class SingleGame extends Game {
+    constructor(_board, _type) {
+        super(_board);
+        this._type = _type;
+    }
+    async play() {
+        super.play();
+        this._node.innerHTML = "";
+        this._node.appendChild(this._bonusPool.node);
+        let num = 1;
+        while (num <= ROUNDS[this._type]) {
+            let round = new Round(num, this._board, this._bonusPool);
+            let descriptors = createDiceDescriptors(this._type);
+            this._node.appendChild(round.node);
+            await round.play(descriptors);
+            round.node.remove();
+            num++;
+        }
+        this._outro();
+        return true;
+    }
+    _outro() {
+        super._outro();
+        let s = this._board.getScore();
+        this._board.showScore(s);
+        const placeholder = document.querySelector("#outro div");
+        placeholder.innerHTML = "";
+        placeholder.appendChild(renderSingle(s));
+    }
+}
+
+const V = "2.0";
+function debug(msg, ...args) {
+    console.debug(`[jsonrpc] ${msg}`, ...args);
+}
+function warn(msg, ...args) {
+    console.warn(`[jsonrpc] ${msg}`, ...args);
+}
+function createErrorMessage(id, code, message, data) {
+    let error = { code, message };
+    if (data) {
+        error.data = data;
+    }
+    return { id, error, jsonrpc: V };
+}
+function createResultMessage(id, result) {
+    return { id, result, jsonrpc: V };
+}
+function createCallMessage(method, params, id) {
+    let message = { method, params, jsonrpc: V };
+    if (id) {
+        message.id = id;
+    }
+    return message;
+}
+class JsonRpc {
+    constructor(_io, options = {}) {
+        this._io = _io;
+        this._interface = new Map();
+        this._pendingPromises = new Map();
+        this._options = {
+            log: false
+        };
+        Object.assign(this._options, options);
+        _io.onData = (m) => this._onData(m);
+    }
+    expose(name, method) {
+        this._interface.set(name, method);
+    }
+    async call(method, params) {
+        let id = Math.random().toString();
+        let message = createCallMessage(method, params, id);
+        return new Promise((resolve, reject) => {
+            this._pendingPromises.set(id, { resolve, reject });
+            this._send(message);
+        });
+    }
+    notify(method, params) {
+        let message = createCallMessage(method, params);
+        this._send(message);
+    }
+    _send(message) {
+        const str = JSON.stringify(message);
+        this._options.log && debug("sending", str);
+        this._io.sendData(str);
+    }
+    _onData(str) {
+        this._options.log && debug("received", str);
+        let message;
+        try {
+            message = JSON.parse(str);
+        }
+        catch (e) {
+            let reply = createErrorMessage(null, -32700, e.message);
+            this._send(reply);
+            return;
+        }
+        let reply;
+        if (message instanceof Array) {
+            let mapped = message.map(m => this._processMessage(m)).filter(m => m);
+            reply = (mapped.length ? mapped : null);
+        }
+        else {
+            reply = this._processMessage(message);
+        }
+        reply && this._send(reply);
+    }
+    _processMessage(message) {
+        if ("method" in message) { // call
+            const method = this._interface.get(message.method);
+            if (!method) {
+                return (message.id ? createErrorMessage(message.id, -32601, "method not found") : null);
+            }
+            try {
+                const result = (message.params instanceof Array ? method(...message.params) : method(message.params));
+                return (message.id ? createResultMessage(message.id, result) : null);
+            }
+            catch (e) {
+                this._options.log && warn("caught", e);
+                return (message.id ? createErrorMessage(message.id, -32000, e.message) : null);
+            }
+        }
+        else if (message.id) { // result/error
+            let promise = this._pendingPromises.get(message.id);
+            if (!promise) {
+                throw new Error(`Received a non-matching response id "${message.id}"`);
+            }
+            this._pendingPromises.delete(message.id);
+            ("error" in message ? promise.reject(message.error) : promise.resolve(message.result));
+        }
+        else {
+            throw new Error("Received a non-call non-id JSON-RPC message");
+        }
+        return null;
+    }
+}
+
+class MultiGame extends Game {
+    constructor(board) {
+        super(board);
+        this._nodes = {};
+        this._progress = {
+            key: "",
+            game: "",
+            player: ""
+        };
+        this._wait = node("p", { className: "wait", hidden: true });
+        const template = document.querySelector("template");
+        ["setup", "lobby"].forEach(id => {
+            let node = template.content.querySelector(`#multi-${id}`);
+            this._nodes[id] = node.cloneNode(true);
+        });
+        const setup = this._nodes["setup"];
+        setup.querySelector("[name=join]").addEventListener("click", _ => this._joinOrCreate());
+        setup.querySelector("[name=continue]").addEventListener("click", _ => this._continue());
+        setup.querySelector("[name=create-normal]").addEventListener("click", _ => this._joinOrCreate("normal"));
+        setup.querySelector("[name=create-lake]").addEventListener("click", _ => this._joinOrCreate("lake"));
+        const lobby = this._nodes["lobby"];
+        lobby.querySelector("button").addEventListener("click", _ => this._rpc.call("start-game", []));
+    }
+    async play() {
+        super.play();
+        return new Promise(resolve => {
+            this._resolve = resolve;
+            this._setup();
+        });
+    }
+    _setup() {
+        const setup = this._nodes["setup"];
+        this._node.innerHTML = "";
+        this._node.appendChild(setup);
+        ["player", "game"].forEach(key => {
+            let value = load(key);
+            if (value === null) {
+                return;
+            }
+            let input = setup.querySelector(`[name=${key}-name]`);
+            input.value = value;
+        });
+        let cont = setup.querySelector(`[name=continue]`);
+        cont.parentNode.hidden = (load("progress") === null);
+    }
+    _onClose(e) {
+        if (e.code != 0 && e.code != 1000 && e.code != 1001) {
+            alert("Network connection closed");
+        }
+        this._resolve(false);
+    }
+    async _connectRPC() {
+        const url = new URL(location.href).searchParams.get("url") || SERVER;
+        const ws = await openWebSocket(url);
+        const rpc = createRpc(ws);
+        ws.addEventListener("close", e => this._onClose(e));
+        rpc.expose("game-change", () => this._sync());
+        rpc.expose("game-destroy", () => {
+            alert("The game has been cancelled");
+            ws.close();
+            this._resolve(false);
+        });
+        rpc.expose("game-over", (...scores) => {
+            save("progress", null);
+            this._outro();
+            this._showScore(scores);
+            ws.close();
+            this._resolve(true);
+        });
+        let quit = node("button", {}, "Quit game");
+        quit.addEventListener("click", async (_) => {
+            if (!(confirm("Really quit the game?"))) {
+                return;
+            }
+            save("progress", null);
+            await rpc.call("quit-game", []);
+            ws.close();
+            this._resolve(false);
+        });
+        this._bonusPool.node.appendChild(quit);
+        this._rpc = rpc;
+        return rpc;
+    }
+    async _joinOrCreate(type) {
+        const setup = this._nodes["setup"];
+        const buttons = setup.querySelectorAll("button");
+        let playerName = setup.querySelector("[name=player-name]").value;
+        if (!playerName) {
+            return alert("Please provide your name");
+        }
+        let gameName = setup.querySelector("[name=game-name]").value;
+        if (!gameName) {
+            return alert("Please provide a game name");
+        }
+        save("player", playerName);
+        save("game", gameName);
+        buttons.forEach(b => b.disabled = true);
+        try {
+            const rpc = await this._connectRPC();
+            let args = [gameName, playerName];
+            if (type) {
+                args.unshift(type);
+            }
+            const key = await rpc.call(type ? "create-game" : "join-game", args);
+            this._progress.player = playerName;
+            this._progress.game = gameName;
+            this._progress.key = key;
+            this._enterLobby(type);
+        }
+        catch (e) {
+            alert(e.message);
+            this._resolve(false);
+        }
+        finally {
+            buttons.forEach(b => b.disabled = false);
+        }
+    }
+    async _continue() {
+        const saved = JSON.parse(load("progress") || "");
+        try {
+            this._progress.player = saved.player;
+            this._progress.game = saved.game;
+            this._progress.key = saved.key;
+            let rpc = await this._connectRPC();
+            await rpc.call("continue-game", [saved.game, saved.key]);
+            this._board.fromJSON(saved.board);
+            this._bonusPool.fromJSON(saved.bonusPool);
+            this._sync();
+        }
+        catch (e) {
+            save("progress", null);
+            alert(e.message);
+            this._resolve(false);
+        }
+    }
+    async _sync() {
+        const response = await this._rpc.call("game-info", []);
+        switch (response.state) {
+            case "starting":
+                this._updateLobby(response.players);
+                break;
+            case "playing":
+                this._updateRound(response);
+                break;
+        }
+    }
+    _enterLobby(type) {
+        const lobby = this._nodes["lobby"];
+        lobby.querySelector("button").disabled = (!type);
+        this._node.innerHTML = "";
+        this._node.appendChild(lobby);
+    }
+    _updateLobby(players) {
+        const lobby = this._nodes["lobby"];
+        const list = lobby.querySelector("ul");
+        list.innerHTML = "";
+        players.forEach(p => {
+            let item = node("li", {}, p.name);
+            list.appendChild(item);
+        });
+        const button = lobby.querySelector("button");
+        button.textContent = (button.disabled ? `Wait for ${players[0].name} to start the game` : "Start the game");
+    }
+    _updateRound(response) {
+        let waiting = response.players.filter(p => !p.roundEnded).length;
+        this._wait.textContent = `Waiting for ${waiting} player${waiting > 1 ? "s" : ""} to end round`;
+        const ended = response.players.filter(p => p.name == this._progress.player)[0].roundEnded;
+        this._wait.hidden = !ended;
+        const round = this._progress.round;
+        if (round && round.number == response.round) {
+            ended && round.end();
+        }
+        else {
+            this._newRound(response, ended);
+        }
+        this._saveProgress();
+    }
+    async _newRound(response, ended) {
+        const round = new MultiplayerRound(response.round, this._board, this._bonusPool);
+        this._progress.round = round;
+        this._node.innerHTML = "";
+        this._node.appendChild(this._bonusPool.node);
+        this._node.appendChild(round.node);
+        this._node.appendChild(this._wait);
+        let promise = round.play(response.dice);
+        if (ended) {
+            round.end();
+        }
+        else {
+            await promise;
+            let s = this._board.getScore();
+            let ns = toNetworkScore(s);
+            this._rpc.call("end-round", ns);
+        }
+    }
+    _showScore(scores) {
+        let s = this._board.getScore();
+        this._board.showScore(s);
+        const placeholder = document.querySelector("#outro div");
+        placeholder.innerHTML = "";
+        placeholder.appendChild(renderMulti(scores));
+    }
+    _saveProgress() {
+        const progress = {
+            board: this._board,
+            bonusPool: this._bonusPool,
+            key: this._progress.key,
+            game: this._progress.game,
+            player: this._progress.player
+        };
+        save("progress", JSON.stringify(progress));
+    }
+}
+class MultiplayerRound extends Round {
+    _end() {
+        super._end();
+        this.end();
+    }
+    end() {
+        this._endButton.disabled = true;
+        this._pool.remaining.forEach(d => this._pool.disable(d));
+    }
+}
+function createRpc(ws) {
+    let io = {
+        onData(_s) { },
+        sendData(s) { ws.send(s); }
+    };
+    ws.addEventListener("message", e => io.onData(e.data));
+    return new JsonRpc(io);
+}
+function openWebSocket(url) {
+    const ws = new WebSocket(url);
+    return new Promise((resolve, reject) => {
+        ws.addEventListener("open", e => resolve(e.target));
+        ws.addEventListener("error", _ => reject(new Error("Cannot connect to server")));
+    });
+}
+function save(key, value) {
+    key = `rri-${key}`;
+    try {
+        (value === null ? localStorage.removeItem(key) : localStorage.setItem(key, value));
+    }
+    catch (e) {
+        console.warn(e);
+    }
+}
+function load(key) {
+    try {
+        return localStorage.getItem(`rri-${key}`);
+    }
+    catch (e) {
+        console.warn(e);
+        return null;
+    }
+}
+
+const dataset$1 = document.body.dataset;
 let board;
-let blob = null;
 function download(parent) {
-    if (!blob) {
+    if (!board.blob) {
         return;
     }
-    const href = URL.createObjectURL(blob);
+    const href = URL.createObjectURL(board.blob);
     let a = node("a", { href, download: "railroad-ink.png" });
     parent.appendChild(a);
     a.click();
     a.remove();
 }
-async function goOutro() {
-    dataset.stage = "outro";
-    if (!board) {
-        return;
-    }
-    let s = board.getScore();
-    board.showScore(s);
-    const placeholder = document.querySelector("#outro div");
-    placeholder.innerHTML = "";
-    placeholder.appendChild(render(s));
-    blob = null;
-    blob = await board.toBlob();
-}
 function goIntro() {
-    dataset.stage = "intro";
+    dataset$1.stage = "intro";
     let newBoard = new BoardCanvas();
     if (board) {
         board.node.replaceWith(newBoard.node);
@@ -1733,64 +2211,18 @@ function goIntro() {
     board = newBoard;
 }
 async function goGame(type) {
-    dataset.stage = "game";
-    if (!board) {
-        return;
+    const game = (type == "multi" ? new MultiGame(board) : new SingleGame(board, type));
+    let played = await game.play();
+    if (!played) {
+        goIntro();
     }
-    const maxRounds = (type == "normal" ? 7 : 6);
-    const parent = document.querySelector("#game");
-    parent.innerHTML = "";
-    const bonusPool = new BonusPool();
-    parent.appendChild(bonusPool.node);
-    let num = 1;
-    while (num <= maxRounds) {
-        let round = new Round(num, board, bonusPool);
-        parent.appendChild(round.node);
-        await round.start(type);
-        round.end();
-        round.node.remove();
-        num++;
-    }
-    goOutro();
 }
 function init() {
-    document.querySelector("[name=start-normal]").addEventListener(DOWN, () => goGame("normal"));
-    document.querySelector("[name=start-lake]").addEventListener(DOWN, () => goGame("lake"));
-    document.querySelector("[name=again]").addEventListener(DOWN, () => goIntro());
-    document.querySelector("[name=download]").addEventListener(DOWN, e => download(e.target));
+    document.querySelector("[name=start-normal]").addEventListener("click", _ => goGame("normal"));
+    document.querySelector("[name=start-lake]").addEventListener("click", _ => goGame("lake"));
+    document.querySelector("[name=start-multi]").addEventListener("click", _ => goGame("multi"));
+    document.querySelector("[name=again]").addEventListener("click", _ => goIntro());
+    document.querySelector("[name=download]").addEventListener("click", e => download(e.target));
     goIntro();
-    /**
-    if (!board) return;
-
-    board.place(new Tile("lake-rail", "1"), 1, 2, 0);
-    board.place(new Tile("lake-road", "2"), 2, 1, 0);
-    board.place(new Tile("lake-3", "0"), 2, 2, 0);
-    /*
-    board.place(new Tile("rail-i", "1"), 1, 2, 0);
-    board.place(new Tile("road-i", "0"), 2, 1, 0);
-    board.place(new Tile("bridge", "0"), 2, 2, 0);
-    board.place(new Tile("cross-rail", "0"), 3, 2, 0);
-    board.place(new Tile("rail-road-l", "-3"), 2, 3, 0);
-    board.place(new Tile("cross-rail", "0"), 3, 3, 0);
-    board.place(new Tile("cross-road-rail-rail-rail", "2"), 4, 3, 0);
-    board.place(new Tile("cross-rail", "0"), 4, 2, 0);
-    board.place(new Tile("rail-i", "0"), 4, 1, 0);
-
-    board.place(new Tile("cross-road", "0"), 4, 4, 0);
-    board.place(new Tile("cross-road", "0"), 5, 4, 0);
-    board.place(new Tile("cross-road", "0"), 6, 4, 0);
-    board.place(new Tile("cross-road", "0"), 7, 4, 0);
-    board.place(new Tile("cross-road", "0"), 4, 5, 0);
-    board.place(new Tile("cross-road", "0"), 6, 5, 0);
-    //board.place(new Tile("cross-road", "0"), 4, 6, 0);
-    board.place(new Tile("road-l", "0"), 4, 6, 0);
-    board.place(new Tile("cross-road", "0"), 5, 6, 0);
-    board.place(new Tile("cross-road", "0"), 6, 6, 0);
-    board.place(new Tile("rail-road-i", "1"), 7, 6, 0);
-    *
-    board.commit(0);
-
-    console.log(board.getScore());
-    /**/
 }
 init();

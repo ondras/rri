@@ -206,43 +206,67 @@ export function get(cells) {
         lakes: getLakes(cells)
     };
 }
-export function render(score) {
-    let table = html.node("table", { className: "score" });
-    let row;
+function buildTable() {
+    const table = html.node("table", { className: "score" });
+    table.appendChild(html.node("thead"));
+    table.appendChild(html.node("tbody"));
+    table.tHead.insertRow().insertCell();
+    const body = table.tBodies[0];
+    ["Connected exists", "Longest road", "Longest rail", "Center tiles", "Dead ends", "Smallest lake"].forEach(label => {
+        body.insertRow().insertCell().textContent = label;
+    });
+    body.rows[body.rows.length - 1].hidden = true;
+    table.appendChild(html.node("tfoot"));
+    table.tFoot.insertRow().insertCell().textContent = "Score";
+    return table;
+}
+function addColumn(table, score, name = "") {
+    if (name) {
+        table.tHead.rows[0].insertCell().textContent = name;
+    }
+    const body = table.tBodies[0];
     let exits = score.exits.map(count => count == 12 ? 45 : (count - 1) * 4);
     let exitScore = exits.reduce((a, b) => a + b, 0);
-    row = table.insertRow();
-    row.insertCell().textContent = "Connected exits";
-    row.insertCell().textContent = (exitScore ? `${score.exits.join("+")} → ${exitScore}` : "0");
-    row = table.insertRow();
-    row.insertCell().textContent = "Longest road";
-    row.insertCell().textContent = score.road.length.toString();
-    row = table.insertRow();
-    row.insertCell().textContent = "Longest rail";
-    row.insertCell().textContent = score.rail.length.toString();
-    row = table.insertRow();
-    row.insertCell().textContent = "Center tiles";
-    row.insertCell().textContent = score.center.toString();
-    row = table.insertRow();
-    row.insertCell().textContent = "Dead ends";
-    row.insertCell().textContent = (-score.deadends.length).toString();
+    body.rows[0].insertCell().textContent = (exitScore ? `${score.exits.join("+")} → ${exitScore}` : "0");
+    body.rows[1].insertCell().textContent = score.road.toString();
+    body.rows[2].insertCell().textContent = score.rail.toString();
+    body.rows[3].insertCell().textContent = score.center.toString();
+    body.rows[4].insertCell().textContent = (-score.deadends).toString();
+    let lakeRow = body.rows[5];
     let lakeScore = 0;
     if (score.lakes.length > 0) {
         lakeScore = score.lakes.sort((a, b) => a - b)[0];
-        row = table.insertRow();
-        row.insertCell().textContent = "Smallest lake";
-        row.insertCell().textContent = lakeScore.toString();
+        lakeRow.insertCell().textContent = lakeScore.toString();
+        lakeRow.hidden = false;
+    }
+    else {
+        lakeRow.insertCell();
     }
     let total = exitScore
-        + score.road.length
-        + score.rail.length
+        + score.road
+        + score.rail
         + score.center
-        - score.deadends.length
+        - score.deadends
         + lakeScore;
-    let tfoot = html.node("tfoot");
-    table.appendChild(tfoot);
-    row = tfoot.insertRow();
-    row.insertCell().textContent = "Score";
-    row.insertCell().textContent = total.toString();
+    table.tFoot.rows[0].insertCell().textContent = total.toString();
+}
+export function toNetworkScore(score) {
+    return {
+        exits: score.exits,
+        road: score.road.length,
+        rail: score.rail.length,
+        center: score.center,
+        deadends: score.deadends.length,
+        lakes: score.lakes
+    };
+}
+export function renderSingle(score) {
+    const table = buildTable();
+    addColumn(table, toNetworkScore(score));
+    return table;
+}
+export function renderMulti(players) {
+    const table = buildTable();
+    players.forEach(p => p.score && addColumn(table, p.score, p.name));
     return table;
 }
