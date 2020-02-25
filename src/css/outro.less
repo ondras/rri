@@ -9,6 +9,16 @@
 	.score {
 		border-collapse: collapse;
 
+		thead td {
+			&.active {
+				font-weight: bold;
+			}
+			&:not(.active) {
+				text-decoration: underline;
+				cursor: pointer;
+			}
+		}
+
 		td:not(:first-child) {
 			text-align: right;
 			padding-left: 1ch;
@@ -18,7 +28,7 @@
 			border-top: 3px double #000;
 			font-size: 120%;
 
-			&:last-child { font-weight: bold; }
+			&.best { font-weight: bold; }
 		}
 	}
 }

@@ -1,7 +1,7 @@
 import { WebSocket, isWebSocketCloseEvent } from "https://deno.land/std/ws/mod.ts";
-import Game from "./game.ts";
+import Game, { InfoOptions } from "./game.ts";
 import JsonRpc, { IO } from "https://deno.land/x/json_rpc/mod.ts";
-import { GameType, NetworkScore } from "../src/rules.ts";
+import { GameType } from "../src/rules.ts";
 
 export default class Player {
 	name = "";
@@ -9,7 +9,8 @@ export default class Player {
 	game: Game | null = null;
 	roundEnded = false;
 	jsonrpc: JsonRpc;
-	score: NetworkScore | null = null;
+	board: any | null = null;
+	bonusPool: any | null = null;
 
 	constructor(ws: WebSocket) {
 		const io = {
@@ -23,12 +24,14 @@ export default class Player {
 		this._receive(ws, io);
 	}
 
-	toJSON() {
-		return {
+	toJSON(options: InfoOptions) {
+		let data = {
 			name: this.name,
 			roundEnded: this.roundEnded,
-			score: this.score
+			board: null
 		};
+		if (options.board) { data.board = this.board; }
+		return data;
 	}
 
 	_log(msg: string, ...args: unknown[]) {
@@ -72,15 +75,21 @@ export default class Player {
 
 			game.replacePlayer(this, previousPlayer);
 			this._log("continued game", gameName);
+
+			return {
+				board: this.board,
+				bonusPool: this.bonusPool
+			};
 		});
 
 		// gameplay
 
-		jsonrpc.expose("end-round", (score: NetworkScore) => {
+		jsonrpc.expose("end-round", (data:any) => {
 			const game = this.game;
 			if (!game) { throw new Error("Not playing yet"); }
 			this.roundEnded = true;
-			this.score = score;
+			this.board = data.board;
+			this.bonusPool = data.bonusPool;
 			this._log("round ended");
 			game.checkRoundEnd(); // notify all
 		});
@@ -94,7 +103,7 @@ export default class Player {
 
 		jsonrpc.expose("game-info", () => {
 			const game = this.game;
-			return (game ? game.getInfo() : null);
+			return (game ? game.getInfo({board:false}) : null);
 		});
 	}
 

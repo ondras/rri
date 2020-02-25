@@ -14,16 +14,6 @@ export const ROUNDS: {[type in GameType]: number} = {
 	"demo": 1
 }
 
-export interface NetworkScore {
-	exits: number[];
-	center: number;
-	deadends: number;
-	road: number;
-	rail: number;
-	lakes: number[];
-}
-
-
 function expandTemplate(template: DiceTemplate): DiceDescriptor {
 	let names = template.tiles;
 	let sid = names[Math.floor(Math.random() * names.length)];

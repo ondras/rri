@@ -5,12 +5,14 @@ import { Score, get as getScore } from "./score.js";
 import CellRepo, { Cell } from "./cell-repo.js";
 import { LAKE } from "./edge.js";
 
-export interface SerializedCell {
+interface SerializedCell {
 	x: number;
 	y: number;
 	round: number;
 	tile: SerializedTile;
 }
+
+export type SerializedBoard = SerializedCell[];
 
 export default abstract class Board {
 	node: HTMLElement;
@@ -28,7 +30,7 @@ export default abstract class Board {
 	onClick(_cell: Cell) {}
 	getScore() { return getScore(this._cells); }
 
-	fromJSON(cells: SerializedCell[]) {
+	fromJSON(cells: SerializedBoard) {
 		this._cells.forEach(cell => {
 			if (!cell.border) { cell.tile = null; }
 		});
@@ -39,10 +41,11 @@ export default abstract class Board {
 		});
 
 		this.commit(0);
+		return this;
 	}
 
 	toJSON() {
-		let result: SerializedCell[] = [];
+		let result: SerializedBoard = [];
 		this._cells.forEach(cell => {
 			const tile = cell.tile;
 			if (cell.border || !tile) { return; }

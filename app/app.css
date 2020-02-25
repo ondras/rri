@@ -124,6 +124,13 @@ button:disabled {
 #outro .score {
   border-collapse: collapse;
 }
+#outro .score thead td.active {
+  font-weight: bold;
+}
+#outro .score thead td:not(.active) {
+  text-decoration: underline;
+  cursor: pointer;
+}
 #outro .score td:not(:first-child) {
   text-align: right;
   padding-left: 1ch;
@@ -132,7 +139,7 @@ button:disabled {
   border-top: 3px double #000;
   font-size: 120%;
 }
-#outro .score tfoot td:last-child {
+#outro .score tfoot td.best {
   font-weight: bold;
 }
 #game .pool {
@@ -169,6 +176,7 @@ button:disabled {
   height: calc(var(--size) * 1px);
 }
 #game #multi-setup {
+  margin-top: 16px;
   display: flex;
   flex-direction: column;
   align-items: center;

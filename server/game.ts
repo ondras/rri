@@ -7,6 +7,10 @@ type State = "starting" | "playing";
 const games = new Map<string, Game>();
 const GARBAGE_THRESHOLD = 1000*60*10;
 
+export interface InfoOptions {
+	board: boolean;
+}
+
 export default class Game {
 	_players: Player[] = [];
 	_round = 0;
@@ -66,7 +70,8 @@ export default class Game {
 
 	replacePlayer(newPlayer: Player, oldPlayer: Player) {
 		newPlayer.name = oldPlayer.name;
-		newPlayer.score = oldPlayer.score;
+		newPlayer.board = oldPlayer.board;
+		newPlayer.bonusPool = oldPlayer.bonusPool;
 		newPlayer.roundEnded = oldPlayer.roundEnded;
 		newPlayer.key = oldPlayer.key;
 		newPlayer.game = this;
@@ -90,12 +95,12 @@ export default class Game {
 		this._advanceRound();
 	}
 
-	getInfo() {
+	getInfo(options: InfoOptions) {
 		return {
 			dice: this._diceDescriptors,
 			state: this.state,
 			round: this._round,
-			players: this._players.map(p => p.toJSON())
+			players: this._players.map(p => p.toJSON(options))
 		};
 	}
 
@@ -103,10 +108,7 @@ export default class Game {
 		if (this._round < ROUNDS[this._type]) {
 			this._round++;
 			this._diceDescriptors = createDiceDescriptors(this._type);
-			this._players.forEach(p => {
-				p.roundEnded = false;
-				p.score = null;
-			});
+			this._players.forEach(p => p.roundEnded = false);
 			this.ts = performance.now();
 			this._notifyGameChange();
 		} else {
@@ -121,11 +123,11 @@ export default class Game {
 		});
 		console.log(`[game ${name}] closed, reason:`, reason);
 
-		let score = this.getInfo().players;
+		let players = this.getInfo({board:true}).players;
 		while (this._players.length) {
 			let p = this._players.shift() as Player;
 			p.game = null;
-			p.jsonrpc.notify(`game-${reason}`, reason == "over" ? score : []);
+			p.jsonrpc.notify(`game-${reason}`, reason == "over" ? players : []);
 		}
 
 		games.delete(name);
@@ -140,7 +142,7 @@ function logStats() {
 	console.group("Active games:");
 	games.forEach((game, name) => {
 		console.group(colors.bold(`${name} (${game.state})`));
-		const info = game.getInfo();
+		const info = game.getInfo({board:false});
 		console.log(
 			"players:",
 			info.players.map(p => `${p.name} (${p.roundEnded ? "waiting" : "playing"})`).join(", ")

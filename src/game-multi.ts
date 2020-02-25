@@ -1,8 +1,9 @@
-import { GameType, DiceDescriptor, NetworkScore } from "./rules.js";
+import { GameType, DiceDescriptor } from "./rules.js";
 import Game from "./game.js";
 import JsonRpc from "./json-rpc.js";
 import Round from "./round.js";
-import Board from "./board.js";
+import Board, { SerializedBoard } from "./board.js";
+import BoardCanvas from "./board-canvas.js";
 import * as html from "./html.js";
 import * as score from "./score.js";
 import * as conf from "./conf.js";
@@ -11,16 +12,13 @@ type GameState = "" | "starting" | "playing";
 interface Player {
 	name: string;
 	roundEnded: boolean;
+	board: SerializedBoard;
 }
 interface Response {
 	state: GameState;
 	round: number;
 	dice: DiceDescriptor[];
 	players: Player[];
-}
-interface HasScore {
-	name: string;
-	score: NetworkScore;
 }
 
 interface Progress {
@@ -104,10 +102,10 @@ export default class MultiGame extends Game {
 			this._resolve(false);
 		});
 
-		rpc.expose("game-over", (...scores: HasScore[]) => {
+		rpc.expose("game-over", (...players: Player[]) => {
 			save("progress", null);
 			this._outro();
-			this._showScore(scores);
+			this._showScore(players);
 			ws.close();
 			this._resolve(true);
 		});
@@ -168,9 +166,9 @@ export default class MultiGame extends Game {
 			this._progress.key = saved.key;
 
 			let rpc = await this._connectRPC();
-			await rpc.call("continue-game", [saved.game, saved.key]);
-			this._board.fromJSON(saved.board);
-			this._bonusPool.fromJSON(saved.bonusPool);
+			let state = await rpc.call("continue-game", [saved.game, saved.key]);
+			state.board && this._board.fromJSON(state.board);
+			state.bonusPool && this._bonusPool.fromJSON(state.bonusPool);
 			this._sync();
 		} catch (e) {
 			save("progress", null);
@@ -240,30 +238,42 @@ export default class MultiGame extends Game {
 			round.end();
 		} else {
 			await promise;
-			let s = this._board.getScore();
-			let ns = score.toNetworkScore(s);
-			this._rpc.call("end-round", ns);
+			const state = {
+				board: this._board.toJSON(),
+				bonusPool: this._bonusPool.toJSON()
+			}
+			this._rpc.call("end-round", state);
 		}
 	}
 
-	_showScore(scores: HasScore[]) {
+	_showScore(players: Player[]) {
 		let s = this._board.getScore();
 		this._board.showScore(s);
+		this._board.node.hidden = true;
 
 		const placeholder = document.querySelector("#outro div") as HTMLElement;
 		placeholder.innerHTML = "";
-		placeholder.appendChild(score.renderMulti(scores));
+
+		let names  = players.map(p => p.name);
+		let boards = players.map(p => new BoardCanvas().fromJSON(p.board));
+		let scores = boards.map(b => b.getScore());
+		boards.forEach((b, i) => b.showScore(scores[i]));
+		boards.forEach(b => document.body.appendChild(b.node));
+
+		function showByIndex(i: number) {
+			boards.forEach((b, j) => b.node.hidden = (i != j));
+		}
+
+		const player = this._progress.player;
+		placeholder.appendChild(score.renderMulti(names, scores, showByIndex, player));
 	}
 
 	_saveProgress() {
 		const progress = {
-			board: this._board,
-			bonusPool: this._bonusPool,
 			key: this._progress.key,
 			game: this._progress.game,
 			player: this._progress.player
 		}
-
 		save("progress", JSON.stringify(progress));
 	}
 }

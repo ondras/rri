@@ -7,8 +7,7 @@ export default class Game {
 	_node = document.querySelector("#game") as HTMLElement;
 	_bonusPool = new BonusPool();
 
-	constructor(readonly _board:Board) {
-	}
+	constructor(readonly _board:Board) {}
 
 	async play(): Promise<boolean> {
 		dataset.stage = "game";

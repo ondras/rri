@@ -1,6 +1,7 @@
 import Game from "./game.js";
 import JsonRpc from "./json-rpc.js";
 import Round from "./round.js";
+import BoardCanvas from "./board-canvas.js";
 import * as html from "./html.js";
 import * as score from "./score.js";
 import * as conf from "./conf.js";
@@ -66,10 +67,10 @@ export default class MultiGame extends Game {
             ws.close();
             this._resolve(false);
         });
-        rpc.expose("game-over", (...scores) => {
+        rpc.expose("game-over", (...players) => {
             save("progress", null);
             this._outro();
-            this._showScore(scores);
+            this._showScore(players);
             ws.close();
             this._resolve(true);
         });
@@ -128,9 +129,9 @@ export default class MultiGame extends Game {
             this._progress.game = saved.game;
             this._progress.key = saved.key;
             let rpc = await this._connectRPC();
-            await rpc.call("continue-game", [saved.game, saved.key]);
-            this._board.fromJSON(saved.board);
-            this._bonusPool.fromJSON(saved.bonusPool);
+            let state = await rpc.call("continue-game", [saved.game, saved.key]);
+            state.board && this._board.fromJSON(state.board);
+            state.bonusPool && this._bonusPool.fromJSON(state.bonusPool);
             this._sync();
         }
         catch (e) {
@@ -194,22 +195,32 @@ export default class MultiGame extends Game {
         }
         else {
             await promise;
-            let s = this._board.getScore();
-            let ns = score.toNetworkScore(s);
-            this._rpc.call("end-round", ns);
+            const state = {
+                board: this._board.toJSON(),
+                bonusPool: this._bonusPool.toJSON()
+            };
+            this._rpc.call("end-round", state);
         }
     }
-    _showScore(scores) {
+    _showScore(players) {
         let s = this._board.getScore();
         this._board.showScore(s);
+        this._board.node.hidden = true;
         const placeholder = document.querySelector("#outro div");
         placeholder.innerHTML = "";
-        placeholder.appendChild(score.renderMulti(scores));
+        let names = players.map(p => p.name);
+        let boards = players.map(p => new BoardCanvas().fromJSON(p.board));
+        let scores = boards.map(b => b.getScore());
+        boards.forEach((b, i) => b.showScore(scores[i]));
+        boards.forEach(b => document.body.appendChild(b.node));
+        function showByIndex(i) {
+            boards.forEach((b, j) => b.node.hidden = (i != j));
+        }
+        const player = this._progress.player;
+        placeholder.appendChild(score.renderMulti(names, scores, showByIndex, player));
     }
     _saveProgress() {
         const progress = {
-            board: this._board,
-            bonusPool: this._bonusPool,
             key: this._progress.key,
             game: this._progress.game,
             player: this._progress.player
