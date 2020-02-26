@@ -253,8 +253,6 @@ export default class MultiGame extends Game {
 		const placeholder = document.querySelector("#outro div") as HTMLElement;
 		placeholder.innerHTML = "";
 
-		players = players.concat(players).concat(players);
-
 		let names  = players.map(p => p.name);
 		let boards = players.map(p => new BoardCanvas().fromJSON(p.board));
 		let scores = boards.map(b => b.getScore());
