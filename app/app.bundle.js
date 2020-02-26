@@ -985,27 +985,18 @@ function buildTable() {
     table.tFoot.insertRow().insertCell().textContent = "Score";
     return table;
 }
-function addColumn(table, score, name = "", active = false) {
-    let result = { onClick() { } };
+function addColumn(table, score, name = "") {
     if (name) {
-        const row = table.tHead.rows[0];
-        const cell = row.insertCell();
-        cell.textContent = name;
-        function activate() {
-            Array.from(row.cells).forEach(c => c.classList.toggle("active", c == cell));
-            result.onClick();
-        }
-        cell.addEventListener("click", activate);
-        active && activate();
+        table.tHead.rows[0].insertCell().textContent = name;
     }
     const body = table.tBodies[0];
     let exits = score.exits.map(count => count == 12 ? 45 : (count - 1) * 4);
     let exitScore = exits.reduce((a, b) => a + b, 0);
-    body.rows[0].insertCell().textContent = (exitScore ? `${score.exits.join("+")} = ${exitScore}` : "0");
-    body.rows[1].insertCell().textContent = score.road.length.toString();
-    body.rows[2].insertCell().textContent = score.rail.length.toString();
+    body.rows[0].insertCell().textContent = (exitScore ? `${score.exits.join("+")} → ${exitScore}` : "0");
+    body.rows[1].insertCell().textContent = score.road.toString();
+    body.rows[2].insertCell().textContent = score.rail.toString();
     body.rows[3].insertCell().textContent = score.center.toString();
-    body.rows[4].insertCell().textContent = (-score.deadends.length).toString();
+    body.rows[4].insertCell().textContent = (-score.deadends).toString();
     let lakeRow = body.rows[5];
     let lakeScore = 0;
     if (score.lakes.length > 0) {
@@ -1017,33 +1008,31 @@ function addColumn(table, score, name = "", active = false) {
         lakeRow.insertCell();
     }
     let total = exitScore
-        + score.road.length
-        + score.rail.length
+        + score.road
+        + score.rail
         + score.center
-        - score.deadends.length
+        - score.deadends
         + lakeScore;
-    const totalRow = table.tFoot.rows[0];
-    totalRow.insertCell().textContent = total.toString();
-    let cells = Array.from(totalRow.cells).slice(1);
-    let totals = cells.map(cell => Number(cell.textContent));
-    let best = Math.max(...totals).toString();
-    cells.forEach(c => c.classList.toggle("best", c.textContent == best));
-    return result;
+    table.tFoot.rows[0].insertCell().textContent = total.toString();
+}
+function toNetworkScore(score) {
+    return {
+        exits: score.exits,
+        road: score.road.length,
+        rail: score.rail.length,
+        center: score.center,
+        deadends: score.deadends.length,
+        lakes: score.lakes
+    };
 }
 function renderSingle(score) {
     const table = buildTable();
-    addColumn(table, score);
+    addColumn(table, toNetworkScore(score));
     return table;
 }
-function renderMulti(names, scores, onClick, activeName) {
+function renderMulti(players) {
     const table = buildTable();
-    names.forEach((name, i) => {
-        let active = (name == activeName);
-        addColumn(table, scores[i], name, active).onClick = () => onClick(i);
-        if (active) {
-            onClick(i);
-        }
-    });
+    players.forEach(p => p.score && addColumn(table, p.score, p.name));
     return table;
 }
 
@@ -1106,7 +1095,6 @@ class Board {
             this.place(tile, cell.x, cell.y, cell.round);
         });
         this.commit(0);
-        return this;
     }
     toJSON() {
         let result = [];
@@ -1490,17 +1478,6 @@ class BoardCanvas extends Board {
     }
 }
 
-let current = null;
-function showBoard(board) {
-    if (current) {
-        current.node.replaceWith(board.node);
-    }
-    else {
-        document.querySelector("main").appendChild(board.node);
-    }
-    current = board;
-}
-
 class Dice {
     constructor(tile, type) {
         this.node = node("div", { className: "dice" });
@@ -1649,7 +1626,7 @@ class Round {
         this._pool = new Pool();
         this.node = this._pool.node;
         this._endButton.textContent = `End round #${this.number}`;
-        /**
+        /*
                 window.addEventListener("keydown", e => {
                     if (e.ctrlKey && e.key == "a") {
                         e.preventDefault();
@@ -1665,7 +1642,7 @@ class Round {
                         }
                     }
                 });
-        /**/
+        */
     }
     play(descriptors) {
         descriptors.map(d => Dice.fromDescriptor(d)).forEach(dice => this._pool.add(dice));
@@ -2014,10 +1991,10 @@ class MultiGame extends Game {
             ws.close();
             this._resolve(false);
         });
-        rpc.expose("game-over", (...players) => {
+        rpc.expose("game-over", (...scores) => {
             save("progress", null);
             this._outro();
-            this._showScore(players);
+            this._showScore(scores);
             ws.close();
             this._resolve(true);
         });
@@ -2076,9 +2053,9 @@ class MultiGame extends Game {
             this._progress.game = saved.game;
             this._progress.key = saved.key;
             let rpc = await this._connectRPC();
-            let state = await rpc.call("continue-game", [saved.game, saved.key]);
-            state.board && this._board.fromJSON(state.board);
-            state.bonusPool && this._bonusPool.fromJSON(state.bonusPool);
+            await rpc.call("continue-game", [saved.game, saved.key]);
+            this._board.fromJSON(saved.board);
+            this._bonusPool.fromJSON(saved.bonusPool);
             this._sync();
         }
         catch (e) {
@@ -2142,29 +2119,22 @@ class MultiGame extends Game {
         }
         else {
             await promise;
-            const state = {
-                board: this._board.toJSON(),
-                bonusPool: this._bonusPool.toJSON()
-            };
-            this._rpc.call("end-round", state);
+            let s = this._board.getScore();
+            let ns = toNetworkScore(s);
+            this._rpc.call("end-round", ns);
         }
     }
-    _showScore(players) {
+    _showScore(scores) {
         let s = this._board.getScore();
         this._board.showScore(s);
         const placeholder = document.querySelector("#outro div");
         placeholder.innerHTML = "";
-        players = players.concat(players).concat(players);
-        let names = players.map(p => p.name);
-        let boards = players.map(p => new BoardCanvas().fromJSON(p.board));
-        let scores = boards.map(b => b.getScore());
-        boards.forEach((b, i) => b.showScore(scores[i]));
-        const player = this._progress.player;
-        function showByIndex(i) { showBoard(boards[i]); }
-        placeholder.appendChild(renderMulti(names, scores, showByIndex, player));
+        placeholder.appendChild(renderMulti(scores));
     }
     _saveProgress() {
         const progress = {
+            board: this._board,
+            bonusPool: this._bonusPool,
             key: this._progress.key,
             game: this._progress.game,
             player: this._progress.player
@@ -2173,20 +2143,13 @@ class MultiGame extends Game {
     }
 }
 class MultiplayerRound extends Round {
-    play(descriptors) {
-        try {
-            navigator.vibrate(200);
-        }
-        catch (e) { }
-        return super.play(descriptors);
+    _end() {
+        super._end();
+        this.end();
     }
     end() {
         this._endButton.disabled = true;
         this._pool.remaining.forEach(d => this._pool.disable(d));
-    }
-    _end() {
-        super._end();
-        this.end();
     }
 }
 function createRpc(ws) {
@@ -2237,8 +2200,15 @@ function download(parent) {
 }
 function goIntro() {
     dataset$1.stage = "intro";
-    board = new BoardCanvas();
-    showBoard(board);
+    let newBoard = new BoardCanvas();
+    if (board) {
+        board.node.replaceWith(newBoard.node);
+    }
+    else {
+        const main = document.querySelector("main");
+        main.appendChild(newBoard.node);
+    }
+    board = newBoard;
 }
 async function goGame(type) {
     const game = (type == "multi" ? new MultiGame(board) : new SingleGame(board, type));

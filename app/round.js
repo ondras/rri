@@ -14,7 +14,7 @@ export default class Round {
         this._pool = new Pool();
         this.node = this._pool.node;
         this._endButton.textContent = `End round #${this.number}`;
-        /**
+        /*
                 window.addEventListener("keydown", e => {
                     if (e.ctrlKey && e.key == "a") {
                         e.preventDefault();
@@ -30,7 +30,7 @@ export default class Round {
                         }
                     }
                 });
-        /**/
+        */
     }
     play(descriptors) {
         descriptors.map(d => Dice.fromDescriptor(d)).forEach(dice => this._pool.add(dice));

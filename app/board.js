@@ -25,7 +25,6 @@ export default class Board {
             this.place(tile, cell.x, cell.y, cell.round);
         });
         this.commit(0);
-        return this;
     }
     toJSON() {
         let result = [];
