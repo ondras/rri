@@ -7,6 +7,7 @@ import BoardCanvas from "./board-canvas.js";
 import * as html from "./html.js";
 import * as score from "./score.js";
 import * as conf from "./conf.js";
+import * as boardManager from "./board-manager.js";
 
 type GameState = "" | "starting" | "playing";
 interface Player {
@@ -227,7 +228,6 @@ export default class MultiGame extends Game {
 		const round = new MultiplayerRound(response.round, this._board, this._bonusPool);
 		this._progress.round = round;
 
-
 		this._node.innerHTML = "";
 		this._node.appendChild(this._bonusPool.node);
 		this._node.appendChild(round.node);
@@ -249,22 +249,19 @@ export default class MultiGame extends Game {
 	_showScore(players: Player[]) {
 		let s = this._board.getScore();
 		this._board.showScore(s);
-		this._board.node.hidden = true;
 
 		const placeholder = document.querySelector("#outro div") as HTMLElement;
 		placeholder.innerHTML = "";
+
+		players = players.concat(players).concat(players);
 
 		let names  = players.map(p => p.name);
 		let boards = players.map(p => new BoardCanvas().fromJSON(p.board));
 		let scores = boards.map(b => b.getScore());
 		boards.forEach((b, i) => b.showScore(scores[i]));
-		boards.forEach(b => document.body.appendChild(b.node));
-
-		function showByIndex(i: number) {
-			boards.forEach((b, j) => b.node.hidden = (i != j));
-		}
 
 		const player = this._progress.player;
+		function showByIndex(i: number) { boardManager.showBoard(boards[i]); }
 		placeholder.appendChild(score.renderMulti(names, scores, showByIndex, player));
 	}
 
@@ -279,14 +276,19 @@ export default class MultiGame extends Game {
 }
 
 class MultiplayerRound extends Round {
-	_end() {
-		super._end();
-		this.end();
+	play(descriptors: DiceDescriptor[]) {
+		try { navigator.vibrate(200); } catch (e) {}
+		return super.play(descriptors);
 	}
 
 	end() {
 		this._endButton.disabled = true;
 		this._pool.remaining.forEach(d => this._pool.disable(d));
+	}
+
+	_end() {
+		super._end();
+		this.end();
 	}
 }
 

@@ -1490,6 +1490,17 @@ class BoardCanvas extends Board {
     }
 }
 
+let current = null;
+function showBoard(board) {
+    if (current) {
+        current.node.replaceWith(board.node);
+    }
+    else {
+        document.querySelector("main").appendChild(board.node);
+    }
+    current = board;
+}
+
 class Dice {
     constructor(tile, type) {
         this.node = node("div", { className: "dice" });
@@ -1638,24 +1649,22 @@ class Round {
         this._pool = new Pool();
         this.node = this._pool.node;
         this._endButton.textContent = `End round #${this.number}`;
-        /**/
-        window.addEventListener("keydown", e => {
-            if (e.ctrlKey && e.key == "a") {
-                e.preventDefault();
-                while (true) {
-                    let r = this._pool.remaining;
-                    if (!r.length)
-                        break;
-                    let d = r.shift();
-                    this._onPoolClick(d);
-                    let avail = this._board.getAvailableCells(d.tile);
-                    if (!avail.length)
-                        break;
-                    let cell = avail[Math.floor(Math.random() * avail.length)];
-                    this._onBoardClick(cell);
-                }
-            }
-        });
+        /**
+                window.addEventListener("keydown", e => {
+                    if (e.ctrlKey && e.key == "a") {
+                        e.preventDefault();
+                        while (true) {
+                            let r = this._pool.remaining;
+                            if (!r.length) break;
+                            let d = r.shift() as Dice;
+                            this._onPoolClick(d);
+                            let avail = this._board.getAvailableCells(d.tile);
+                            if (!avail.length) break;
+                            let cell = avail[Math.floor(Math.random() * avail.length)];
+                            this._onBoardClick(cell);
+                        }
+                    }
+                });
         /**/
     }
     play(descriptors) {
@@ -2143,18 +2152,15 @@ class MultiGame extends Game {
     _showScore(players) {
         let s = this._board.getScore();
         this._board.showScore(s);
-        this._board.node.hidden = true;
         const placeholder = document.querySelector("#outro div");
         placeholder.innerHTML = "";
+        players = players.concat(players).concat(players);
         let names = players.map(p => p.name);
         let boards = players.map(p => new BoardCanvas().fromJSON(p.board));
         let scores = boards.map(b => b.getScore());
         boards.forEach((b, i) => b.showScore(scores[i]));
-        boards.forEach(b => document.body.appendChild(b.node));
-        function showByIndex(i) {
-            boards.forEach((b, j) => b.node.hidden = (i != j));
-        }
         const player = this._progress.player;
+        function showByIndex(i) { showBoard(boards[i]); }
         placeholder.appendChild(renderMulti(names, scores, showByIndex, player));
     }
     _saveProgress() {
@@ -2167,13 +2173,20 @@ class MultiGame extends Game {
     }
 }
 class MultiplayerRound extends Round {
-    _end() {
-        super._end();
-        this.end();
+    play(descriptors) {
+        try {
+            navigator.vibrate(200);
+        }
+        catch (e) { }
+        return super.play(descriptors);
     }
     end() {
         this._endButton.disabled = true;
         this._pool.remaining.forEach(d => this._pool.disable(d));
+    }
+    _end() {
+        super._end();
+        this.end();
     }
 }
 function createRpc(ws) {
@@ -2224,15 +2237,8 @@ function download(parent) {
 }
 function goIntro() {
     dataset$1.stage = "intro";
-    let newBoard = new BoardCanvas();
-    if (board) {
-        board.node.replaceWith(newBoard.node);
-    }
-    else {
-        const main = document.querySelector("main");
-        main.appendChild(newBoard.node);
-    }
-    board = newBoard;
+    board = new BoardCanvas();
+    showBoard(board);
 }
 async function goGame(type) {
     const game = (type == "multi" ? new MultiGame(board) : new SingleGame(board, type));

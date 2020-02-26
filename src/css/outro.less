@@ -1,13 +1,14 @@
 #outro {
 	min-width: var(--board-width);
-	.-menu;
+	max-width: 100%;
+	overflow-x: auto;
 
-	display: flex;
-	flex-direction: column;
-	align-items: center;
+	.-menu;
 
 	.score {
 		border-collapse: collapse;
+		white-space: nowrap;
+		margin: auto;
 
 		thead td {
 			&.active {

@@ -100,9 +100,8 @@ button:disabled {
 }
 #outro {
   min-width: var(--board-width);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  max-width: 100%;
+  overflow-x: auto;
 }
 #outro ul {
   list-style: none;
@@ -123,6 +122,8 @@ button:disabled {
 }
 #outro .score {
   border-collapse: collapse;
+  white-space: nowrap;
+  margin: auto;
 }
 #outro .score thead td.active {
   font-weight: bold;

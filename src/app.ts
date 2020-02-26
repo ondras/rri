@@ -1,5 +1,6 @@
 import Board from "./board-canvas.js";
 import * as html from "./html.js";
+import * as boardManager from "./board-manager.js";
 import { GameType } from "./rules.js";
 import SingleGame from "./game-single.js";
 import MultiGame from "./game-multi.js";
@@ -21,16 +22,8 @@ function download(parent: HTMLElement) {
 function goIntro() {
 	dataset.stage = "intro";
 
-	let newBoard = new Board();
-
-	if (board) {
-		board.node.replaceWith(newBoard.node);
-	} else {
-		const main = document.querySelector("main") as HTMLElement;
-		main.appendChild(newBoard.node);
-	}
-
-	board = newBoard;
+	board = new Board();
+	boardManager.showBoard(board);
 }
 
 async function goGame(type: GameType | "multi") {
