@@ -1,5 +1,6 @@
 import Board from "./board-canvas.js";
 import * as html from "./html.js";
+import * as boardManager from "./board-manager.js";
 import SingleGame from "./game-single.js";
 import MultiGame from "./game-multi.js";
 const dataset = document.body.dataset;
@@ -16,15 +17,8 @@ function download(parent) {
 }
 function goIntro() {
     dataset.stage = "intro";
-    let newBoard = new Board();
-    if (board) {
-        board.node.replaceWith(newBoard.node);
-    }
-    else {
-        const main = document.querySelector("main");
-        main.appendChild(newBoard.node);
-    }
-    board = newBoard;
+    board = new Board();
+    boardManager.showBoard(board);
 }
 async function goGame(type) {
     const game = (type == "multi" ? new MultiGame(board) : new SingleGame(board, type));
