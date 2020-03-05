@@ -1,5 +1,4 @@
 import Tile from "./tile.js";
-import { BOARD } from "./conf.js";
 
 export interface Cell {
 	tile: Tile | null;
@@ -9,6 +8,8 @@ export interface Cell {
 	center: boolean;
 	round: number;
 }
+
+export const BOARD = 7;
 
 function inBoard(x: number, y: number) {
 	return (x > 0 && y > 0 && x <= BOARD && y <= BOARD);

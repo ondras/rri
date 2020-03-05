@@ -5,6 +5,7 @@ import DrawContext from "./draw-context.js";
 import * as html from "./html.js";
 
 type Edges = [Edge, Edge, Edge, Edge];
+
 interface Shape {
 	edges: Edges;
 	transforms: string[];

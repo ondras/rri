@@ -1,6 +1,7 @@
 import Board from "./board.js";
 import * as html from "./html.js";
-import { BOARD, TILE, DOWN_EVENT } from "./conf.js";
+import { TILE, DOWN_EVENT } from "./conf.js";
+import { BOARD } from "./cell-repo.js";
 import { N, E, S, W, Vector } from "./direction.js";
 const DPR = devicePixelRatio;
 const BTILE = TILE / 2;

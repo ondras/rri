@@ -5,7 +5,7 @@ import Round from "./round.js";
 import Board, { SerializedBoard } from "./board.js";
 import BoardCanvas from "./board-canvas.js";
 import * as html from "./html.js";
-import * as score from "./score.js";
+import * as scoreTable from "./score-table.js";
 import * as conf from "./conf.js";
 import * as boardManager from "./board-manager.js";
 
@@ -260,7 +260,7 @@ export default class MultiGame extends Game {
 
 		const player = this._progress.player;
 		function showByIndex(i: number) { boardManager.showBoard(boards[i]); }
-		placeholder.appendChild(score.renderMulti(names, scores, showByIndex, player));
+		placeholder.appendChild(scoreTable.renderMulti(names, scores, showByIndex, player));
 	}
 
 	_saveProgress() {

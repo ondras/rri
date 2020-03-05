@@ -1,6 +1,8 @@
 import * as colors from "https://deno.land/std/fmt/colors.ts";
-import { GameType, DiceDescriptor, ROUNDS, createDiceDescriptors } from "../src/rules.ts";
 import Player from "./player.ts";
+
+import { GameType, DiceDescriptor, ROUNDS, createDiceDescriptors } from "../src/rules.ts";
+
 
 type State = "starting" | "playing";
 

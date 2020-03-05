@@ -19,15 +19,6 @@ icons: img/icon-192.png img/icon-512.png
 img/icon-%.png: img/icon.svg
 	rsvg-convert -w $* -h $* $< > $@
 
-server/importmap.json: src/*.ts
-	echo '{"imports":{' > $@
-	for i in $^; do \
-		TS=file://`readlink -f $$i`; \
-		JS=`echo -n $$TS | sed -e s/.ts$$/.js/`; \
-		echo '"'$$JS'": "'$$TS'"', >> $@; \
-	done; \
-	echo '"fake-last-item":""}}' >> $@
-
 graph.png: app/*.js
 	$(shell npm bin)/rollup -c .rollup-graph.config.js app/app.js -o /dev/null --silent | dot -Tpng > $@
 

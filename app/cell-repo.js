@@ -1,4 +1,4 @@
-import { BOARD } from "./conf.js";
+export const BOARD = 7;
 function inBoard(x, y) {
     return (x > 0 && y > 0 && x <= BOARD && y <= BOARD);
 }

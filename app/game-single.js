@@ -1,7 +1,7 @@
 import Game from "./game.js";
 import Round from "./round.js";
 import { ROUNDS, createDiceDescriptors } from "./rules.js";
-import * as score from "./score.js";
+import * as scoreTable from "./score-table.js";
 export default class SingleGame extends Game {
     constructor(_board, _type) {
         super(_board);
@@ -29,6 +29,6 @@ export default class SingleGame extends Game {
         this._board.showScore(s);
         const placeholder = document.querySelector("#outro div");
         placeholder.innerHTML = "";
-        placeholder.appendChild(score.renderSingle(s));
+        placeholder.appendChild(scoreTable.renderSingle(s));
     }
 }
