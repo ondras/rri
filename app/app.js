@@ -5,13 +5,13 @@ import SingleGame from "./game-single.js";
 import MultiGame from "./game-multi.js";
 const dataset = document.body.dataset;
 let board;
-function download(parent) {
+function download() {
     if (!board.blob) {
         return;
     }
     const href = URL.createObjectURL(board.blob);
     let a = html.node("a", { href, download: "railroad-ink.png" });
-    parent.appendChild(a);
+    document.body.appendChild(a);
     a.click();
     a.remove();
 }
@@ -32,7 +32,7 @@ function init() {
     document.querySelector("[name=start-lake]").addEventListener("click", _ => goGame("lake"));
     document.querySelector("[name=start-multi]").addEventListener("click", _ => goGame("multi"));
     document.querySelector("[name=again]").addEventListener("click", _ => goIntro());
-    document.querySelector("[name=download]").addEventListener("click", e => download(e.target));
+    document.querySelector("[name=download]").addEventListener("click", _ => download());
     goIntro();
 }
 init();
