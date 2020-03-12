@@ -8,13 +8,13 @@ import MultiGame from "./game-multi.js";
 const dataset = document.body.dataset;
 let board: Board;
 
-function download(parent: HTMLElement) {
+function download() {
 	if (!board.blob) { return; }
 
 	const href = URL.createObjectURL(board.blob);
 
 	let a = html.node("a", {href, download:"railroad-ink.png"});
-	parent.appendChild(a);
+	document.body.appendChild(a);
 	a.click();
 	a.remove();
 }
@@ -37,7 +37,7 @@ function init() {
 	(document.querySelector("[name=start-lake]") as HTMLElement).addEventListener("click", _ => goGame("lake"));
 	(document.querySelector("[name=start-multi]") as HTMLElement).addEventListener("click", _ => goGame("multi"));
 	(document.querySelector("[name=again]") as HTMLElement).addEventListener("click", _ => goIntro());
-	(document.querySelector("[name=download]") as HTMLElement).addEventListener("click", e => download(e.target as HTMLElement));
+	(document.querySelector("[name=download]") as HTMLElement).addEventListener("click", _ => download());
 	goIntro();
 }
 
