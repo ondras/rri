@@ -139,6 +139,8 @@ export default class Game {
 }
 
 function logStats() {
+	if (games.size == 0) { return; }
+
 	console.group("Active games:");
 	games.forEach((game, name) => {
 		console.group(colors.bold(`${name} (${game.state})`));
