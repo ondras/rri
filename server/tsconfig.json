@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"target": "es2019",
-		"lib": ["esnext", "dom", "dom.iterable", "deno.ns"],
+		"lib": ["dom", "deno.ns", "dom.iterable"],
 		"noUnusedLocals": true,
 		"noUnusedParameters": true
 	}
