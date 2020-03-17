@@ -259,11 +259,17 @@ function addColumn(table, score, name = "", active = false) {
         + lakeScore;
     const totalRow = table.tFoot.rows[0];
     totalRow.insertCell().textContent = total.toString();
-    let cells = Array.from(totalRow.cells).slice(1);
-    let totals = cells.map(cell => Number(cell.textContent));
-    let best = Math.max(...totals).toString();
-    cells.forEach(c => c.classList.toggle("best", c.textContent == best));
+    Array.from(table.querySelectorAll("tbody tr, tfoot tr")).forEach(row => {
+        let cells = Array.from(row.cells).slice(1);
+        let numbers = cells.map(extractCellValue);
+        let best = Math.max(...numbers);
+        cells.forEach(c => c.classList.toggle("best", extractCellValue(c) == best));
+    });
     return result;
+}
+function extractCellValue(cell) {
+    let match = (cell.textContent || "").match(/[-\d]+$/);
+    return (match ? Number(match[0]) : 0);
 }
 export function renderSingle(score) {
     const table = buildTable();

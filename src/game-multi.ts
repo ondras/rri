@@ -250,8 +250,8 @@ export default class MultiGame extends Game {
 		let s = this._board.getScore();
 		this._board.showScore(s);
 
-		const placeholder = document.querySelector("#outro div") as HTMLElement;
-		placeholder.innerHTML = "";
+		const parent = document.querySelector("#score") as HTMLElement;
+		parent.innerHTML = "";
 
 		let names  = players.map(p => p.name);
 		let boards = players.map(p => new BoardCanvas().fromJSON(p.board));
@@ -260,7 +260,7 @@ export default class MultiGame extends Game {
 
 		const player = this._progress.player;
 		function showByIndex(i: number) { boardManager.showBoard(boards[i]); }
-		placeholder.appendChild(score.renderMulti(names, scores, showByIndex, player));
+		parent.appendChild(score.renderMulti(names, scores, showByIndex, player));
 	}
 
 	_saveProgress() {

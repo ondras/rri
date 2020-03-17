@@ -6,7 +6,8 @@ export function showBoard(board: Board) {
 	if (current) {
 		current.node.replaceWith(board.node);
 	} else {
-		(document.querySelector("main") as HTMLElement).appendChild(board.node);
+		let next = document.querySelector("#score") as HTMLElement
+		(next.parentNode as HTMLElement).insertBefore(board.node, next);
 	}
 	current = board;
 }

@@ -4,7 +4,8 @@ export function showBoard(board) {
         current.node.replaceWith(board.node);
     }
     else {
-        document.querySelector("main").appendChild(board.node);
+        let next = document.querySelector("#score");
+        next.parentNode.insertBefore(board.node, next);
     }
     current = board;
 }

@@ -27,8 +27,8 @@ export default class SingleGame extends Game {
         super._outro();
         let s = this._board.getScore();
         this._board.showScore(s);
-        const placeholder = document.querySelector("#outro div");
-        placeholder.innerHTML = "";
-        placeholder.appendChild(score.renderSingle(s));
+        const parent = document.querySelector("#score");
+        parent.innerHTML = "";
+        parent.appendChild(score.renderSingle(s));
     }
 }

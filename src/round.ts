@@ -20,7 +20,7 @@ export default class Round {
 		this.node = this._pool.node;
 
 		this._endButton.textContent = `End round #${this.number}`;
-/**
+/**/
 		window.addEventListener("keydown", e => {
 			if (e.ctrlKey && e.key == "a") {
 				e.preventDefault();
