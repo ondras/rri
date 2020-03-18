@@ -59,7 +59,7 @@ const RAIL = 1;
 const ROAD = 2;
 const LAKE = 3;
 
-const TILE = Number(getComputedStyle(document.body).getPropertyValue("--tile-size"));
+const TILE = Number(window.getComputedStyle(document.body).getPropertyValue("--tile-size"));
 const DBLCLICK = 400;
 const DOWN_EVENT = ("onpointerdown" in window ? "pointerdown" : "touchstart");
 const SERVER = "wss://ws.toad.cz/";
@@ -699,8 +699,6 @@ Object.entries(templates).forEach(([k, v]) => repo$1[k] = shapeFromTemplate(v));
 class Tile {
     constructor(sid, transform) {
         this._sid = sid;
-        this.node = get$1(sid).image.cloneNode(true);
-        this.node.classList.add("tile");
         this.transform = transform;
     }
     static fromJSON(data) {
@@ -712,22 +710,10 @@ class Tile {
             tid: this._tid
         };
     }
-    clone() {
-        return new Tile(this._sid, this.transform);
-    }
-    createCanvas() {
-        const shape = get$1(this._sid);
-        const source = shape.canvas;
-        const canvas = node("canvas", { width: source.width, height: source.height });
-        const ctx = canvas.getContext("2d");
-        get(this._tid).applyToContext(ctx);
-        ctx.drawImage(shape.canvas, 0, 0);
-        return canvas;
-    }
+    clone() { return new Tile(this._sid, this.transform); }
     get transform() { return this._tid; }
     set transform(transform) {
         this._tid = transform;
-        this.node.style.transform = get(transform).getCSS();
     }
     getEdge(direction) {
         let transform = get(this.transform);
@@ -1011,12 +997,17 @@ class CellRepo {
 }
 
 class Board {
-    constructor() {
+    constructor(_tileCtor = Tile) {
+        this._tileCtor = _tileCtor;
         this.blob = null;
         this._cells = new CellRepo();
         this.node = this._build();
         this._placeInitialTiles();
     }
+    _build() { return null; }
+    ;
+    signal(_cells) { }
+    ;
     showScore(_score) { }
     onClick(_cell) { }
     getScore() { return get$2(this._cells); }
@@ -1114,6 +1105,7 @@ class Board {
         });
     }
     _placeInitialTiles() {
+        const Tile = this._tileCtor;
         this._cells.forEach(cell => {
             const x = cell.x;
             const y = cell.y;
@@ -1169,6 +1161,28 @@ class Board {
     }
 }
 
+class HTMLTile extends Tile {
+    set transform(transform) {
+        super.transform = transform;
+        if (!this.node) {
+            this.node = get$1(this._sid).image.cloneNode(true);
+            this.node.classList.add("tile");
+        }
+        this.node.style.transform = get(transform).getCSS();
+    }
+    get transform() { return super.transform; }
+    createCanvas() {
+        const shape = get$1(this._sid);
+        const source = shape.canvas;
+        const canvas = node("canvas", { width: source.width, height: source.height });
+        const ctx = canvas.getContext("2d");
+        get(this._tid).applyToContext(ctx);
+        ctx.drawImage(shape.canvas, 0, 0);
+        return canvas;
+    }
+    clone() { return new HTMLTile(this._sid, this.transform); }
+}
+
 const DPR = devicePixelRatio;
 const BTILE = TILE / 2;
 const bodyStyle = getComputedStyle(document.body);
@@ -1195,7 +1209,7 @@ function cellToPx(cell) {
 }
 class BoardCanvas extends Board {
     constructor() {
-        super();
+        super(HTMLTile);
         this._signals = [];
         this.node.addEventListener(DOWN_EVENT, this);
     }
@@ -1417,8 +1431,11 @@ class BoardCanvas extends Board {
 
 let current = null;
 function showBoard(board) {
+    if (!board.node) {
+        return;
+    }
     if (current) {
-        current.node.replaceWith(board.node);
+        current.node && current.node.replaceWith(board.node);
     }
     else {
         let next = document.querySelector("#score");
@@ -1437,7 +1454,7 @@ class Dice {
         }
     }
     static fromDescriptor(descriptor) {
-        let tile = new Tile(descriptor.sid, descriptor.transform);
+        let tile = new HTMLTile(descriptor.sid, descriptor.transform);
         return new this(tile, descriptor.type);
     }
     get tile() { return this._tile; }

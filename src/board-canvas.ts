@@ -1,6 +1,6 @@
 import Board from "./board.js";
 import * as html from "./html.js";
-import Tile from "./tile.js";
+import Tile from "./tile-html.js";
 import { Score } from "./score.js";
 import { TILE, DOWN_EVENT } from "./conf.js";
 import { Cell, BOARD } from "./cell-repo.js";
@@ -40,9 +40,10 @@ export default class BoardCanvas extends Board {
 	_ctx!: CanvasRenderingContext2D;
 	_pendingCells!: PendingCell[];
 	_signals = [] as HTMLElement[];
+	node!: HTMLElement;
 
 	constructor() {
-		super();
+		super(Tile);
 
 		this.node.addEventListener(DOWN_EVENT, this);
 	}

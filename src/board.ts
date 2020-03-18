@@ -14,18 +14,18 @@ interface SerializedCell {
 
 export type SerializedBoard = SerializedCell[];
 
-export default abstract class Board {
-	node: HTMLElement;
+export default class Board {
+	node: HTMLElement | null;
 	blob: Blob | null = null;
 	_cells = new CellRepo();
 
-	constructor() {
+	constructor(readonly _tileCtor = Tile) {
 		this.node = this._build();
 		this._placeInitialTiles();
 	}
 
-	abstract _build(): HTMLElement;
-	abstract signal(cells: Cell[]): void;
+	_build(): HTMLElement | null { return null; };
+	signal(_cells: Cell[]) {};
 	showScore(_score: Score) {}
 	onClick(_cell: Cell) {}
 	getScore() { return getScore(this._cells); }
@@ -126,6 +126,8 @@ export default abstract class Board {
 	}
 
 	_placeInitialTiles() {
+		const Tile = this._tileCtor;
+
 		this._cells.forEach(cell => {
 			const x = cell.x;
 			const y = cell.y;

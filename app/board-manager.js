@@ -1,7 +1,10 @@
 let current = null;
 export function showBoard(board) {
+    if (!board.node) {
+        return;
+    }
     if (current) {
-        current.node.replaceWith(board.node);
+        current.node && current.node.replaceWith(board.node);
     }
     else {
         let next = document.querySelector("#score");

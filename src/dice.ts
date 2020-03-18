@@ -1,4 +1,4 @@
-import Tile from "./tile.js";
+import Tile from "./tile-html.js";
 import * as html from "./html.js";
 import { DiceDescriptor, DiceType }  from "./rules.js";
 

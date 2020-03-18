@@ -94,7 +94,8 @@ export default class Player {
 			this.roundEnded = true;
 			this.board = data.board;
 			this.bonusPool = data.bonusPool;
-			this._log("round ended");
+			let score = new Board().fromJSON(this.board).getScore();
+			this._log("round ended, score = ", score);
 			game.checkRoundEnd(); // notify all
 		});
 

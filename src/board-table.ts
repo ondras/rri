@@ -1,4 +1,4 @@
-import Tile from "./tile.js";
+import Tile from "./tile-html.js";
 import Board from "./board.js";
 import * as html from "./html.js";
 import { TILE, DOWN_EVENT } from "./conf.js";
@@ -8,7 +8,7 @@ export default class BoardTable extends Board {
 	node!: HTMLTableElement;
 
 	constructor() {
-		super();
+		super(Tile);
 
 		this.node.addEventListener(DOWN_EVENT, this);
 	}

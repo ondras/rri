@@ -1,5 +1,6 @@
 import Board from "./board.js";
 import * as html from "./html.js";
+import Tile from "./tile-html.js";
 import { TILE, DOWN_EVENT } from "./conf.js";
 import { BOARD } from "./cell-repo.js";
 import { N, E, S, W, Vector } from "./direction.js";
@@ -29,7 +30,7 @@ function cellToPx(cell) {
 }
 export default class BoardCanvas extends Board {
     constructor() {
-        super();
+        super(Tile);
         this._signals = [];
         this.node.addEventListener(DOWN_EVENT, this);
     }

@@ -2,7 +2,6 @@ import { get as getTransform } from "./transform.js";
 import { get as getShape } from "./shapes.js";
 import { Direction } from "./direction.js";
 import { Edge, EdgeType, NONE, LAKE } from "./edge.js";
-import * as html from "./html.js";
 
 export interface SerializedTile {
 	sid: string;
@@ -12,7 +11,6 @@ export interface SerializedTile {
 export default class Tile {
 	_sid: string;
 	_tid!: string;
-	node: HTMLImageElement;
 
 	static fromJSON(data: SerializedTile) {
 		return new this(data.sid, data.tid);
@@ -20,8 +18,6 @@ export default class Tile {
 
 	constructor(sid: string, transform: string) {
 		this._sid = sid;
-		this.node = getShape(sid).image.cloneNode(true) as HTMLImageElement;
-		this.node.classList.add("tile");
 
 		this.transform = transform;
 	}
@@ -33,28 +29,12 @@ export default class Tile {
 		}
 	}
 
-	clone() {
-		return new Tile(this._sid, this.transform);
-	}
-
-	createCanvas() {
-		const shape = getShape(this._sid);
-		const source = shape.canvas;
-
-		const canvas = html.node("canvas", {width:source.width, height:source.height});
-
-		const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-		getTransform(this._tid).applyToContext(ctx);
-		ctx.drawImage(shape.canvas, 0, 0);
-
-		return canvas;
-	}
+	clone() { return new Tile(this._sid, this.transform); }
 
 	get transform() { return this._tid; }
 
 	set transform(transform: string) {
 		this._tid = transform;
-		this.node.style.transform = getTransform(transform).getCSS();
 	}
 
 	getEdge(direction: Direction): Edge {
