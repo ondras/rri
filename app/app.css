@@ -134,10 +134,10 @@ button:disabled {
   font-weight: bold;
 }
 #score .score thead td.active::before {
-  content: "↑";
+  content: "⇧";
 }
 #score .score thead td.active::after {
-  content: "↑";
+  content: "⇧";
 }
 #score .score thead td:not(.active) {
   text-decoration: underline;
