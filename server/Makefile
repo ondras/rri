@@ -3,7 +3,7 @@ DENO := ~/deno/deno
 
 run:
 #	$(DENO) -r --allow-net -c tsconfig.json server.ts 1234
-	$(DENO) -r --allow-net server.ts 1234 | tee >(logger -t rri)
+	$(DENO) --allow-net server.ts 1234 | tee >(logger -t rri)
 
 docker-image:
 	docker build -f Dockerfile -t ondras/rri ..
