@@ -2,8 +2,8 @@ SHELL := /bin/bash
 DENO := ~/deno/deno
 
 run: importmap.json
-#	$(DENO) -r --allow-net -c tsconfig.json server.ts 1234
-	$(DENO) -r --allow-net --importmap importmap.json -c tsconfig.json server.ts 1234 | tee >(logger -t rri)
+#	$(DENO) --allow-net -c tsconfig.json server.ts 1234
+	$(DENO) --allow-net --importmap importmap.json -c tsconfig.json server.ts 1234 | tee >(logger -t rri)
 
 importmap.json: ../src/*.ts
 	echo '{"imports":{' > $@

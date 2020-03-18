@@ -1421,7 +1421,8 @@ function showBoard(board) {
         current.node.replaceWith(board.node);
     }
     else {
-        document.querySelector("main").appendChild(board.node);
+        let next = document.querySelector("#score");
+        next.parentNode.insertBefore(board.node, next);
     }
     current = board;
 }
@@ -1793,11 +1794,17 @@ function addColumn(table, score, name = "", active = false) {
         + lakeScore;
     const totalRow = table.tFoot.rows[0];
     totalRow.insertCell().textContent = total.toString();
-    let cells = Array.from(totalRow.cells).slice(1);
-    let totals = cells.map(cell => Number(cell.textContent));
-    let best = Math.max(...totals).toString();
-    cells.forEach(c => c.classList.toggle("best", c.textContent == best));
+    Array.from(table.querySelectorAll("tbody tr, tfoot tr")).forEach(row => {
+        let cells = Array.from(row.cells).slice(1);
+        let numbers = cells.map(extractCellValue);
+        let best = Math.max(...numbers);
+        cells.forEach(c => c.classList.toggle("best", extractCellValue(c) == best));
+    });
     return result;
+}
+function extractCellValue(cell) {
+    let match = (cell.textContent || "").match(/[-\d]+$/);
+    return (match ? Number(match[0]) : 0);
 }
 function renderSingle(score) {
     const table = buildTable();
@@ -1841,9 +1848,9 @@ class SingleGame extends Game {
         super._outro();
         let s = this._board.getScore();
         this._board.showScore(s);
-        const placeholder = document.querySelector("#outro div");
-        placeholder.innerHTML = "";
-        placeholder.appendChild(renderSingle(s));
+        const parent = document.querySelector("#score");
+        parent.innerHTML = "";
+        parent.appendChild(renderSingle(s));
     }
 }
 
@@ -2153,15 +2160,15 @@ class MultiGame extends Game {
     _showScore(players) {
         let s = this._board.getScore();
         this._board.showScore(s);
-        const placeholder = document.querySelector("#outro div");
-        placeholder.innerHTML = "";
+        const parent = document.querySelector("#score");
+        parent.innerHTML = "";
         let names = players.map(p => p.name);
         let boards = players.map(p => new BoardCanvas().fromJSON(p.board));
         let scores = boards.map(b => b.getScore());
         boards.forEach((b, i) => b.showScore(scores[i]));
         const player = this._progress.player;
         function showByIndex(i) { showBoard(boards[i]); }
-        placeholder.appendChild(renderMulti(names, scores, showByIndex, player));
+        parent.appendChild(renderMulti(names, scores, showByIndex, player));
     }
     _saveProgress() {
         const progress = {

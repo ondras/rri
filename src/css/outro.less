@@ -1,19 +1,25 @@
 #outro {
 	min-width: var(--board-width);
-	max-width: 100%;
-	overflow-x: auto;
 
 	.-menu;
+}
+
+#score {
+	padding-bottom: 1em;
+	max-width: 100%;
+	overflow-x: auto;
 
 	.score {
 		border-collapse: collapse;
 		white-space: nowrap;
 		margin: auto;
 
+		.best { font-weight: bold; }
+
 		thead td {
-			&.active {
-				font-weight: bold;
-			}
+			&.active::before { content: "⇧"; }
+			&.active::after { content: "⇧"; }
+
 			&:not(.active) {
 				text-decoration: underline;
 				cursor: pointer;
@@ -28,8 +34,6 @@
 		tfoot td {
 			border-top: 3px double #000;
 			font-size: 120%;
-
-			&.best { font-weight: bold; }
 		}
 	}
 }

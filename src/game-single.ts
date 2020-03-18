@@ -12,7 +12,6 @@ export default class SingleGame extends Game {
 	async play() {
 		super.play();
 		this._node.innerHTML = "";
-
 		this._node.appendChild(this._bonusPool.node);
 
 		let num = 1;
@@ -36,8 +35,8 @@ export default class SingleGame extends Game {
 		let s = this._board.getScore();
 		this._board.showScore(s);
 
-		const placeholder = document.querySelector("#outro div") as HTMLElement;
-		placeholder.innerHTML = "";
-		placeholder.appendChild(scoreTable.renderSingle(s));
+		const parent = document.querySelector("#score") as HTMLElement;
+		parent.innerHTML = "";
+		parent.appendChild(scoreTable.renderSingle(s));
 	}
 }

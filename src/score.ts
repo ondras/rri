@@ -232,4 +232,3 @@ export function get(cells: CellRepo): Score {
 		lakes: getLakes(cells)
 	}
 }
-

@@ -13,11 +13,13 @@ body {
   min-width: var(--board-width);
 }
 body[data-stage=intro] #game,
-body[data-stage=intro] #outro {
+body[data-stage=intro] #outro,
+body[data-stage=intro] #score {
   display: none;
 }
 body[data-stage=game] #intro,
 body[data-stage=game] #outro,
+body[data-stage=game] #score,
 body[data-stage=game] h1 {
   display: none;
 }
@@ -100,8 +102,6 @@ button:disabled {
 }
 #outro {
   min-width: var(--board-width);
-  max-width: 100%;
-  overflow-x: auto;
 }
 #outro ul {
   list-style: none;
@@ -120,28 +120,36 @@ button:disabled {
   width: 100%;
   height: 100%;
 }
-#outro .score {
+#score {
+  padding-bottom: 1em;
+  max-width: 100%;
+  overflow-x: auto;
+}
+#score .score {
   border-collapse: collapse;
   white-space: nowrap;
   margin: auto;
 }
-#outro .score thead td.active {
+#score .score .best {
   font-weight: bold;
 }
-#outro .score thead td:not(.active) {
+#score .score thead td.active::before {
+  content: "⇧";
+}
+#score .score thead td.active::after {
+  content: "⇧";
+}
+#score .score thead td:not(.active) {
   text-decoration: underline;
   cursor: pointer;
 }
-#outro .score td:not(:first-child) {
+#score .score td:not(:first-child) {
   text-align: right;
   padding-left: 1ch;
 }
-#outro .score tfoot td {
+#score .score tfoot td {
   border-top: 3px double #000;
   font-size: 120%;
-}
-#outro .score tfoot td.best {
-  font-weight: bold;
 }
 #game .pool {
   display: flex;

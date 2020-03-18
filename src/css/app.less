@@ -12,11 +12,11 @@ body {
 	min-width: var(--board-width);
 
 	&[data-stage=intro] {
-		#game, #outro { display: none; }
+		#game, #outro, #score { display: none; }
 	}
 
 	&[data-stage=game] {
-		#intro, #outro, h1 { display: none; }
+		#intro, #outro, #score, h1 { display: none; }
 	}
 
 	&[data-stage=outro] {
