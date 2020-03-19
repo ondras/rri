@@ -1,8 +1,9 @@
+import { Cell } from "../cell-repo.js";
+import Board from "../board.js";
+
 import Tile from "./tile-html.js";
-import Board from "./board.js";
 import * as html from "./html.js";
 import { TILE, DOWN_EVENT } from "./conf.js";
-import { Cell } from "./cell-repo.js";
 
 export default class BoardTable extends Board {
 	node!: HTMLTableElement;

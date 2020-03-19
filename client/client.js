@@ -59,284 +59,8 @@ const RAIL = 1;
 const ROAD = 2;
 const LAKE = 3;
 
-const TILE = Number(window.getComputedStyle(document.body).getPropertyValue("--tile-size"));
-const DBLCLICK = 400;
-const DOWN_EVENT = ("onpointerdown" in window ? "pointerdown" : "touchstart");
-const SERVER = "wss://ws.toad.cz/";
-
-function node(name, attrs = {}, content) {
-    let node = document.createElement(name);
-    Object.assign(node, attrs);
-    content && (node.textContent = content);
-    return node;
-}
-
-const RAIL_TICK_WIDTH = 1;
-const LINE_WIDTH = 2;
-const STATION = 18;
-const RADIUS = 16;
-const RAIL_WIDTH = 12;
-const ROAD_WIDTH = 14;
-const RAIL_TICK_SMALL = [RAIL_TICK_WIDTH, 6];
-const RAIL_TICK_LARGE = [RAIL_TICK_WIDTH, 8];
-const ROAD_TICK = [6, 4];
-const STARTS = [[0.5, 0], [1, 0.5], [0.5, 1], [0, 0.5]];
-const TO_CENTER = Vector.map((_, i, all) => all[clamp(i + 2)]);
-function toAbs(p) {
-    return p.map($ => $ * TILE);
-}
-function computeControlPoint(p1, p2) {
-    if (p1[0] == p2[0]) {
-        return [1 - p1[0], 0.5];
-    }
-    else {
-        return [0.5, 1 - p1[1]];
-    }
-}
-function createLakeCanvas() {
-    const N = 4;
-    const PX = 2;
-    const canvas = node("canvas");
-    canvas.width = canvas.height = N * PX;
-    const ctx = canvas.getContext("2d");
-    for (let i = 0; i < N; i++) {
-        for (let j = 0; j < N; j++) {
-            const H = 200 + ~~(Math.random() * (240 - 200));
-            const S = 100;
-            const V = 70 + ~~(Math.random() * (90 - 70));
-            ctx.fillStyle = `hsl(${H}, ${S}%, ${V}%)`;
-            ctx.fillRect(i * PX, j * PX, PX, PX);
-        }
-    }
-    return canvas;
-}
-const lakeCanvas = createLakeCanvas();
-class DrawContext {
-    constructor(canvas) {
-        canvas.width = canvas.height = TILE * devicePixelRatio;
-        this._ctx = canvas.getContext("2d");
-        this._ctx.scale(devicePixelRatio, devicePixelRatio);
-        this._ctx.lineWidth = LINE_WIDTH;
-    }
-    styleLine() {
-        const ctx = this._ctx;
-        ctx.lineWidth = LINE_WIDTH;
-        ctx.setLineDash([]);
-        ctx.lineDashOffset = 0;
-    }
-    styleRoadTicks(dash, offset) {
-        const ctx = this._ctx;
-        ctx.lineWidth = LINE_WIDTH;
-        ctx.setLineDash(dash);
-        ctx.lineDashOffset = offset;
-    }
-    styleRailTicks(dash, offset) {
-        const ctx = this._ctx;
-        ctx.lineWidth = RAIL_WIDTH;
-        ctx.setLineDash(dash);
-        ctx.lineDashOffset = offset;
-    }
-    styleLake() {
-        const ctx = this._ctx;
-        ctx.fillStyle = ctx.createPattern(lakeCanvas, "repeat");
-    }
-    station() {
-        const ctx = this._ctx;
-        let size = [ctx.canvas.width, ctx.canvas.height].map($ => $ / devicePixelRatio);
-        ctx.fillStyle = "#000";
-        ctx.fillRect(size[0] / 2 - STATION / 2, size[1] / 2 - STATION / 2, STATION, STATION);
-    }
-    railCross() {
-        const ctx = this._ctx;
-        this.styleLine();
-        ctx.lineWidth = RAIL_TICK_WIDTH;
-        ctx.beginPath();
-        let c = [TILE / 2, TILE / 2];
-        let d = RAIL_WIDTH / 2;
-        ctx.moveTo(c[0] - d, c[1] - d);
-        ctx.lineTo(c[0] + d, c[1] + d);
-        ctx.moveTo(c[0] - d, c[1] + d);
-        ctx.lineTo(c[0] + d, c[1] - d);
-        ctx.stroke();
-    }
-    roadTicks(edge, length) {
-        const ctx = this._ctx;
-        let pxLength = length * TILE;
-        let start = toAbs(STARTS[edge]);
-        let vec = TO_CENTER[edge];
-        let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
-        this.styleRoadTicks(ROAD_TICK, -3);
-        ctx.beginPath();
-        ctx.moveTo(...start);
-        ctx.lineTo(...end);
-        ctx.stroke();
-    }
-    railTicks(edge, length) {
-        const ctx = this._ctx;
-        let pxLength = length * TILE;
-        let start = toAbs(STARTS[edge]);
-        let vec = TO_CENTER[edge];
-        let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
-        if (length > 0.5) {
-            this.styleRailTicks(RAIL_TICK_LARGE, 5);
-        }
-        else {
-            this.styleRailTicks(RAIL_TICK_SMALL, 3);
-        }
-        ctx.beginPath();
-        ctx.moveTo(...start);
-        ctx.lineTo(...end);
-        ctx.stroke();
-    }
-    rail(edge, length) {
-        const ctx = this._ctx;
-        this.styleLine();
-        let pxLength = length * TILE;
-        let vec = TO_CENTER[edge];
-        let start = toAbs(STARTS[edge]);
-        let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
-        ctx.beginPath();
-        ctx.moveTo(...start);
-        ctx.lineTo(...end);
-        ctx.stroke();
-        let ticksLength = length;
-        if (length <= 0.5) {
-            ticksLength = Math.min(ticksLength, 0.35);
-        } // short rail segments have a max of .35 ticks
-        this.railTicks(edge, ticksLength);
-    }
-    roadLine(edge, length, diff) {
-        const ctx = this._ctx;
-        this.styleLine();
-        let pxLength = length * TILE;
-        diff *= ROAD_WIDTH / 2;
-        let vec = TO_CENTER[edge];
-        let start = toAbs(STARTS[edge]);
-        let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
-        ctx.beginPath();
-        switch (edge) {
-            case N:
-            case S:
-                ctx.moveTo(start[0] + diff, start[1]);
-                ctx.lineTo(end[0] + diff, end[1]);
-                break;
-            case W:
-            case E:
-                ctx.moveTo(start[0], start[1] + diff);
-                ctx.lineTo(end[0], end[1] + diff);
-                break;
-        }
-        ctx.stroke();
-    }
-    road(edge, length) {
-        const ctx = this._ctx;
-        let pxLength = length * TILE;
-        let vec = TO_CENTER[edge];
-        let start = toAbs(STARTS[edge]);
-        let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
-        switch (edge) {
-            case N:
-                ctx.clearRect(start[0] - ROAD_WIDTH / 2, start[1], ROAD_WIDTH, pxLength);
-                break;
-            case S:
-                ctx.clearRect(end[0] - ROAD_WIDTH / 2, end[1], ROAD_WIDTH, pxLength);
-                break;
-            case W:
-                ctx.clearRect(start[0], start[1] - ROAD_WIDTH / 2, pxLength, ROAD_WIDTH);
-                break;
-            case E:
-                ctx.clearRect(end[0], end[1] - ROAD_WIDTH / 2, pxLength, ROAD_WIDTH);
-                break;
-        }
-        this.roadLine(edge, length, -1);
-        this.roadLine(edge, length, +1);
-        this.roadTicks(edge, length);
-    }
-    arc(quadrant, diff) {
-        const ctx = this._ctx;
-        diff *= ROAD_WIDTH / 2;
-        let R = RADIUS + diff;
-        ctx.beginPath();
-        let start = [0, 0]; // N/S edge
-        let end = [0, 0]; // E/W edge
-        switch (quadrant) {
-            case N: // top-left
-                start[0] = end[1] = TILE / 2 + diff;
-                break;
-            case E: // top-right
-                start[0] = TILE / 2 - diff;
-                end[0] = TILE;
-                end[1] = TILE / 2 + diff;
-                break;
-            case S: // bottom-right
-                start[0] = TILE / 2 - diff;
-                start[1] = TILE;
-                end[0] = TILE;
-                end[1] = TILE / 2 - diff;
-                break;
-            case W: // bottom-left
-                end[1] = TILE / 2 - diff;
-                start[0] = TILE / 2 + diff;
-                start[1] = TILE;
-                break;
-        }
-        ctx.moveTo(...start);
-        ctx.arcTo(start[0], end[1], end[0], end[1], R);
-        ctx.lineTo(...end);
-        ctx.stroke();
-    }
-    redGlow(direction) {
-        const ctx = this._ctx;
-        let point = toAbs(STARTS[direction]);
-        const R = 12;
-        ctx.beginPath();
-        ctx.arc(point[0], point[1], R, 0, Math.PI, false);
-        ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
-        ctx.fill();
-    }
-    lake(points) {
-        points.push(points[0]); // implicitly closed
-        const ctx = this._ctx;
-        const fillPath = new Path2D();
-        const strokePath = new Path2D();
-        for (let i = 0; i < points.length; i++) {
-            const point = points[i];
-            const absPoint = toAbs(point);
-            if (i == 0) {
-                fillPath.moveTo(...absPoint);
-                strokePath.moveTo(...absPoint);
-                continue;
-            }
-            const prevPoint = points[i - 1];
-            if (point[0] == 0.5) { // arc
-                let nextPoint = points[i + 1];
-                let cp = computeControlPoint(prevPoint, nextPoint);
-                cp = toAbs(cp);
-                nextPoint = toAbs(nextPoint);
-                fillPath.quadraticCurveTo(cp[0], cp[1], ...nextPoint);
-                strokePath.quadraticCurveTo(cp[0], cp[1], ...nextPoint);
-                i++;
-            }
-            else { // straight line
-                fillPath.lineTo(...absPoint);
-                // only diagonals are stroked
-                if (point[0] == prevPoint[0] || point[1] == prevPoint[1]) {
-                    strokePath.moveTo(...absPoint);
-                }
-                else {
-                    strokePath.lineTo(...absPoint);
-                }
-            }
-        }
-        this.styleLake();
-        ctx.fill(fillPath);
-        this.styleLine();
-        ctx.stroke(strokePath);
-    }
-}
-
 const repo$1 = {};
-const templates = {
+const partials = {
     "rail-half": {
         edges: [
             { type: RAIL, connects: [] },
@@ -682,19 +406,11 @@ function getTransforms(edges) {
     }
     return all$1.filter(filter);
 }
-function shapeFromTemplate(template) {
-    let canvas = node("canvas");
-    let ctx = new DrawContext(canvas);
-    template.render(ctx);
-    let image = node("img", { alt: "tile", src: canvas.toDataURL("image/png") });
-    return {
-        edges: template.edges,
-        transforms: getTransforms(template.edges),
-        canvas,
-        image
-    };
+for (let key in partials) {
+    let shape = partials[key];
+    let transforms = getTransforms(shape.edges);
+    repo$1[key] = Object.assign({}, shape, { transforms });
 }
-Object.entries(templates).forEach(([k, v]) => repo$1[k] = shapeFromTemplate(v));
 
 class Tile {
     constructor(sid, transform) {
@@ -1161,23 +877,309 @@ class Board {
     }
 }
 
+function node(name, attrs = {}, content) {
+    let node = document.createElement(name);
+    Object.assign(node, attrs);
+    content && (node.textContent = content);
+    return node;
+}
+
+const TILE = Number(window.getComputedStyle(document.body).getPropertyValue("--tile-size"));
+const DBLCLICK = 400;
+const DOWN_EVENT = ("onpointerdown" in window ? "pointerdown" : "touchstart");
+const SERVER = "wss://ws.toad.cz/";
+
+const RAIL_TICK_WIDTH = 1;
+const LINE_WIDTH = 2;
+const STATION = 18;
+const RADIUS = 16;
+const RAIL_WIDTH = 12;
+const ROAD_WIDTH = 14;
+const RAIL_TICK_SMALL = [RAIL_TICK_WIDTH, 6];
+const RAIL_TICK_LARGE = [RAIL_TICK_WIDTH, 8];
+const ROAD_TICK = [6, 4];
+const STARTS = [[0.5, 0], [1, 0.5], [0.5, 1], [0, 0.5]];
+const TO_CENTER = Vector.map((_, i, all) => all[clamp(i + 2)]);
+function toAbs(p) {
+    return p.map($ => $ * TILE);
+}
+function computeControlPoint(p1, p2) {
+    if (p1[0] == p2[0]) {
+        return [1 - p1[0], 0.5];
+    }
+    else {
+        return [0.5, 1 - p1[1]];
+    }
+}
+function createLakeCanvas() {
+    const N = 4;
+    const PX = 2;
+    const canvas = node("canvas");
+    canvas.width = canvas.height = N * PX;
+    const ctx = canvas.getContext("2d");
+    for (let i = 0; i < N; i++) {
+        for (let j = 0; j < N; j++) {
+            const H = 200 + ~~(Math.random() * (240 - 200));
+            const S = 100;
+            const V = 70 + ~~(Math.random() * (90 - 70));
+            ctx.fillStyle = `hsl(${H}, ${S}%, ${V}%)`;
+            ctx.fillRect(i * PX, j * PX, PX, PX);
+        }
+    }
+    return canvas;
+}
+const lakeCanvas = createLakeCanvas();
+class CanvasDrawContext {
+    constructor(canvas) {
+        canvas.width = canvas.height = TILE * devicePixelRatio;
+        this._ctx = canvas.getContext("2d");
+        this._ctx.scale(devicePixelRatio, devicePixelRatio);
+        this._ctx.lineWidth = LINE_WIDTH;
+    }
+    styleLine() {
+        const ctx = this._ctx;
+        ctx.lineWidth = LINE_WIDTH;
+        ctx.setLineDash([]);
+        ctx.lineDashOffset = 0;
+    }
+    styleRoadTicks(dash, offset) {
+        const ctx = this._ctx;
+        ctx.lineWidth = LINE_WIDTH;
+        ctx.setLineDash(dash);
+        ctx.lineDashOffset = offset;
+    }
+    styleRailTicks(dash, offset) {
+        const ctx = this._ctx;
+        ctx.lineWidth = RAIL_WIDTH;
+        ctx.setLineDash(dash);
+        ctx.lineDashOffset = offset;
+    }
+    styleLake() {
+        const ctx = this._ctx;
+        ctx.fillStyle = ctx.createPattern(lakeCanvas, "repeat");
+    }
+    station() {
+        const ctx = this._ctx;
+        let size = [ctx.canvas.width, ctx.canvas.height].map($ => $ / devicePixelRatio);
+        ctx.fillStyle = "#000";
+        ctx.fillRect(size[0] / 2 - STATION / 2, size[1] / 2 - STATION / 2, STATION, STATION);
+    }
+    railCross() {
+        const ctx = this._ctx;
+        this.styleLine();
+        ctx.lineWidth = RAIL_TICK_WIDTH;
+        ctx.beginPath();
+        let c = [TILE / 2, TILE / 2];
+        let d = RAIL_WIDTH / 2;
+        ctx.moveTo(c[0] - d, c[1] - d);
+        ctx.lineTo(c[0] + d, c[1] + d);
+        ctx.moveTo(c[0] - d, c[1] + d);
+        ctx.lineTo(c[0] + d, c[1] - d);
+        ctx.stroke();
+    }
+    roadTicks(edge, length) {
+        const ctx = this._ctx;
+        let pxLength = length * TILE;
+        let start = toAbs(STARTS[edge]);
+        let vec = TO_CENTER[edge];
+        let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
+        this.styleRoadTicks(ROAD_TICK, -3);
+        ctx.beginPath();
+        ctx.moveTo(...start);
+        ctx.lineTo(...end);
+        ctx.stroke();
+    }
+    railTicks(edge, length) {
+        const ctx = this._ctx;
+        let pxLength = length * TILE;
+        let start = toAbs(STARTS[edge]);
+        let vec = TO_CENTER[edge];
+        let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
+        if (length > 0.5) {
+            this.styleRailTicks(RAIL_TICK_LARGE, 5);
+        }
+        else {
+            this.styleRailTicks(RAIL_TICK_SMALL, 3);
+        }
+        ctx.beginPath();
+        ctx.moveTo(...start);
+        ctx.lineTo(...end);
+        ctx.stroke();
+    }
+    rail(edge, length) {
+        const ctx = this._ctx;
+        this.styleLine();
+        let pxLength = length * TILE;
+        let vec = TO_CENTER[edge];
+        let start = toAbs(STARTS[edge]);
+        let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
+        ctx.beginPath();
+        ctx.moveTo(...start);
+        ctx.lineTo(...end);
+        ctx.stroke();
+        let ticksLength = length;
+        if (length <= 0.5) {
+            ticksLength = Math.min(ticksLength, 0.35);
+        } // short rail segments have a max of .35 ticks
+        this.railTicks(edge, ticksLength);
+    }
+    roadLine(edge, length, diff) {
+        const ctx = this._ctx;
+        this.styleLine();
+        let pxLength = length * TILE;
+        diff *= ROAD_WIDTH / 2;
+        let vec = TO_CENTER[edge];
+        let start = toAbs(STARTS[edge]);
+        let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
+        ctx.beginPath();
+        switch (edge) {
+            case N:
+            case S:
+                ctx.moveTo(start[0] + diff, start[1]);
+                ctx.lineTo(end[0] + diff, end[1]);
+                break;
+            case W:
+            case E:
+                ctx.moveTo(start[0], start[1] + diff);
+                ctx.lineTo(end[0], end[1] + diff);
+                break;
+        }
+        ctx.stroke();
+    }
+    road(edge, length) {
+        const ctx = this._ctx;
+        let pxLength = length * TILE;
+        let vec = TO_CENTER[edge];
+        let start = toAbs(STARTS[edge]);
+        let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
+        switch (edge) {
+            case N:
+                ctx.clearRect(start[0] - ROAD_WIDTH / 2, start[1], ROAD_WIDTH, pxLength);
+                break;
+            case S:
+                ctx.clearRect(end[0] - ROAD_WIDTH / 2, end[1], ROAD_WIDTH, pxLength);
+                break;
+            case W:
+                ctx.clearRect(start[0], start[1] - ROAD_WIDTH / 2, pxLength, ROAD_WIDTH);
+                break;
+            case E:
+                ctx.clearRect(end[0], end[1] - ROAD_WIDTH / 2, pxLength, ROAD_WIDTH);
+                break;
+        }
+        this.roadLine(edge, length, -1);
+        this.roadLine(edge, length, +1);
+        this.roadTicks(edge, length);
+    }
+    arc(quadrant, diff) {
+        const ctx = this._ctx;
+        diff *= ROAD_WIDTH / 2;
+        let R = RADIUS + diff;
+        ctx.beginPath();
+        let start = [0, 0]; // N/S edge
+        let end = [0, 0]; // E/W edge
+        switch (quadrant) {
+            case N: // top-left
+                start[0] = end[1] = TILE / 2 + diff;
+                break;
+            case E: // top-right
+                start[0] = TILE / 2 - diff;
+                end[0] = TILE;
+                end[1] = TILE / 2 + diff;
+                break;
+            case S: // bottom-right
+                start[0] = TILE / 2 - diff;
+                start[1] = TILE;
+                end[0] = TILE;
+                end[1] = TILE / 2 - diff;
+                break;
+            case W: // bottom-left
+                end[1] = TILE / 2 - diff;
+                start[0] = TILE / 2 + diff;
+                start[1] = TILE;
+                break;
+        }
+        ctx.moveTo(...start);
+        ctx.arcTo(start[0], end[1], end[0], end[1], R);
+        ctx.lineTo(...end);
+        ctx.stroke();
+    }
+    redGlow(direction) {
+        const ctx = this._ctx;
+        let point = toAbs(STARTS[direction]);
+        const R = 12;
+        ctx.beginPath();
+        ctx.arc(point[0], point[1], R, 0, Math.PI, false);
+        ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
+        ctx.fill();
+    }
+    lake(points) {
+        points.push(points[0]); // implicitly closed
+        const ctx = this._ctx;
+        const fillPath = new Path2D();
+        const strokePath = new Path2D();
+        for (let i = 0; i < points.length; i++) {
+            const point = points[i];
+            const absPoint = toAbs(point);
+            if (i == 0) {
+                fillPath.moveTo(...absPoint);
+                strokePath.moveTo(...absPoint);
+                continue;
+            }
+            const prevPoint = points[i - 1];
+            if (point[0] == 0.5) { // arc
+                let nextPoint = points[i + 1];
+                let cp = computeControlPoint(prevPoint, nextPoint);
+                cp = toAbs(cp);
+                nextPoint = toAbs(nextPoint);
+                fillPath.quadraticCurveTo(cp[0], cp[1], ...nextPoint);
+                strokePath.quadraticCurveTo(cp[0], cp[1], ...nextPoint);
+                i++;
+            }
+            else { // straight line
+                fillPath.lineTo(...absPoint);
+                // only diagonals are stroked
+                if (point[0] == prevPoint[0] || point[1] == prevPoint[1]) {
+                    strokePath.moveTo(...absPoint);
+                }
+                else {
+                    strokePath.lineTo(...absPoint);
+                }
+            }
+        }
+        this.styleLake();
+        ctx.fill(fillPath);
+        this.styleLine();
+        ctx.stroke(strokePath);
+    }
+}
+
+let cache = new Map();
+function createCanvas(id) {
+    if (!cache.has(id)) {
+        let shape = get$1(id);
+        let canvas = node("canvas");
+        let ctx = new CanvasDrawContext(canvas);
+        shape.render(ctx);
+        cache.set(id, canvas);
+    }
+    return cache.get(id);
+}
 class HTMLTile extends Tile {
     set transform(transform) {
         super.transform = transform;
         if (!this.node) {
-            this.node = get$1(this._sid).image.cloneNode(true);
-            this.node.classList.add("tile");
+            let canvas = createCanvas(this._sid);
+            this.node = node("img", { className: "tile", alt: "tile", src: canvas.toDataURL("image/png") });
         }
         this.node.style.transform = get(transform).getCSS();
     }
     get transform() { return super.transform; }
     createCanvas() {
-        const shape = get$1(this._sid);
-        const source = shape.canvas;
+        const source = createCanvas(this._sid);
         const canvas = node("canvas", { width: source.width, height: source.height });
         const ctx = canvas.getContext("2d");
         get(this._tid).applyToContext(ctx);
-        ctx.drawImage(shape.canvas, 0, 0);
+        ctx.drawImage(source, 0, 0);
         return canvas;
     }
     clone() { return new HTMLTile(this._sid, this.transform); }
@@ -1443,6 +1445,50 @@ function showBoard(board) {
     }
     current = board;
 }
+
+const ROUNDS = {
+    "normal": 7,
+    "lake": 6,
+    "demo": 1
+};
+function expandTemplate(template) {
+    let names = template.tiles;
+    let sid = names[Math.floor(Math.random() * names.length)];
+    return { sid, transform: "0", type: template.type };
+}
+function createDiceDescriptors(type) {
+    switch (type) {
+        case "demo":
+            return DEMO.map(type => ({ sid: type, transform: "0", type: "plain" }));
+        case "lake":
+            return [...createDiceDescriptors("normal"), expandTemplate(DICE_LAKE), expandTemplate(DICE_LAKE)];
+        default:
+            let result = [];
+            let templates = [DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_2];
+            while (templates.length) {
+                let index = Math.floor(Math.random() * templates.length);
+                let template = templates.splice(index, 1)[0];
+                result.push(expandTemplate(template));
+            }
+            return result;
+    }
+}
+const DEMO = [
+    "bridge", "rail-i", "road-i", "rail-road-l", "rail-road-i", "rail-t", "road-l", "rail-l", "road-t",
+    "lake-1", "lake-2", "lake-3", "lake-4", "lake-rail", "lake-road", "lake-rail-road"
+];
+const DICE_REGULAR_1 = {
+    tiles: ["road-i", "rail-i", "road-l", "rail-l", "road-t", "rail-t"],
+    type: "plain"
+};
+const DICE_REGULAR_2 = {
+    tiles: ["bridge", "bridge", "rail-road-i", "rail-road-i", "rail-road-l", "rail-road-l"],
+    type: "plain"
+};
+const DICE_LAKE = {
+    tiles: ["lake-1", "lake-2", "lake-3", "lake-rail", "lake-road", "lake-rail-road"],
+    type: "lake"
+};
 
 class Dice {
     constructor(tile, type) {
@@ -1713,50 +1759,6 @@ class Round {
         this._endButton.disabled = (this._pool.remaining.length > 0);
     }
 }
-
-const ROUNDS = {
-    "normal": 7,
-    "lake": 6,
-    "demo": 1
-};
-function expandTemplate(template) {
-    let names = template.tiles;
-    let sid = names[Math.floor(Math.random() * names.length)];
-    return { sid, transform: "0", type: template.type };
-}
-function createDiceDescriptors(type) {
-    switch (type) {
-        case "demo":
-            return DEMO.map(type => ({ sid: type, transform: "0", type: "plain" }));
-        case "lake":
-            return [...createDiceDescriptors("normal"), expandTemplate(DICE_LAKE), expandTemplate(DICE_LAKE)];
-        default:
-            let result = [];
-            let templates = [DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_2];
-            while (templates.length) {
-                let index = Math.floor(Math.random() * templates.length);
-                let template = templates.splice(index, 1)[0];
-                result.push(expandTemplate(template));
-            }
-            return result;
-    }
-}
-const DEMO = [
-    "bridge", "rail-i", "road-i", "rail-road-l", "rail-road-i", "rail-t", "road-l", "rail-l", "road-t",
-    "lake-1", "lake-2", "lake-3", "lake-4", "lake-rail", "lake-road", "lake-rail-road"
-];
-const DICE_REGULAR_1 = {
-    tiles: ["road-i", "rail-i", "road-l", "rail-l", "road-t", "rail-t"],
-    type: "plain"
-};
-const DICE_REGULAR_2 = {
-    tiles: ["bridge", "bridge", "rail-road-i", "rail-road-i", "rail-road-l", "rail-road-l"],
-    type: "plain"
-};
-const DICE_LAKE = {
-    tiles: ["lake-1", "lake-2", "lake-3", "lake-rail", "lake-road", "lake-rail-road"],
-    type: "lake"
-};
 
 function buildTable() {
     const table = node("table", { className: "score" });

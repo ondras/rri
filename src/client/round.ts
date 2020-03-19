@@ -1,11 +1,13 @@
-import Board from "./board.js";
+import Board from "../board.js";
+import Tile from "../tile.js";
+import { Cell } from "../cell-repo.js";
+import { DiceDescriptor } from "../rules.js";
+
 import Pool, { BonusPool } from "./pool.js";
 import Dice from "./dice.js";
-import Tile from "./tile.js";
 import * as html from "./html.js";
-import { Cell } from "./cell-repo.js";
 import { DBLCLICK } from "./conf.js";
-import { DiceDescriptor } from "./rules.js";
+
 
 export default class Round {
 	node: HTMLElement;

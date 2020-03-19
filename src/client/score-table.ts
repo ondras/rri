@@ -1,4 +1,5 @@
-import { Score } from "./score.js";
+import { Score } from "../score.js";
+
 import * as html from "./html.js";
 
 

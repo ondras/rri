@@ -1,8 +1,8 @@
 import Dice from "./dice.js";
-import Board from "./board.js";
+import Board from "../board.js";
 import * as html from "./html.js";
 import { DOWN_EVENT } from "./conf.js";
-import { DiceDescriptor } from "./rules.js";
+import { DiceDescriptor } from "../rules.js";
 
 const MAX_BONUSES = 3;
 

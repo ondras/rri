@@ -3,6 +3,7 @@ import { get as getShape } from "./shapes.js";
 import { Direction } from "./direction.js";
 import { Edge, EdgeType, NONE, LAKE } from "./edge.js";
 
+
 export interface SerializedTile {
 	sid: string;
 	tid: string;

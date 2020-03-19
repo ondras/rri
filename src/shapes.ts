@@ -2,24 +2,19 @@ import { get as getTransform, all as allTransforms } from "./transform.js";
 import { N, E, S, W, all as allDirections } from "./direction.js";
 import { Edge, NONE, RAIL, ROAD, LAKE } from "./edge.js";
 import DrawContext from "./draw-context.js";
-import * as html from "./html.js";
+
 
 type Edges = [Edge, Edge, Edge, Edge];
 
-interface Shape {
+export interface Shape {
 	edges: Edges;
 	transforms: string[];
-	image: HTMLImageElement;
-	canvas: HTMLCanvasElement;
-}
-
-interface ShapeTemplate {
-	edges: Edges;
 	render(ctx: DrawContext): void;
 }
+type PartialShape = Omit<Shape, "transforms">;
 
 const repo: {[id:string]: Shape} = {};
-const templates: {[id:string]: ShapeTemplate} = {
+const partials: {[id:string]: PartialShape} = {
 	"rail-half": {
 		edges: [
 			{type:RAIL, connects: []},
@@ -414,19 +409,8 @@ function getTransforms(edges: Edges) {
 	return allTransforms.filter(filter);
 }
 
-function shapeFromTemplate(template: ShapeTemplate) {
-	let canvas = html.node("canvas");
-	let ctx = new DrawContext(canvas);
-	template.render(ctx);
-
-	let image = html.node("img", {alt:"tile", src:canvas.toDataURL("image/png")});
-
-	return {
-		edges: template.edges,
-		transforms: getTransforms(template.edges),
-		canvas,
-		image
-	}
+for (let key in partials) {
+	let shape = partials[key];
+	let transforms = getTransforms(shape.edges);
+	repo[key] = Object.assign({}, shape, {transforms});
 }
-
-Object.entries(templates).forEach(([k, v]) => repo[k] = shapeFromTemplate(v));

@@ -1,6 +1,8 @@
+import { DiceDescriptor, DiceType }  from "../rules.js";
+
 import Tile from "./tile-html.js";
 import * as html from "./html.js";
-import { DiceDescriptor, DiceType }  from "./rules.js";
+
 
 export default class Dice {
 	node: HTMLElement = html.node("div", {className:"dice"});

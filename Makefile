@@ -1,27 +1,33 @@
 TSC := $(shell npm bin)/tsc
 LESSC := $(shell npm bin)/lessc
 ROLLUP := $(shell npm bin)/rollup
+FLAG := .build/.tsflag
 
-all: app/app.bundle.js app/app.css icons server/importmap.json
+all: client/client.js client/client.css icons
 
-app/app.bundle.js: .tsflag
-	$(ROLLUP) app/app.js > $@
+client/client.css: src/css/*.less
+	mkdir -p `dirname $@`
+	$(LESSC) src/css/app.less > $@
 
-.tsflag: src/*.ts
+client/client.js: $(FLAG)
+	mkdir -p `dirname $@`
+	$(ROLLUP) .build/client/app.js > $@
+
+$(FLAG): $(shell find src -type f)
+	mkdir -p `dirname $@`
 	$(TSC)
 	touch $@
-
-app/app.css: src/css/*.less
-	$(LESSC) src/css/app.less > $@
 
 icons: img/icon-192.png img/icon-512.png
 
 img/icon-%.png: img/icon.svg
 	rsvg-convert -w $* -h $* $< > $@
 
-graph.png: app/*.js
-	$(shell npm bin)/rollup -c .rollup-graph.config.js app/app.js -o /dev/null --silent | dot -Tpng > $@
-
+graph.png: .build/*.js
+	$(shell npm bin)/rollup -c .rollup-graph.config.js .build/app.js -o /dev/null --silent | dot -Tpng > $@
 
 watch: all
 	while inotifywait -e MODIFY -r src; do make $^ ; done
+
+clean:
+	rm -rf client .build

@@ -1,8 +1,10 @@
+import { GameType, ROUNDS, createDiceDescriptors } from "../rules.js";
+
 import Game from "./game.js";
 import Round from "./round.js";
-import { GameType, ROUNDS, createDiceDescriptors } from "./rules.js";
 import Board from "./board-canvas.js";
 import * as scoreTable from "./score-table.js";
+
 
 export default class SingleGame extends Game {
 	constructor(_board:Board, readonly _type: GameType) {

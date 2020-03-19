@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"strict": true,
-		"outDir": "app",
+		"outDir": ".build",
 		"target": "es2019",
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,

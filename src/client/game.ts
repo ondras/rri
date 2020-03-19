@@ -1,4 +1,4 @@
-import Board from "./board.js";
+import Board from "../board.js";
 import { BonusPool } from "./pool.js";
 
 const dataset = document.body.dataset;

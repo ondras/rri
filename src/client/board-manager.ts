@@ -1,4 +1,5 @@
-import Board from "./board";
+import Board from "../board";
+
 
 let current: Board | null = null;
 

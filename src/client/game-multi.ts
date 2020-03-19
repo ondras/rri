@@ -1,8 +1,9 @@
-import { GameType, DiceDescriptor } from "./rules.js";
+import { GameType, DiceDescriptor } from "../rules.js";
+import Board, { SerializedBoard } from "../board.js";
+
 import Game from "./game.js";
 import JsonRpc from "./json-rpc.js";
 import Round from "./round.js";
-import Board, { SerializedBoard } from "./board.js";
 import BoardCanvas from "./board-canvas.js";
 import * as html from "./html.js";
 import * as scoreTable from "./score-table.js";

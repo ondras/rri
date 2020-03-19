@@ -1,10 +1,12 @@
-import Board from "./board.js";
+import Board from "../board.js";
+import { Score } from "../score.js";
+import { Cell, BOARD } from "../cell-repo.js";
+import { N, E, S, W, Vector } from "../direction.js";
+
 import * as html from "./html.js";
 import Tile from "./tile-html.js";
-import { Score } from "./score.js";
 import { TILE, DOWN_EVENT } from "./conf.js";
-import { Cell, BOARD } from "./cell-repo.js";
-import { N, E, S, W, Vector } from "./direction.js";
+
 
 const DPR = devicePixelRatio;
 const BTILE = TILE/2;
