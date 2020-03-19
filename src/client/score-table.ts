@@ -1,4 +1,4 @@
-import { Score } from "../score.js";
+import { Score, mapExits, sumLakes, sum } from "../score.js";
 
 import * as html from "./html.js";
 
@@ -39,7 +39,7 @@ function addColumn(table: HTMLTableElement, score: Score, name="", active=false)
 
 	const body = table.tBodies[0];
 
-	let exits = score.exits.map(count => count == 12 ? 45 : (count-1)*4);
+	let exits = mapExits(score);
 	let exitScore = exits.reduce((a, b) => a+b, 0);
 	body.rows[0].insertCell().textContent = (exitScore ? `${score.exits.join("+")} = ${exitScore}` : "0");
 	body.rows[1].insertCell().textContent = score.road.length.toString();
@@ -48,21 +48,15 @@ function addColumn(table: HTMLTableElement, score: Score, name="", active=false)
 	body.rows[4].insertCell().textContent = (-score.deadends.length).toString();
 
 	let lakeRow = body.rows[5];
-	let lakeScore = 0;
-	if (score.lakes.length > 0) {
-		lakeScore = score.lakes.sort((a, b) => a-b)[0];
+	let lakeScore = sumLakes(score);
+	if (lakeScore) {
 		lakeRow.insertCell().textContent = lakeScore.toString();
 		lakeRow.hidden = false;
 	} else {
 		lakeRow.insertCell();
 	}
 
-	let total = exitScore
-					+ score.road.length
-					+ score.rail.length
-					+ score.center
-					- score.deadends.length
-					+ lakeScore;
+	let total = sum(score);
 
 	const totalRow = table.tFoot!.rows[0];
 	totalRow.insertCell().textContent = total.toString();

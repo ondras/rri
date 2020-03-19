@@ -4,51 +4,39 @@ import { Direction } from "./direction.js";
 import { Edge, EdgeType, NONE, LAKE } from "./edge.js";
 
 
-export interface SerializedTile {
+export interface TileData {
 	sid: string;
 	tid: string;
 }
 
 export default class Tile {
-	_sid: string;
-	_tid!: string;
+	_data: TileData;
 
-	static fromJSON(data: SerializedTile) {
+	static fromJSON(data: TileData) {
 		return new this(data.sid, data.tid);
 	}
 
-	constructor(sid: string, transform: string) {
-		this._sid = sid;
-
-		this.transform = transform;
+	constructor(sid: string, tid: string) {
+		this._data = { sid, tid }
 	}
 
-	toJSON(): SerializedTile {
-		return {
-			sid: this._sid,
-			tid: this._tid
-		}
-	}
+	get transform() { return this._data.tid; }
+	set transform(transform: string) { this._data.tid = transform; }
 
-	clone() { return new Tile(this._sid, this.transform); }
-
-	get transform() { return this._tid; }
-
-	set transform(transform: string) {
-		this._tid = transform;
-	}
+	toJSON(): TileData { return this._data; }
+	clone() { return Tile.fromJSON(this.toJSON()); }
 
 	getEdge(direction: Direction): Edge {
 		let transform = getTransform(this.transform);
 		direction = transform.invert(direction);
-		let edge = getShape(this._sid).edges[direction];
+		let edge = getShape(this._data.sid).edges[direction];
 		return {
 			type: edge.type,
 			connects: edge.connects.map(d => transform.apply(d))
 		};
 	}
 
-	getTransforms() { return getShape(this._sid).transforms; }
+	getTransforms() { return getShape(this._data.sid).transforms; }
 
 	fitsNeighbors(neighborEdges: EdgeType[]) {
 		let connections = 0;

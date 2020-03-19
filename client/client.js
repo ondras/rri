@@ -413,34 +413,26 @@ for (let key in partials) {
 }
 
 class Tile {
-    constructor(sid, transform) {
-        this._sid = sid;
-        this.transform = transform;
+    constructor(sid, tid) {
+        this._data = { sid, tid };
     }
     static fromJSON(data) {
         return new this(data.sid, data.tid);
     }
-    toJSON() {
-        return {
-            sid: this._sid,
-            tid: this._tid
-        };
-    }
-    clone() { return new Tile(this._sid, this.transform); }
-    get transform() { return this._tid; }
-    set transform(transform) {
-        this._tid = transform;
-    }
+    get transform() { return this._data.tid; }
+    set transform(transform) { this._data.tid = transform; }
+    toJSON() { return this._data; }
+    clone() { return Tile.fromJSON(this.toJSON()); }
     getEdge(direction) {
         let transform = get(this.transform);
         direction = transform.invert(direction);
-        let edge = get$1(this._sid).edges[direction];
+        let edge = get$1(this._data.sid).edges[direction];
         return {
             type: edge.type,
             connects: edge.connects.map(d => transform.apply(d))
         };
     }
-    getTransforms() { return get$1(this._sid).transforms; }
+    getTransforms() { return get$1(this._data.sid).transforms; }
     fitsNeighbors(neighborEdges) {
         let connections = 0;
         let errors = 0;
@@ -671,6 +663,23 @@ function get$2(cells) {
         deadends: getDeadends(cells),
         lakes: getLakes(cells)
     };
+}
+function mapExits(score) {
+    return score.exits.map(count => count == 12 ? 45 : (count - 1) * 4);
+}
+function sumLakes(score) {
+    return (score.lakes.length > 0 ? score.lakes.sort((a, b) => a - b)[0] : 0);
+}
+function sum(score) {
+    let exits = mapExits(score);
+    let exitScore = exits.reduce((a, b) => a + b, 0);
+    let lakeScore = sumLakes(score);
+    return exitScore
+        + score.road.length
+        + score.rail.length
+        + score.center
+        - score.deadends.length
+        + lakeScore;
 }
 
 const BOARD = 7;
@@ -1165,24 +1174,29 @@ function createCanvas(id) {
     return cache.get(id);
 }
 class HTMLTile extends Tile {
-    set transform(transform) {
-        super.transform = transform;
-        if (!this.node) {
-            let canvas = createCanvas(this._sid);
-            this.node = node("img", { className: "tile", alt: "tile", src: canvas.toDataURL("image/png") });
-        }
-        this.node.style.transform = get(transform).getCSS();
+    constructor(sid, tid) {
+        super(sid, tid);
+        let canvas = createCanvas(this._data.sid);
+        this.node = node("img", { className: "tile", alt: "tile", src: canvas.toDataURL("image/png") });
+        this._applyTransform();
     }
     get transform() { return super.transform; }
+    set transform(transform) {
+        super.transform = transform;
+        this._applyTransform();
+    }
     createCanvas() {
-        const source = createCanvas(this._sid);
+        const source = createCanvas(this._data.sid);
         const canvas = node("canvas", { width: source.width, height: source.height });
         const ctx = canvas.getContext("2d");
-        get(this._tid).applyToContext(ctx);
+        get(this._data.tid).applyToContext(ctx);
         ctx.drawImage(source, 0, 0);
         return canvas;
     }
-    clone() { return new HTMLTile(this._sid, this.transform); }
+    clone() { return HTMLTile.fromJSON(this.toJSON()); }
+    _applyTransform() {
+        this.node.style.transform = get(this._data.tid).getCSS();
+    }
 }
 
 const DPR = devicePixelRatio;
@@ -1788,7 +1802,7 @@ function addColumn(table, score, name = "", active = false) {
         active && activate();
     }
     const body = table.tBodies[0];
-    let exits = score.exits.map(count => count == 12 ? 45 : (count - 1) * 4);
+    let exits = mapExits(score);
     let exitScore = exits.reduce((a, b) => a + b, 0);
     body.rows[0].insertCell().textContent = (exitScore ? `${score.exits.join("+")} = ${exitScore}` : "0");
     body.rows[1].insertCell().textContent = score.road.length.toString();
@@ -1796,21 +1810,15 @@ function addColumn(table, score, name = "", active = false) {
     body.rows[3].insertCell().textContent = score.center.toString();
     body.rows[4].insertCell().textContent = (-score.deadends.length).toString();
     let lakeRow = body.rows[5];
-    let lakeScore = 0;
-    if (score.lakes.length > 0) {
-        lakeScore = score.lakes.sort((a, b) => a - b)[0];
+    let lakeScore = sumLakes(score);
+    if (lakeScore) {
         lakeRow.insertCell().textContent = lakeScore.toString();
         lakeRow.hidden = false;
     }
     else {
         lakeRow.insertCell();
     }
-    let total = exitScore
-        + score.road.length
-        + score.rail.length
-        + score.center
-        - score.deadends.length
-        + lakeScore;
+    let total = sum(score);
     const totalRow = table.tFoot.rows[0];
     totalRow.insertCell().textContent = total.toString();
     Array.from(table.querySelectorAll("tbody tr, tfoot tr")).forEach(row => {

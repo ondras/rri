@@ -1,18 +1,18 @@
-import Tile, { SerializedTile } from "./tile.js";
+import Tile, { TileData } from "./tile.js";
 import { clamp, all as allDirections, Vector } from "./direction.js";
 import { NONE } from "./edge.js";
 import { Score, get as getScore } from "./score.js";
 import CellRepo, { Cell } from "./cell-repo.js";
 import { LAKE } from "./edge.js";
 
-interface SerializedCell {
+interface CellData {
 	x: number;
 	y: number;
 	round: number;
-	tile: SerializedTile;
+	tile: TileData;
 }
 
-export type SerializedBoard = SerializedCell[];
+export type SerializedBoard = CellData[];
 
 export default class Board {
 	node: HTMLElement | null;

@@ -232,3 +232,24 @@ export function get(cells: CellRepo): Score {
 		lakes: getLakes(cells)
 	}
 }
+
+export function mapExits(score: Score) {
+	return score.exits.map(count => count == 12 ? 45 : (count-1)*4);
+}
+
+export function sumLakes(score: Score) {
+	return (score.lakes.length > 0 ? score.lakes.sort((a, b) => a-b)[0] : 0);
+}
+
+export function sum(score: Score) {
+	let exits = mapExits(score);
+	let exitScore = exits.reduce((a, b) => a+b, 0);
+	let lakeScore = sumLakes(score);
+
+	return exitScore
+		+ score.road.length
+		+ score.rail.length
+		+ score.center
+		- score.deadends.length
+		+ lakeScore;
+}

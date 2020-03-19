@@ -5,6 +5,7 @@ import Game, { InfoOptions } from "./game.ts";
 
 import { GameType } from "../src/rules.ts";
 import Board from "../src/board.ts";
+import { sum } from "../src/score.ts";
 
 
 export default class Player {
@@ -95,7 +96,7 @@ export default class Player {
 			this.board = data.board;
 			this.bonusPool = data.bonusPool;
 			let score = new Board().fromJSON(this.board).getScore();
-			this._log("round ended, score = ", score);
+			this._log("round ended, score", sum(score));
 			game.checkRoundEnd(); // notify all
 		});
 
