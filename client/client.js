@@ -1171,15 +1171,16 @@ function createCanvas(id) {
         let canvas = node("canvas");
         let ctx = new CanvasDrawContext(canvas);
         shape.render(ctx);
-        cache.set(id, canvas);
+        let data = canvas.toDataURL("image/png");
+        cache.set(id, { canvas, data });
     }
     return cache.get(id);
 }
 class HTMLTile extends Tile {
     constructor(sid, tid) {
         super(sid, tid);
-        let canvas = createCanvas(this._data.sid);
-        this.node = node("img", { className: "tile", alt: "tile", src: canvas.toDataURL("image/png") });
+        let cached = createCanvas(this._data.sid);
+        this.node = node("img", { className: "tile", alt: "tile", src: cached.data });
         this._applyTransform();
     }
     get transform() { return super.transform; }
@@ -1188,7 +1189,7 @@ class HTMLTile extends Tile {
         this._applyTransform();
     }
     createCanvas() {
-        const source = createCanvas(this._data.sid);
+        const source = createCanvas(this._data.sid).canvas;
         const canvas = node("canvas", { width: source.width, height: source.height });
         const ctx = canvas.getContext("2d");
         get(this._data.tid).applyToContext(ctx);

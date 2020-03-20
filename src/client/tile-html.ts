@@ -6,7 +6,11 @@ import * as html from "./html.js";
 import DrawContext from "./draw-context.js";
 
 
-let cache = new Map<string, HTMLCanvasElement>();
+interface Cached {
+	canvas: HTMLCanvasElement;
+	data: string;
+}
+let cache = new Map<string, Cached>();
 
 function createCanvas(id:string) {
 	if (!cache.has(id)) {
@@ -14,10 +18,11 @@ function createCanvas(id:string) {
 		let canvas = html.node("canvas");
 		let ctx = new DrawContext(canvas);
 		shape.render(ctx);
-		cache.set(id, canvas);
+		let data = canvas.toDataURL("image/png");
+		cache.set(id, {canvas, data});
 	}
 
-	return cache.get(id) as HTMLCanvasElement;
+	return cache.get(id) as Cached;
 }
 
 export default class HTMLTile extends Tile {
@@ -26,8 +31,8 @@ export default class HTMLTile extends Tile {
 	constructor(sid: string, tid: string) {
 		super(sid, tid);
 
-		let canvas = createCanvas(this._data.sid);
-		this.node = html.node("img", {className:"tile", alt:"tile", src:canvas.toDataURL("image/png")});
+		let cached = createCanvas(this._data.sid);
+		this.node = html.node("img", {className:"tile", alt:"tile", src:cached.data});
 		this._applyTransform();
 	}
 
@@ -38,7 +43,7 @@ export default class HTMLTile extends Tile {
 	}
 
 	createCanvas() {
-		const source = createCanvas(this._data.sid);
+		const source = createCanvas(this._data.sid).canvas;
 
 		const canvas = html.node("canvas", {width:source.width, height:source.height});
 
