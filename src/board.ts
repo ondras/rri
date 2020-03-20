@@ -31,6 +31,8 @@ export default class Board {
 	getScore() { return getScore(this._cells); }
 
 	fromJSON(cells: SerializedBoard) {
+		const Tile = this._tileCtor;
+
 		this._cells.forEach(cell => {
 			if (!cell.border) { cell.tile = null; }
 		});
@@ -165,6 +167,8 @@ export default class Board {
 	}
 
 	_surroundLakes(round: number) {
+		const Tile = this._tileCtor;
+
 		const isSurrounded = (cell: Cell) => {
 			if (cell.tile || cell.border) { return false; }
 			let neighborEdges = this._getNeighborEdges(cell.x, cell.y);

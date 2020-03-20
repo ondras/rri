@@ -78,7 +78,7 @@ button:disabled {
   --round-font: 14px cursive;
 }
 #intro {
-  min-width: var(--board-width);
+  width: var(--board-width);
 }
 #intro p {
   text-align: center;

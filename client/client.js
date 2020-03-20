@@ -737,6 +737,7 @@ class Board {
     onClick(_cell) { }
     getScore() { return get$2(this._cells); }
     fromJSON(cells) {
+        const Tile = this._tileCtor;
         this._cells.forEach(cell => {
             if (!cell.border) {
                 cell.tile = null;
@@ -870,6 +871,7 @@ class Board {
         this.commit(0);
     }
     _surroundLakes(round) {
+        const Tile = this._tileCtor;
         const isSurrounded = (cell) => {
             if (cell.tile || cell.border) {
                 return false;
@@ -1331,7 +1333,13 @@ class BoardCanvas extends Board {
             pxy += vec[1] * offset;
             ctx.fillText("✘", pxx, pxy);
         });
-        ctx.canvas.toBlob(blob => this.blob = blob);
+        if (ctx.canvas.toBlob) {
+            ctx.canvas.toBlob(blob => this.blob = blob);
+        }
+        else if ("msToBlob" in ctx.canvas) {
+            // @ts-ignore
+            this.blob = ctx.canvas.msToBlob();
+        }
     }
     _build() {
         this._pendingCells = [];

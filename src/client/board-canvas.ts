@@ -174,7 +174,13 @@ export default class BoardCanvas extends Board {
 			ctx.fillText("✘", pxx, pxy);
 		});
 
-		ctx.canvas.toBlob(blob => this.blob = blob);
+		if (ctx.canvas.toBlob) {
+			ctx.canvas.toBlob(blob => this.blob = blob);
+		} else if ("msToBlob" in ctx.canvas) {
+			// @ts-ignore
+			this.blob = ctx.canvas.msToBlob();
+		}
+
 	}
 
 	_build() {
