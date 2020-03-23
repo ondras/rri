@@ -4,7 +4,7 @@ import { Cell, BOARD } from "../cell-repo.js";
 import { N, E, S, W, Vector } from "../direction.js";
 
 import * as html from "./html.js";
-import Tile from "./tile-html.js";
+import HTMLTile from "./html-tile.js";
 import { TILE, DOWN_EVENT } from "./conf.js";
 
 
@@ -31,7 +31,7 @@ function cellToPx(cell: number) {
 }
 
 interface PendingCell {
-	tile: Tile;
+	tile: HTMLTile;
 	node: HTMLElement;
 	round: number;
 	x: number;
@@ -45,7 +45,7 @@ export default class BoardCanvas extends Board {
 	node!: HTMLElement;
 
 	constructor() {
-		super(Tile);
+		super(HTMLTile);
 
 		this.node.addEventListener(DOWN_EVENT, this);
 	}
@@ -79,7 +79,7 @@ export default class BoardCanvas extends Board {
 		}
 	}
 
-	place(tile: Tile, x: number, y: number, round: number) {
+	place(tile: HTMLTile, x: number, y: number, round: number) {
 		super.place(tile, x, y, round);
 
 		let index = this._pendingCells.findIndex(cell => cell.x == x && cell.y == y);

@@ -1,7 +1,7 @@
 import { Cell } from "../cell-repo.js";
 import Board from "../board.js";
 
-import Tile from "./tile-html.js";
+import HTMLTile from "./html-tile.js";
 import * as html from "./html.js";
 import { TILE, DOWN_EVENT } from "./conf.js";
 
@@ -9,7 +9,7 @@ export default class BoardTable extends Board {
 	node!: HTMLTableElement;
 
 	constructor() {
-		super(Tile);
+		super(HTMLTile);
 
 		this.node.addEventListener(DOWN_EVENT, this);
 	}
@@ -26,7 +26,7 @@ export default class BoardTable extends Board {
 		}
 	}
 
-	place(tile: Tile | null, x: number, y: number, round: number) {
+	place(tile: HTMLTile | null, x: number, y: number, round: number) {
 		super.place(tile, x, y, round);
 
 		let td = this._tableCellAt(x, y);

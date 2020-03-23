@@ -1,7 +1,8 @@
 import * as colors from "https://deno.land/std/fmt/colors.ts";
 import Player from "./player.ts";
 
-import { GameType, DiceDescriptor, ROUNDS, createDiceDescriptors } from "../src/rules.ts";
+import Dice from "../src/dice.ts";
+import { GameType, ROUNDS, createDice } from "../src/rules.ts";
 
 
 type State = "starting" | "playing";
@@ -16,7 +17,7 @@ export interface InfoOptions {
 export default class Game {
 	_players: Player[] = [];
 	_round = 0;
-	_diceDescriptors: DiceDescriptor[] = [];
+	_dice: Dice[] = [];
 	state: State;
 	ts = performance.now();
 
@@ -99,7 +100,7 @@ export default class Game {
 
 	getInfo(options: InfoOptions) {
 		return {
-			dice: this._diceDescriptors,
+			dice: this._dice.map(dice => dice.toJSON()),
 			state: this.state,
 			round: this._round,
 			players: this._players.map(p => p.toJSON(options))
@@ -109,7 +110,7 @@ export default class Game {
 	_advanceRound() {
 		if (this._round < ROUNDS[this._type]) {
 			this._round++;
-			this._diceDescriptors = createDiceDescriptors(this._type, this._round);
+			this._dice = createDice(Dice, this._type, this._round);
 			this._players.forEach(p => p.roundEnded = false);
 			this.ts = performance.now();
 			this._notifyGameChange();

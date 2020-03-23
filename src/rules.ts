@@ -1,10 +1,5 @@
-export type DiceType = "plain" | "lake" | "forest";
+import { DiceType, DiceData } from "./dice.js";
 
-export interface DiceDescriptor {
-	type: DiceType;
-	sid: string;
-	transform: string;
-}
 
 export type GameType = "normal" | "lake" | "forest" | "demo";
 
@@ -15,27 +10,40 @@ export const ROUNDS: {[type in GameType]: number} = {
 	"demo": 1
 }
 
-function expandTemplate(template: DiceTemplate): DiceDescriptor {
+function expandTemplate(template: DiceTemplate) {
 	let names = template.tiles;
 	let sid = names[Math.floor(Math.random() * names.length)];
 	return {sid, transform:"0", type:template.type};
 }
 
-export function createDiceDescriptors(type: GameType, round: number): DiceDescriptor[] {
+interface Factory<T> {
+	fromJSON(data: DiceData): T;
+}
+
+export function createDice<T>(ctor: Factory<T>, type: GameType, round: number): T[] {
+	return createDiceData(type, round).map(data => ctor.fromJSON(data));
+}
+
+export function createDiceData(type: GameType, round: number): DiceData[] {
 	switch (type) {
 		case "demo":
 			return DEMO.map(type => ({sid:type, transform:"0", type:"plain"}));
 		break;
 
 		case "lake":
-			return [...createDiceDescriptors("normal", round), expandTemplate(DICE_LAKE), expandTemplate(DICE_LAKE)];
+			return [...createDiceData("normal", round), expandTemplate(DICE_LAKE), expandTemplate(DICE_LAKE)];
 		break;
 
 		case "forest":
 			if (round == 1) {
-				return [DICE_FOREST, DICE_FOREST, DICE_FOREST, DICE_FOREST].map(expandTemplate);
+				let data: DiceData = {
+					sid: "forest",
+					transform: "0",
+					type: "forest"
+				};
+				return [data, data, data, data];
 			} else {
-				return createDiceDescriptors("normal", round);
+				return createDiceData("normal", round);
 			}
 		break;
 
@@ -76,9 +84,4 @@ const DICE_REGULAR_2: DiceTemplate = {
 const DICE_LAKE: DiceTemplate = {
 	tiles: ["lake-1", "lake-2", "lake-3", "lake-rail", "lake-road", "lake-rail-road"],
 	type: "lake"
-}
-
-const DICE_FOREST: DiceTemplate = {
-	tiles: ["forest"],
-	type: "plain"
 }

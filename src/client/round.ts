@@ -1,20 +1,19 @@
 import Board from "../board.js";
 import Tile from "../tile.js";
 import { Cell } from "../cell-repo.js";
-import { DiceDescriptor } from "../rules.js";
 
 import Pool, { BonusPool } from "./pool.js";
-import Dice from "./dice.js";
 import * as html from "./html.js";
 import { DBLCLICK } from "./conf.js";
+import HTMLDice from "./html-dice.js";
 
 
 export default class Round {
 	node: HTMLElement;
-	_pending: Dice | null = null;
+	_pending: HTMLDice | null = null;
 	_pool: Pool;
 	_endButton: HTMLButtonElement = html.node("button");
-	_placedTiles = new Map<Tile, Dice>();
+	_placedTiles = new Map<Tile, HTMLDice>();
 	_lastClickTs = 0;
 
 	constructor(readonly number: number, readonly _board: Board, readonly _bonusPool: BonusPool) {
@@ -41,8 +40,8 @@ export default class Round {
 /**/
 	}
 
-	play(descriptors: DiceDescriptor[]) {
-		descriptors.map(d => Dice.fromDescriptor(d)).forEach(dice => this._pool.add(dice))
+	play(dice: HTMLDice[]) {
+		dice.forEach(dice => this._pool.add(dice))
 		this.node.appendChild(this._endButton);
 
 		this._pool.onClick = dice => this._onPoolClick(dice);
@@ -69,7 +68,7 @@ export default class Round {
 		this._board.onClick = noop;
 	}
 
-	_onPoolClick(dice: Dice) {
+	_onPoolClick(dice: HTMLDice) {
 		if (this._pending == dice) {
 			this._pending = null;
 			this._board.signal([]);

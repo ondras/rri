@@ -13,8 +13,7 @@ client/client.js: $(FLAG)
 	mkdir -p `dirname $@`
 	$(ROLLUP) .build/client/app.js > $@
 
-$(FLAG): $(shell find src -type f)
-	mkdir -p `dirname $@`
+$(FLAG): $(shell find src -name "*.ts")
 	$(TSC)
 	touch $@
 

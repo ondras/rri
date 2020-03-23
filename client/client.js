@@ -1201,11 +1201,17 @@ class CanvasDrawContext {
         ctx.font = `${TILE / 2}px sans-serif`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
+        let data = [];
         for (let i = 0; i < 3; i++) {
             let x = Math.round(TILE / 4 * (i + 1));
             let y = TILE / 2 + TILE / 6 * (i % 2 ? -1 : 1);
             let ch = (Math.random() < 0.5 ? "🌲" : "🌳");
-            ctx.fillText(ch, x, y);
+            data.push({ x, y, ch });
+        }
+        data.sort((a, b) => b.y - a.y);
+        while (data.length) {
+            let tree = data.pop();
+            ctx.fillText(tree.ch, tree.x, tree.y);
         }
     }
 }
@@ -1526,18 +1532,26 @@ function expandTemplate(template) {
     let sid = names[Math.floor(Math.random() * names.length)];
     return { sid, transform: "0", type: template.type };
 }
-function createDiceDescriptors(type, round) {
+function createDice(ctor, type, round) {
+    return createDiceData(type, round).map(data => ctor.fromJSON(data));
+}
+function createDiceData(type, round) {
     switch (type) {
         case "demo":
             return DEMO.map(type => ({ sid: type, transform: "0", type: "plain" }));
         case "lake":
-            return [...createDiceDescriptors("normal", round), expandTemplate(DICE_LAKE), expandTemplate(DICE_LAKE)];
+            return [...createDiceData("normal", round), expandTemplate(DICE_LAKE), expandTemplate(DICE_LAKE)];
         case "forest":
             if (round == 1) {
-                return [DICE_FOREST, DICE_FOREST, DICE_FOREST, DICE_FOREST].map(expandTemplate);
+                let data = {
+                    sid: "forest",
+                    transform: "0",
+                    type: "forest"
+                };
+                return [data, data, data, data];
             }
             else {
-                return createDiceDescriptors("normal", round);
+                return createDiceData("normal", round);
             }
         default:
             let result = [];
@@ -1566,30 +1580,26 @@ const DICE_LAKE = {
     tiles: ["lake-1", "lake-2", "lake-3", "lake-rail", "lake-road", "lake-rail-road"],
     type: "lake"
 };
-const DICE_FOREST = {
-    tiles: ["forest"],
-    type: "plain"
-};
 
 class Dice {
-    constructor(tile, type) {
-        this.type = type;
-        this.node = node("div", { className: "dice" });
-        this.tile = tile;
-        if (this.type == "lake") {
-            this.node.classList.add("lake");
-        }
+    constructor(_tile, _type) {
+        this._tile = _tile;
+        this._type = _type;
     }
-    static fromDescriptor(descriptor) {
-        let tile = new HTMLTile(descriptor.sid, descriptor.transform);
-        return new this(tile, descriptor.type);
+    static fromJSON(data) {
+        let tile = new Tile(data.sid, data.transform);
+        return new this(tile, data.type);
+    }
+    toJSON() {
+        let tileData = this._tile.toJSON(); // FIXME do not expand tileData
+        return {
+            type: this._type,
+            sid: tileData.sid,
+            transform: tileData.tid
+        };
     }
     get tile() { return this._tile; }
-    set tile(tile) {
-        this._tile = tile;
-        this.node.innerHTML = "";
-        this.node.appendChild(tile.node);
-    }
+    get mandatory() { return this._type == "plain" || this._type == "forest"; }
 }
 ["blocked", "pending", "disabled"].forEach(prop => {
     Object.defineProperty(Dice.prototype, prop, {
@@ -1598,6 +1608,26 @@ class Dice {
     });
 });
 
+class HTMLDice extends Dice {
+    constructor(_tile, _type) {
+        super(_tile, _type);
+        this._tile = _tile;
+        this._type = _type;
+        this.node = node("div", { className: "dice" });
+        if (this._type == "lake") {
+            this.node.classList.add("lake");
+        }
+        if (this._type == "forest") {
+            this.node.classList.add("forest");
+        }
+        this.node.appendChild(this._tile.node);
+    }
+    static fromJSON(data) {
+        let tile = new HTMLTile(data.sid, data.transform);
+        return new this(tile, data.type);
+    }
+}
+
 const MAX_BONUSES = 3;
 class Pool {
     constructor() {
@@ -1605,7 +1635,7 @@ class Pool {
         this._dices = [];
     }
     get remaining() {
-        return this._dices.filter(d => d.type == "plain" && !d.disabled && !d.blocked);
+        return this._dices.filter(d => d.mandatory && !d.disabled && !d.blocked);
     }
     handleEvent(e) {
         let target = e.currentTarget;
@@ -1653,8 +1683,8 @@ class BonusPool extends Pool {
         this.node.classList.add("bonus");
         ["cross-road-road-rail-road", "cross-road-rail-rail-rail", "cross-road",
             "cross-rail", "cross-road-rail-rail-road", "cross-road-rail-road-rail"].forEach(name => {
-            let descriptor = { sid: name, transform: "0", type: "plain" };
-            this.add(Dice.fromDescriptor(descriptor));
+            let data = { sid: name, transform: "0", type: "plain" };
+            this.add(HTMLDice.fromJSON(data));
         });
     }
     handleEvent(e) {
@@ -1737,8 +1767,8 @@ class Round {
                 });
         /**/
     }
-    play(descriptors) {
-        descriptors.map(d => Dice.fromDescriptor(d)).forEach(dice => this._pool.add(dice));
+    play(dice) {
+        dice.forEach(dice => this._pool.add(dice));
         this.node.appendChild(this._endButton);
         this._pool.onClick = dice => this._onPoolClick(dice);
         this._bonusPool.onClick = dice => this._onPoolClick(dice);
@@ -1938,9 +1968,9 @@ class SingleGame extends Game {
         let num = 1;
         while (num <= ROUNDS[this._type]) {
             let round = new Round(num, this._board, this._bonusPool);
-            let descriptors = createDiceDescriptors(this._type, num);
             this._node.appendChild(round.node);
-            await round.play(descriptors);
+            let dice = createDice(HTMLDice, this._type, num);
+            await round.play(dice);
             round.node.remove();
             num++;
         }
@@ -2083,6 +2113,7 @@ class MultiGame extends Game {
         setup.querySelector("[name=continue]").addEventListener("click", _ => this._continue());
         setup.querySelector("[name=create-normal]").addEventListener("click", _ => this._joinOrCreate("normal"));
         setup.querySelector("[name=create-lake]").addEventListener("click", _ => this._joinOrCreate("lake"));
+        setup.querySelector("[name=create-forest]").addEventListener("click", _ => this._joinOrCreate("forest"));
         const lobby = this._nodes["lobby"];
         lobby.querySelector("button").addEventListener("click", _ => this._rpc.call("start-game", []));
     }
@@ -2247,7 +2278,8 @@ class MultiGame extends Game {
         this._node.appendChild(this._bonusPool.node);
         this._node.appendChild(round.node);
         this._node.appendChild(this._wait);
-        let promise = round.play(response.dice);
+        let dice = response.dice.map(data => HTMLDice.fromJSON(data));
+        let promise = round.play(dice);
         if (ended) {
             round.end();
         }
@@ -2283,12 +2315,12 @@ class MultiGame extends Game {
     }
 }
 class MultiplayerRound extends Round {
-    play(descriptors) {
+    play(dice) {
         try {
             navigator.vibrate(200);
         }
         catch (e) { }
-        return super.play(descriptors);
+        return super.play(dice);
     }
     end() {
         this._endButton.disabled = true;

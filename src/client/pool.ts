@@ -1,17 +1,18 @@
-import Dice from "./dice.js";
+import { DiceType } from "../dice.js";
+
+import HTMLDice from "./html-dice.js";
 import Board from "../board.js";
 import * as html from "./html.js";
 import { DOWN_EVENT } from "./conf.js";
-import { DiceDescriptor } from "../rules.js";
 
 const MAX_BONUSES = 3;
 
 export default class Pool {
 	node: HTMLElement = html.node("div", {className:"pool"});
-	_dices: Dice[] = [];
+	_dices: HTMLDice[] = [];
 
 	get remaining() {
-		return this._dices.filter(d => d.type == "plain" && !d.disabled && !d.blocked);
+		return this._dices.filter(d => d.mandatory && !d.disabled && !d.blocked);
 	}
 
 	handleEvent(e: Event) {
@@ -21,30 +22,30 @@ export default class Pool {
 		this.onClick(dice);
 	}
 
-	add(dice: Dice) {
+	add(dice: HTMLDice) {
 		this.node.appendChild(dice.node);
 
 		dice.node.addEventListener(DOWN_EVENT, this);
 		this._dices.push(dice);
 	}
 
-	enable(dice: Dice) {
+	enable(dice: HTMLDice) {
 		if (!this._dices.includes(dice)) { return false; }
 		dice.disabled = false;
 		return true;
 	}
 
-	disable(dice: Dice) {
+	disable(dice: HTMLDice) {
 		if (!this._dices.includes(dice)) { return false; }
 		dice.disabled = true;
 		return true;
 	}
 
-	pending(dice: Dice | null) {
+	pending(dice: HTMLDice | null) {
 		this._dices.forEach(d => d.pending = (dice == d));
 	}
 
-	onClick(_dice: Dice) {}
+	onClick(_dice: HTMLDice) {}
 
 	sync(board: Board) {
 		this._dices.filter(dice => !dice.disabled).forEach(dice => {
@@ -64,8 +65,8 @@ export class BonusPool extends Pool {
 
 		["cross-road-road-rail-road", "cross-road-rail-rail-rail", "cross-road",
 		 "cross-rail", "cross-road-rail-rail-road", "cross-road-rail-road-rail"].forEach(name => {
-			let descriptor: DiceDescriptor = {sid:name, transform:"0", type:"plain"};
-			this.add(Dice.fromDescriptor(descriptor));
+			let data = {sid:name, transform:"0", type:"plain" as DiceType};
+			this.add(HTMLDice.fromJSON(data));
 		});
 	}
 
@@ -74,7 +75,7 @@ export class BonusPool extends Pool {
 		super.handleEvent(e);
 	}
 
-	disable(dice: Dice) {
+	disable(dice: HTMLDice) {
 		let disabled = super.disable(dice);
 		if (disabled) { // only if disabled, i.e. the tile was ours
 			this._used++;
@@ -83,7 +84,7 @@ export class BonusPool extends Pool {
 		return disabled;
 	}
 
-	enable(dice: Dice) {
+	enable(dice: HTMLDice) {
 		let enabled = super.enable(dice);
 		if (enabled) {
 			this._used--;

@@ -333,11 +333,21 @@ export default class CanvasDrawContext implements DrawContext {
 		ctx.textAlign = "center";
 		ctx.textBaseline = "middle";
 
+		interface Tree { x: number; y: number; ch: string; };
+		let data: Tree[] = [];
+
 		for (let i=0; i<3; i++) {
 			let x = Math.round(TILE/4 * (i+1));
 			let y = TILE/2 + TILE/6 * (i % 2 ? -1 : 1);
 			let ch = (Math.random() < 0.5 ? "🌲" : "🌳");
-			ctx.fillText(ch, x, y);
+			data.push({x, y, ch});
+		}
+
+		data.sort((a, b) => b.y-a.y);
+
+		while (data.length) {
+			let tree = data.pop() as Tree;
+			ctx.fillText(tree.ch, tree.x, tree.y);
 		}
 	}
 }

@@ -1,10 +1,12 @@
-import { GameType, DiceDescriptor } from "../rules.js";
+import { GameType } from "../rules.js";
 import Board, { SerializedBoard } from "../board.js";
+import { DiceData } from "../dice.js";
 
 import Game from "./game.js";
 import JsonRpc from "./json-rpc.js";
 import Round from "./round.js";
 import BoardCanvas from "./board-canvas.js";
+import HTMLDice from "./html-dice.js";
 import * as html from "./html.js";
 import * as scoreTable from "./score-table.js";
 import * as conf from "./conf.js";
@@ -19,7 +21,7 @@ interface Player {
 interface Response {
 	state: GameState;
 	round: number;
-	dice: DiceDescriptor[];
+	dice: DiceData[];
 	players: Player[];
 }
 
@@ -55,6 +57,7 @@ export default class MultiGame extends Game {
 		(setup.querySelector("[name=continue]") as HTMLElement).addEventListener("click", _ => this._continue());
 		(setup.querySelector("[name=create-normal]") as HTMLElement).addEventListener("click", _ => this._joinOrCreate("normal"));
 		(setup.querySelector("[name=create-lake]") as HTMLElement).addEventListener("click", _ => this._joinOrCreate("lake"));
+		(setup.querySelector("[name=create-forest]") as HTMLElement).addEventListener("click", _ => this._joinOrCreate("forest"));
 
 		const lobby = this._nodes["lobby"];
 		(lobby.querySelector("button") as HTMLElement).addEventListener("click", _ => this._rpc.call("start-game", []));
@@ -234,7 +237,8 @@ export default class MultiGame extends Game {
 		this._node.appendChild(round.node);
 		this._node.appendChild(this._wait);
 
-		let promise = round.play(response.dice);
+		let dice = response.dice.map(data => HTMLDice.fromJSON(data));
+		let promise = round.play(dice);
 		if (ended) {
 			round.end();
 		} else {
@@ -275,9 +279,9 @@ export default class MultiGame extends Game {
 }
 
 class MultiplayerRound extends Round {
-	play(descriptors: DiceDescriptor[]) {
+	play(dice: HTMLDice[]) {
 		try { navigator.vibrate(200); } catch (e) {}
-		return super.play(descriptors);
+		return super.play(dice);
 	}
 
 	end() {

@@ -1,5 +1,6 @@
-import { GameType, ROUNDS, createDiceDescriptors } from "../rules.js";
+import { GameType, ROUNDS, createDice } from "../rules.js";
 
+import HTMLDice from "./html-dice.js";
 import Game from "./game.js";
 import Round from "./round.js";
 import Board from "./board-canvas.js";
@@ -19,9 +20,9 @@ export default class SingleGame extends Game {
 		let num = 1;
 		while (num <= ROUNDS[this._type]) {
 			let round = new Round(num, this._board, this._bonusPool);
-			let descriptors = createDiceDescriptors(this._type, num);
 			this._node.appendChild(round.node);
-			await round.play(descriptors);
+			let dice = createDice(HTMLDice, this._type, num);
+			await round.play(dice);
 			round.node.remove();
 			num++;
 		}
