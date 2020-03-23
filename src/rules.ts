@@ -1,4 +1,4 @@
-export type DiceType = "plain" | "lake";
+export type DiceType = "plain" | "lake" | "forest";
 
 export interface DiceDescriptor {
 	type: DiceType;
