@@ -19,7 +19,7 @@ export default class SingleGame extends Game {
 		let num = 1;
 		while (num <= ROUNDS[this._type]) {
 			let round = new Round(num, this._board, this._bonusPool);
-			let descriptors = createDiceDescriptors(this._type);
+			let descriptors = createDiceDescriptors(this._type, num);
 			this._node.appendChild(round.node);
 			await round.play(descriptors);
 			round.node.remove();

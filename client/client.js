@@ -58,6 +58,7 @@ const NONE = 0;
 const RAIL = 1;
 const ROAD = 2;
 const LAKE = 3;
+const FOREST = 4;
 
 const repo$1 = {};
 const partials = {
@@ -382,6 +383,17 @@ const partials = {
             ctx.rail(W, 0.5);
             ctx.station();
         }
+    },
+    "forest": {
+        edges: [
+            { type: FOREST, connects: [] },
+            { type: FOREST, connects: [] },
+            { type: FOREST, connects: [] },
+            { type: FOREST, connects: [] }
+        ],
+        render(ctx) {
+            ctx.forest();
+        }
     }
 };
 function get$1(id) {
@@ -438,11 +450,11 @@ class Tile {
         let errors = 0;
         neighborEdges.forEach((nEdge, dir) => {
             let ourEdge = this.getEdge(dir).type;
-            if (ourEdge == LAKE) {
+            if (ourEdge == LAKE || ourEdge == FOREST) {
                 connections++;
                 return;
             }
-            if (nEdge == NONE || ourEdge == NONE) {
+            if (nEdge == NONE || ourEdge == NONE || nEdge == FOREST) {
                 return;
             }
             if (nEdge == ourEdge) {
@@ -654,6 +666,26 @@ function getLakes(cells) {
     }
     return sizes;
 }
+function getForests(cells) {
+    function isRailRoad(cell) {
+        if (cell.border || !cell.tile) {
+            return;
+        }
+        let tile = cell.tile;
+        return all.every(d => tile.getEdge(d).type != FOREST);
+    }
+    function hasForestNeighbor(cell) {
+        return all.some(d => {
+            let neighbor = getNeighbor(cell, d, cells);
+            if (!neighbor.tile) {
+                return;
+            }
+            let neighborEdge = clamp(d + 2);
+            return (neighbor.tile.getEdge(neighborEdge).type == FOREST);
+        });
+    }
+    return cells.filter(isRailRoad).filter(hasForestNeighbor).length;
+}
 function get$2(cells) {
     return {
         exits: getExits(cells),
@@ -661,7 +693,8 @@ function get$2(cells) {
         rail: getLongest(RAIL, cells),
         road: getLongest(ROAD, cells),
         deadends: getDeadends(cells),
-        lakes: getLakes(cells)
+        lakes: getLakes(cells),
+        forests: getForests(cells)
     };
 }
 function mapExits(score) {
@@ -679,7 +712,8 @@ function sum(score) {
         + score.rail.length
         + score.center
         - score.deadends.length
-        + lakeScore;
+        + lakeScore
+        + score.forests;
 }
 
 const BOARD = 7;
@@ -1162,10 +1196,22 @@ class CanvasDrawContext {
         this.styleLine();
         ctx.stroke(strokePath);
     }
+    forest() {
+        const ctx = this._ctx;
+        ctx.font = `${TILE / 2}px sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        for (let i = 0; i < 3; i++) {
+            let x = Math.round(TILE / 4 * (i + 1));
+            let y = TILE / 2 + TILE / 6 * (i % 2 ? -1 : 1);
+            let ch = (Math.random() < 0.5 ? "🌲" : "🌳");
+            ctx.fillText(ch, x, y);
+        }
+    }
 }
 
 let cache = new Map();
-function createCanvas(id) {
+function createVisual(id) {
     if (!cache.has(id)) {
         let shape = get$1(id);
         let canvas = node("canvas");
@@ -1179,8 +1225,8 @@ function createCanvas(id) {
 class HTMLTile extends Tile {
     constructor(sid, tid) {
         super(sid, tid);
-        let cached = createCanvas(this._data.sid);
-        this.node = node("img", { className: "tile", alt: "tile", src: cached.data });
+        this._visual = createVisual(this._data.sid);
+        this.node = node("img", { className: "tile", alt: "tile", src: this._visual.data });
         this._applyTransform();
     }
     get transform() { return super.transform; }
@@ -1189,7 +1235,7 @@ class HTMLTile extends Tile {
         this._applyTransform();
     }
     createCanvas() {
-        const source = createCanvas(this._data.sid).canvas;
+        const source = this._visual.canvas;
         const canvas = node("canvas", { width: source.width, height: source.height });
         const ctx = canvas.getContext("2d");
         get(this._data.tid).applyToContext(ctx);
@@ -1472,6 +1518,7 @@ function showBoard(board) {
 const ROUNDS = {
     "normal": 7,
     "lake": 6,
+    "forest": 7,
     "demo": 1
 };
 function expandTemplate(template) {
@@ -1479,12 +1526,19 @@ function expandTemplate(template) {
     let sid = names[Math.floor(Math.random() * names.length)];
     return { sid, transform: "0", type: template.type };
 }
-function createDiceDescriptors(type) {
+function createDiceDescriptors(type, round) {
     switch (type) {
         case "demo":
             return DEMO.map(type => ({ sid: type, transform: "0", type: "plain" }));
         case "lake":
-            return [...createDiceDescriptors("normal"), expandTemplate(DICE_LAKE), expandTemplate(DICE_LAKE)];
+            return [...createDiceDescriptors("normal", round), expandTemplate(DICE_LAKE), expandTemplate(DICE_LAKE)];
+        case "forest":
+            if (round == 1) {
+                return [DICE_FOREST, DICE_FOREST, DICE_FOREST, DICE_FOREST].map(expandTemplate);
+            }
+            else {
+                return createDiceDescriptors("normal", round);
+            }
         default:
             let result = [];
             let templates = [DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_2];
@@ -1511,6 +1565,10 @@ const DICE_REGULAR_2 = {
 const DICE_LAKE = {
     tiles: ["lake-1", "lake-2", "lake-3", "lake-rail", "lake-road", "lake-rail-road"],
     type: "lake"
+};
+const DICE_FOREST = {
+    tiles: ["forest"],
+    type: "plain"
 };
 
 class Dice {
@@ -1789,10 +1847,11 @@ function buildTable() {
     table.appendChild(node("tbody"));
     table.tHead.insertRow().insertCell();
     const body = table.tBodies[0];
-    ["Connected exists", "Longest road", "Longest rail", "Center tiles", "Dead ends", "Smallest lake"].forEach(label => {
+    ["Connected exits", "Longest road", "Longest rail", "Center tiles", "Dead ends", "Smallest lake", "Forest views"].forEach(label => {
         body.insertRow().insertCell().textContent = label;
     });
     body.rows[body.rows.length - 1].hidden = true;
+    body.rows[body.rows.length - 2].hidden = true;
     table.appendChild(node("tfoot"));
     table.tFoot.insertRow().insertCell().textContent = "Score";
     return table;
@@ -1826,6 +1885,14 @@ function addColumn(table, score, name = "", active = false) {
     }
     else {
         lakeRow.insertCell();
+    }
+    let forestRow = body.rows[6];
+    if (score.forests) {
+        forestRow.insertCell().textContent = score.forests.toString();
+        forestRow.hidden = false;
+    }
+    else {
+        forestRow.insertCell();
     }
     let total = sum(score);
     const totalRow = table.tFoot.rows[0];
@@ -1871,7 +1938,7 @@ class SingleGame extends Game {
         let num = 1;
         while (num <= ROUNDS[this._type]) {
             let round = new Round(num, this._board, this._bonusPool);
-            let descriptors = createDiceDescriptors(this._type);
+            let descriptors = createDiceDescriptors(this._type, num);
             this._node.appendChild(round.node);
             await round.play(descriptors);
             round.node.remove();
@@ -2293,6 +2360,7 @@ async function goGame(type) {
 function init() {
     document.querySelector("[name=start-normal]").addEventListener("click", _ => goGame("normal"));
     document.querySelector("[name=start-lake]").addEventListener("click", _ => goGame("lake"));
+    document.querySelector("[name=start-forest]").addEventListener("click", _ => goGame("forest"));
     document.querySelector("[name=start-multi]").addEventListener("click", _ => goGame("multi"));
     document.querySelector("[name=again]").addEventListener("click", _ => goIntro());
     document.querySelector("[name=download]").addEventListener("click", _ => download());

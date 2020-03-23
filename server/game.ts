@@ -109,7 +109,7 @@ export default class Game {
 	_advanceRound() {
 		if (this._round < ROUNDS[this._type]) {
 			this._round++;
-			this._diceDescriptors = createDiceDescriptors(this._type);
+			this._diceDescriptors = createDiceDescriptors(this._type, this._round);
 			this._players.forEach(p => p.roundEnded = false);
 			this.ts = performance.now();
 			this._notifyGameChange();

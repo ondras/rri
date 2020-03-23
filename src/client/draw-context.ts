@@ -326,4 +326,18 @@ export default class CanvasDrawContext implements DrawContext {
 		this.styleLine();
 		ctx.stroke(strokePath);
 	}
+
+	forest() {
+		const ctx = this._ctx;
+		ctx.font = `${TILE/2}px sans-serif`;
+		ctx.textAlign = "center";
+		ctx.textBaseline = "middle";
+
+		for (let i=0; i<3; i++) {
+			let x = Math.round(TILE/4 * (i+1));
+			let y = TILE/2 + TILE/6 * (i % 2 ? -1 : 1);
+			let ch = (Math.random() < 0.5 ? "🌲" : "🌳");
+			ctx.fillText(ch, x, y);
+		}
+	}
 }

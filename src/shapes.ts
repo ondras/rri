@@ -1,6 +1,6 @@
 import { get as getTransform, all as allTransforms } from "./transform.js";
 import { N, E, S, W, all as allDirections } from "./direction.js";
-import { Edge, NONE, RAIL, ROAD, LAKE } from "./edge.js";
+import { Edge, NONE, RAIL, ROAD, LAKE, FOREST } from "./edge.js";
 import DrawContext from "./draw-context.js";
 
 
@@ -383,6 +383,19 @@ const partials: {[id:string]: PartialShape} = {
 			ctx.road(S, 0.5);
 			ctx.rail(W, 0.5);
 			ctx.station();
+		}
+	},
+
+	"forest": {
+		edges: [
+			{type: FOREST, connects: []},
+			{type: FOREST, connects: []},
+			{type: FOREST, connects: []},
+			{type: FOREST, connects: []}
+		],
+
+		render(ctx: DrawContext) {
+			ctx.forest();
 		}
 	}
 };

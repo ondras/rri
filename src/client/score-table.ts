@@ -11,11 +11,12 @@ function buildTable() {
 	table.tHead!.insertRow().insertCell();
 
 	const body = table.tBodies[0];
-	["Connected exists", "Longest road", "Longest rail", "Center tiles", "Dead ends", "Smallest lake"].forEach(label => {
+	["Connected exits", "Longest road", "Longest rail", "Center tiles", "Dead ends", "Smallest lake", "Forest views"].forEach(label => {
 		body.insertRow().insertCell().textContent = label;
 	});
 
 	body.rows[body.rows.length-1].hidden = true;
+	body.rows[body.rows.length-2].hidden = true;
 
 	table.appendChild(html.node("tfoot"));
 	table.tFoot!.insertRow().insertCell().textContent = "Score";
@@ -54,6 +55,14 @@ function addColumn(table: HTMLTableElement, score: Score, name="", active=false)
 		lakeRow.hidden = false;
 	} else {
 		lakeRow.insertCell();
+	}
+
+	let forestRow = body.rows[6];
+	if (score.forests) {
+		forestRow.insertCell().textContent = score.forests.toString();
+		forestRow.hidden = false;
+	} else {
+		forestRow.insertCell();
 	}
 
 	let total = sum(score);

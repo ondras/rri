@@ -1,6 +1,6 @@
 import CellRepo, { Cell } from "./cell-repo.js";
 import { Direction, clamp, all as allDirections, Vector } from "./direction.js";
-import { NONE, ROAD, RAIL, LAKE, EdgeType } from "./edge.js";
+import { NONE, ROAD, RAIL, LAKE, FOREST, EdgeType } from "./edge.js";
 
 
 export interface Score {
@@ -10,6 +10,7 @@ export interface Score {
 	road: Cell[];
 	rail: Cell[];
 	lakes: number[];
+	forests: number;
 }
 
 interface Deadend {
@@ -222,6 +223,26 @@ function getLakes(cells: CellRepo) {
 	return sizes;
 }
 
+function getForests(cells: CellRepo) {
+	function isRailRoad(cell: Cell) {
+		if (cell.border || !cell.tile) { return; }
+		let tile = cell.tile;
+		return allDirections.every(d => tile.getEdge(d).type != FOREST);
+	}
+
+	function hasForestNeighbor(cell: Cell) {
+		return allDirections.some(d => {
+			let neighbor = getNeighbor(cell, d, cells);
+			if (!neighbor.tile) { return; }
+
+			let neighborEdge = clamp(d+2);
+			return (neighbor.tile.getEdge(neighborEdge).type == FOREST);
+		});
+	}
+
+	return cells.filter(isRailRoad).filter(hasForestNeighbor).length;
+}
+
 export function get(cells: CellRepo): Score {
 	return {
 		exits: getExits(cells),
@@ -229,7 +250,8 @@ export function get(cells: CellRepo): Score {
 		rail: getLongest(RAIL, cells),
 		road: getLongest(ROAD, cells),
 		deadends: getDeadends(cells),
-		lakes: getLakes(cells)
+		lakes: getLakes(cells),
+		forests: getForests(cells)
 	}
 }
 
@@ -251,5 +273,6 @@ export function sum(score: Score) {
 		+ score.rail.length
 		+ score.center
 		- score.deadends.length
-		+ lakeScore;
+		+ lakeScore
+		+ score.forests;
 }

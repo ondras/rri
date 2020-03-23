@@ -6,11 +6,12 @@ export interface DiceDescriptor {
 	transform: string;
 }
 
-export type GameType = "normal" | "lake" | "demo";
+export type GameType = "normal" | "lake" | "forest" | "demo";
 
 export const ROUNDS: {[type in GameType]: number} = {
 	"normal": 7,
 	"lake": 6,
+	"forest": 7,
 	"demo": 1
 }
 
@@ -20,14 +21,22 @@ function expandTemplate(template: DiceTemplate): DiceDescriptor {
 	return {sid, transform:"0", type:template.type};
 }
 
-export function createDiceDescriptors(type: GameType): DiceDescriptor[] {
+export function createDiceDescriptors(type: GameType, round: number): DiceDescriptor[] {
 	switch (type) {
 		case "demo":
 			return DEMO.map(type => ({sid:type, transform:"0", type:"plain"}));
 		break;
 
 		case "lake":
-			return [...createDiceDescriptors("normal"), expandTemplate(DICE_LAKE), expandTemplate(DICE_LAKE)];
+			return [...createDiceDescriptors("normal", round), expandTemplate(DICE_LAKE), expandTemplate(DICE_LAKE)];
+		break;
+
+		case "forest":
+			if (round == 1) {
+				return [DICE_FOREST, DICE_FOREST, DICE_FOREST, DICE_FOREST].map(expandTemplate);
+			} else {
+				return createDiceDescriptors("normal", round);
+			}
 		break;
 
 		default:
@@ -67,4 +76,9 @@ const DICE_REGULAR_2: DiceTemplate = {
 const DICE_LAKE: DiceTemplate = {
 	tiles: ["lake-1", "lake-2", "lake-3", "lake-rail", "lake-road", "lake-rail-road"],
 	type: "lake"
+}
+
+const DICE_FOREST: DiceTemplate = {
+	tiles: ["forest"],
+	type: "plain"
 }

@@ -6,13 +6,13 @@ import * as html from "./html.js";
 import DrawContext from "./draw-context.js";
 
 
-interface Cached {
+interface Visual {
 	canvas: HTMLCanvasElement;
 	data: string;
 }
-let cache = new Map<string, Cached>();
+let cache = new Map<string, Visual>();
 
-function createCanvas(id:string) {
+function createVisual(id:string) {
 	if (!cache.has(id)) {
 		let shape = getShape(id);
 		let canvas = html.node("canvas");
@@ -22,17 +22,18 @@ function createCanvas(id:string) {
 		cache.set(id, {canvas, data});
 	}
 
-	return cache.get(id) as Cached;
+	return cache.get(id) as Visual;
 }
 
 export default class HTMLTile extends Tile {
 	node!: HTMLImageElement;
+	_visual: Visual;
 
 	constructor(sid: string, tid: string) {
 		super(sid, tid);
 
-		let cached = createCanvas(this._data.sid);
-		this.node = html.node("img", {className:"tile", alt:"tile", src:cached.data});
+		this._visual = createVisual(this._data.sid);
+		this.node = html.node("img", {className:"tile", alt:"tile", src:this._visual.data});
 		this._applyTransform();
 	}
 
@@ -43,7 +44,7 @@ export default class HTMLTile extends Tile {
 	}
 
 	createCanvas() {
-		const source = createCanvas(this._data.sid).canvas;
+		const source = this._visual.canvas;
 
 		const canvas = html.node("canvas", {width:source.width, height:source.height});
 
@@ -58,6 +59,5 @@ export default class HTMLTile extends Tile {
 
 	_applyTransform() {
 		this.node.style.transform = getTransform(this._data.tid).getCSS();
-
 	}
 }

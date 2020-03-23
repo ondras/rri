@@ -35,6 +35,7 @@ async function goGame(type: GameType | "multi") {
 function init() {
 	(document.querySelector("[name=start-normal]") as HTMLElement).addEventListener("click", _ => goGame("normal"));
 	(document.querySelector("[name=start-lake]") as HTMLElement).addEventListener("click", _ => goGame("lake"));
+	(document.querySelector("[name=start-forest]") as HTMLElement).addEventListener("click", _ => goGame("forest"));
 	(document.querySelector("[name=start-multi]") as HTMLElement).addEventListener("click", _ => goGame("multi"));
 	(document.querySelector("[name=again]") as HTMLElement).addEventListener("click", _ => goIntro());
 	(document.querySelector("[name=download]") as HTMLElement).addEventListener("click", _ => download());

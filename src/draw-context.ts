@@ -15,4 +15,5 @@ export default interface DrawContext {
 	styleRoadTicks(d: number[], o:number): void;
 	styleRailTicks(d: number[], o:number): void;
 	lake(p: Point[]): void;
+	forest(): void;
 }
