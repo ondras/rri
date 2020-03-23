@@ -1573,10 +1573,10 @@ const DICE_FOREST = {
 
 class Dice {
     constructor(tile, type) {
+        this.type = type;
         this.node = node("div", { className: "dice" });
         this.tile = tile;
-        this.type = type;
-        if (type == "lake") {
+        if (this.type == "lake") {
             this.node.classList.add("lake");
         }
     }

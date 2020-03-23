@@ -10,18 +10,16 @@ export default class Dice {
 	blocked!: boolean;
 	pending!: boolean;
 	disabled!: boolean;
-	readonly type: DiceType;
 
 	static fromDescriptor(descriptor: DiceDescriptor) {
 		let tile = new Tile(descriptor.sid, descriptor.transform);
 		return new this(tile, descriptor.type);
 	}
 
-	constructor(tile: Tile, type: DiceType) {
+	constructor(tile: Tile, readonly type: DiceType) {
 		this.tile = tile;
-		this.type = type;
 
-		if (type == "lake") { this.node.classList.add("lake"); }
+		if (this.type == "lake") { this.node.classList.add("lake"); }
 	}
 
 	get tile() { return this._tile; }
