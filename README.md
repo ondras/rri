@@ -16,7 +16,7 @@ Please report any bugs found to the [issue tracker](https://github.com/ondras/rr
 
 ## How to play
 
-Familiarize yourself with [game rules](https://www.horrible-games.com/wp-content/uploads/2018/07/RRI_BLU_Rulebook_ENG_v05_light.pdf) first.
+Familiarize yourself with [game rules](https://www.horrible-games.com/wp-content/uploads/2018/07/RRI_BLU_Rulebook_ENG_v05_light.pdf) first. Rules for the [forests expansion](#forests-expansion) follow.
 
 Playing the game is very straightforward; you pick pieces by clicking/touching the dice pool and you place them by clicking/touching the game board afterwards. To **rotate** a tile, place it and then touch it again. To **remove** a tile, double-click/double-touch it.
 
@@ -35,7 +35,7 @@ During the online match, you may freely close and re-open your app. The multipla
 
 *"The old forests are beautiful. We are not allowed to cut them down, but passengers love the view while passing them."*
 
-Rules (created by [Niklas Thomas](https://boardgamegeek.com/thread/2392579/railroad-ink-green-edition-fanmade):
+Rules (created by [Niklas Thomas](https://boardgamegeek.com/thread/2392579/railroad-ink-green-edition-fanmade)):
 
 - The Game only lasts for 6 regular rounds (+1 pre-round)
 - During the first round both players draw 4 forests spaces somewhere on their board
