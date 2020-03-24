@@ -1,9 +1,8 @@
-import { DiceType } from "../dice.js";
-
 import HTMLDice from "./html-dice.js";
 import Board from "../board.js";
 import * as html from "./html.js";
 import { DOWN_EVENT } from "./conf.js";
+
 
 const MAX_BONUSES = 3;
 
@@ -64,9 +63,8 @@ export class BonusPool extends Pool {
 		this.node.classList.add("bonus");
 
 		["cross-road-road-rail-road", "cross-road-rail-rail-rail", "cross-road",
-		 "cross-rail", "cross-road-rail-rail-road", "cross-road-rail-road-rail"].forEach(name => {
-			let data = {sid:name, transform:"0", type:"plain" as DiceType};
-			this.add(HTMLDice.fromJSON(data));
+		 "cross-rail", "cross-road-rail-rail-road", "cross-road-rail-road-rail"].forEach(sid => {
+			this.add(new HTMLDice("plain", sid));
 		});
 	}
 

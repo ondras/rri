@@ -1527,31 +1527,29 @@ const ROUNDS = {
     "forest": 7,
     "demo": 1
 };
-function expandTemplate(template) {
-    let names = template.tiles;
-    let sid = names[Math.floor(Math.random() * names.length)];
-    return { sid, transform: "0", type: template.type };
+function randomType(types) {
+    return types[Math.floor(Math.random() * types.length)];
 }
-function createDice(ctor, type, round) {
-    return createDiceData(type, round).map(data => ctor.fromJSON(data));
-}
-function createDiceData(type, round) {
+function createDice(Ctor, type, round) {
     switch (type) {
         case "demo":
-            return DEMO.map(type => ({ sid: type, transform: "0", type: "plain" }));
+            return DEMO.map(type => new Ctor("plain", type));
         case "lake":
-            return [...createDiceData("normal", round), expandTemplate(DICE_LAKE), expandTemplate(DICE_LAKE)];
+            return [
+                ...createDice(Ctor, "normal", round),
+                new Ctor("lake", randomType(DICE_LAKE)),
+                new Ctor("lake", randomType(DICE_LAKE))
+            ];
         case "forest":
             if (round == 1) {
-                let data = {
-                    sid: "forest",
-                    transform: "0",
-                    type: "forest"
-                };
-                return [data, data, data, data];
+                let result = [];
+                for (let i = 0; i < 4; i++) {
+                    result.push(new Ctor("forest", "forest"));
+                }
+                return result;
             }
             else {
-                return createDiceData("normal", round);
+                return createDice(Ctor, "normal", round);
             }
         default:
             let result = [];
@@ -1559,7 +1557,8 @@ function createDiceData(type, round) {
             while (templates.length) {
                 let index = Math.floor(Math.random() * templates.length);
                 let template = templates.splice(index, 1)[0];
-                result.push(expandTemplate(template));
+                let sid = randomType(template);
+                result.push(new Ctor("plain", sid));
             }
             return result;
     }
@@ -1568,35 +1567,40 @@ const DEMO = [
     "bridge", "rail-i", "road-i", "rail-road-l", "rail-road-i", "rail-t", "road-l", "rail-l", "road-t",
     "lake-1", "lake-2", "lake-3", "lake-4", "lake-rail", "lake-road", "lake-rail-road"
 ];
-const DICE_REGULAR_1 = {
-    tiles: ["road-i", "rail-i", "road-l", "rail-l", "road-t", "rail-t"],
-    type: "plain"
-};
-const DICE_REGULAR_2 = {
-    tiles: ["bridge", "bridge", "rail-road-i", "rail-road-i", "rail-road-l", "rail-road-l"],
-    type: "plain"
-};
-const DICE_LAKE = {
-    tiles: ["lake-1", "lake-2", "lake-3", "lake-rail", "lake-road", "lake-rail-road"],
-    type: "lake"
-};
+const DICE_REGULAR_1 = ["road-i", "rail-i", "road-l", "rail-l", "road-t", "rail-t"];
+const DICE_REGULAR_2 = ["bridge", "bridge", "rail-road-i", "rail-road-i", "rail-road-l", "rail-road-l"];
+const DICE_LAKE = ["lake-1", "lake-2", "lake-3", "lake-rail", "lake-road", "lake-rail-road"];
 
 class Dice {
-    constructor(_tile, _type) {
-        this._tile = _tile;
+    constructor(_type, _sid) {
         this._type = _type;
+        this._sid = _sid;
     }
     static fromJSON(data) {
-        let tile = new Tile(data.sid, data.transform);
-        return new this(tile, data.type);
+        return new this(data.type, data.sid);
     }
     toJSON() {
-        let tileData = this._tile.toJSON(); // FIXME do not expand tileData
         return {
             type: this._type,
-            sid: tileData.sid,
-            transform: tileData.tid
+            sid: this._sid
         };
+    }
+}
+
+class HTMLDice extends Dice {
+    constructor(_type, _sid) {
+        super(_type, _sid);
+        this._type = _type;
+        this._sid = _sid;
+        this.node = node("div", { className: "dice" });
+        if (this._type == "lake") {
+            this.node.classList.add("lake");
+        }
+        if (this._type == "forest") {
+            this.node.classList.add("forest");
+        }
+        this._tile = new HTMLTile(this._sid, "0");
+        this.node.appendChild(this._tile.node);
     }
     get tile() { return this._tile; }
     get mandatory() { return this._type == "plain" || this._type == "forest"; }
@@ -1607,26 +1611,6 @@ class Dice {
         set(flag) { this.node.classList.toggle(prop, flag); }
     });
 });
-
-class HTMLDice extends Dice {
-    constructor(_tile, _type) {
-        super(_tile, _type);
-        this._tile = _tile;
-        this._type = _type;
-        this.node = node("div", { className: "dice" });
-        if (this._type == "lake") {
-            this.node.classList.add("lake");
-        }
-        if (this._type == "forest") {
-            this.node.classList.add("forest");
-        }
-        this.node.appendChild(this._tile.node);
-    }
-    static fromJSON(data) {
-        let tile = new HTMLTile(data.sid, data.transform);
-        return new this(tile, data.type);
-    }
-}
 
 const MAX_BONUSES = 3;
 class Pool {
@@ -1682,9 +1666,8 @@ class BonusPool extends Pool {
         this._locked = false;
         this.node.classList.add("bonus");
         ["cross-road-road-rail-road", "cross-road-rail-rail-rail", "cross-road",
-            "cross-rail", "cross-road-rail-rail-road", "cross-road-rail-road-rail"].forEach(name => {
-            let data = { sid: name, transform: "0", type: "plain" };
-            this.add(HTMLDice.fromJSON(data));
+            "cross-rail", "cross-road-rail-rail-road", "cross-road-rail-road-rail"].forEach(sid => {
+            this.add(new HTMLDice("plain", sid));
         });
     }
     handleEvent(e) {

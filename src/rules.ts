@@ -1,5 +1,9 @@
-import { DiceType, DiceData } from "./dice.js";
+import Dice, { DiceType } from "./dice.js";
 
+
+interface Type<T> {
+	new(type: DiceType, sid: string): T;
+}
 
 export type GameType = "normal" | "lake" | "forest" | "demo";
 
@@ -10,40 +14,31 @@ export const ROUNDS: {[type in GameType]: number} = {
 	"demo": 1
 }
 
-function expandTemplate(template: DiceTemplate) {
-	let names = template.tiles;
-	let sid = names[Math.floor(Math.random() * names.length)];
-	return {sid, transform:"0", type:template.type};
+function randomType(types: string[]) {
+	return types[Math.floor(Math.random() * types.length)];
 }
 
-interface Factory<T> {
-	fromJSON(data: DiceData): T;
-}
-
-export function createDice<T>(ctor: Factory<T>, type: GameType, round: number): T[] {
-	return createDiceData(type, round).map(data => ctor.fromJSON(data));
-}
-
-export function createDiceData(type: GameType, round: number): DiceData[] {
+export function createDice<T extends Dice>(Ctor: Type<T>, type: GameType, round: number): T[] {
 	switch (type) {
 		case "demo":
-			return DEMO.map(type => ({sid:type, transform:"0", type:"plain"}));
+			return DEMO.map(type => new Ctor("plain", type));
 		break;
 
 		case "lake":
-			return [...createDiceData("normal", round), expandTemplate(DICE_LAKE), expandTemplate(DICE_LAKE)];
+			return [
+				...createDice(Ctor, "normal", round),
+				new Ctor("lake", randomType(DICE_LAKE)),
+				new Ctor("lake", randomType(DICE_LAKE))
+			];
 		break;
 
 		case "forest":
 			if (round == 1) {
-				let data: DiceData = {
-					sid: "forest",
-					transform: "0",
-					type: "forest"
-				};
-				return [data, data, data, data];
+				let result = [];
+				for (let i=0;i<4;i++) { result.push(new Ctor("forest", "forest")); }
+				return result;
 			} else {
-				return createDiceData("normal", round);
+				return createDice(Ctor, "normal", round);
 			}
 		break;
 
@@ -53,7 +48,8 @@ export function createDiceData(type: GameType, round: number): DiceData[] {
 			while (templates.length) {
 				let index = Math.floor(Math.random()*templates.length);
 				let template = templates.splice(index, 1)[0];
-				result.push(expandTemplate(template));
+				let sid = randomType(template);
+				result.push(new Ctor("plain", sid));
 			}
 			return result;
 		break;
@@ -61,27 +57,10 @@ export function createDiceData(type: GameType, round: number): DiceData[] {
 
 }
 
-interface DiceTemplate {
-	tiles: string[];
-	type: DiceType;
-}
-
 const DEMO = [
 	"bridge", "rail-i", "road-i", "rail-road-l", "rail-road-i", "rail-t", "road-l", "rail-l", "road-t",
 	"lake-1", "lake-2", "lake-3", "lake-4", "lake-rail", "lake-road", "lake-rail-road"
 ];
-
-const DICE_REGULAR_1: DiceTemplate = {
-	tiles: ["road-i", "rail-i", "road-l", "rail-l", "road-t", "rail-t"],
-	type: "plain"
-}
-
-const DICE_REGULAR_2: DiceTemplate = {
-	tiles: ["bridge", "bridge", "rail-road-i", "rail-road-i", "rail-road-l", "rail-road-l"],
-	type: "plain"
-}
-
-const DICE_LAKE: DiceTemplate = {
-	tiles: ["lake-1", "lake-2", "lake-3", "lake-rail", "lake-road", "lake-rail-road"],
-	type: "lake"
-}
+const DICE_REGULAR_1 = ["road-i", "rail-i", "road-l", "rail-l", "road-t", "rail-t"];
+const DICE_REGULAR_2 = ["bridge", "bridge", "rail-road-i", "rail-road-i", "rail-road-l", "rail-road-l"];
+const DICE_LAKE = ["lake-1", "lake-2", "lake-3", "lake-rail", "lake-road", "lake-rail-road"];
