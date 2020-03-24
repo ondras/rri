@@ -50,7 +50,7 @@ function addColumn(table: HTMLTableElement, score: Score, name="", active=false)
 
 	let lakeRow = body.rows[5];
 	let lakeScore = sumLakes(score);
-	if (lakeScore) {
+	if (lakeScore > 0) {
 		lakeRow.insertCell().textContent = lakeScore.toString();
 		lakeRow.hidden = false;
 	} else {
@@ -58,8 +58,8 @@ function addColumn(table: HTMLTableElement, score: Score, name="", active=false)
 	}
 
 	let forestRow = body.rows[6];
-	if (score.forests) {
-		forestRow.insertCell().textContent = score.forests.toString();
+	if (score.forests.length > 0) {
+		forestRow.insertCell().textContent = score.forests.length.toString();
 		forestRow.hidden = false;
 	} else {
 		forestRow.insertCell();

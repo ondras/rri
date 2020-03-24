@@ -10,7 +10,7 @@ export interface Score {
 	road: Cell[];
 	rail: Cell[];
 	lakes: number[];
-	forests: number;
+	forests: Cell[];
 }
 
 interface Deadend {
@@ -240,7 +240,7 @@ function getForests(cells: CellRepo) {
 		});
 	}
 
-	return cells.filter(isRailRoad).filter(hasForestNeighbor).length;
+	return cells.filter(isRailRoad).filter(hasForestNeighbor);
 }
 
 export function get(cells: CellRepo): Score {
@@ -274,5 +274,5 @@ export function sum(score: Score) {
 		+ score.center
 		- score.deadends.length
 		+ lakeScore
-		+ score.forests;
+		+ score.forests.length;
 }

@@ -684,7 +684,7 @@ function getForests(cells) {
             return (neighbor.tile.getEdge(neighborEdge).type == FOREST);
         });
     }
-    return cells.filter(isRailRoad).filter(hasForestNeighbor).length;
+    return cells.filter(isRailRoad).filter(hasForestNeighbor);
 }
 function get$2(cells) {
     return {
@@ -713,7 +713,7 @@ function sum(score) {
         + score.center
         - score.deadends.length
         + lakeScore
-        + score.forests;
+        + score.forests.length;
 }
 
 const BOARD = 7;
@@ -1218,20 +1218,27 @@ class CanvasDrawContext {
 
 let cache = new Map();
 function createVisual(id) {
-    if (!cache.has(id)) {
+    let result;
+    if (cache.has(id)) {
+        result = cache.get(id);
+    }
+    else {
         let shape = get$1(id);
         let canvas = node("canvas");
         let ctx = new CanvasDrawContext(canvas);
         shape.render(ctx);
         let data = canvas.toDataURL("image/png");
-        cache.set(id, { canvas, data });
+        result = { canvas, data };
+        if (id != "forest") {
+            cache.set(id, result);
+        }
     }
-    return cache.get(id);
+    return result;
 }
 class HTMLTile extends Tile {
-    constructor(sid, tid) {
+    constructor(sid, tid, visual = null) {
         super(sid, tid);
-        this._visual = createVisual(this._data.sid);
+        this._visual = visual || createVisual(this._data.sid);
         this.node = node("img", { className: "tile", alt: "tile", src: this._visual.data });
         this._applyTransform();
     }
@@ -1240,6 +1247,7 @@ class HTMLTile extends Tile {
         super.transform = transform;
         this._applyTransform();
     }
+    clone() { return new HTMLTile(this._data.sid, this._data.tid, this._visual); }
     createCanvas() {
         const source = this._visual.canvas;
         const canvas = node("canvas", { width: source.width, height: source.height });
@@ -1248,7 +1256,6 @@ class HTMLTile extends Tile {
         ctx.drawImage(source, 0, 0);
         return canvas;
     }
-    clone() { return HTMLTile.fromJSON(this.toJSON()); }
     _applyTransform() {
         this.node.style.transform = get(this._data.tid).getCSS();
     }
@@ -1385,6 +1392,13 @@ class BoardCanvas extends Board {
             pxx += vec[0] * offset;
             pxy += vec[1] * offset;
             ctx.fillText("✘", pxx, pxy);
+        });
+        ctx.globalCompositeOperation = "destination-over";
+        ctx.fillStyle = "rgba(200, 255, 100, 0.2)";
+        score.forests.forEach(cell => {
+            let pxx = cellToPx(cell.x);
+            let pxy = cellToPx(cell.y);
+            ctx.fillRect(pxx, pxy, TILE, TILE);
         });
         if (ctx.canvas.toBlob) {
             ctx.canvas.toBlob(blob => this.blob = blob);
@@ -1565,7 +1579,8 @@ function createDice(Ctor, type, round) {
 }
 const DEMO = [
     "bridge", "rail-i", "road-i", "rail-road-l", "rail-road-i", "rail-t", "road-l", "rail-l", "road-t",
-    "lake-1", "lake-2", "lake-3", "lake-4", "lake-rail", "lake-road", "lake-rail-road"
+    "lake-1", "lake-2", "lake-3", "lake-4", "lake-rail", "lake-road", "lake-rail-road",
+    "forest"
 ];
 const DICE_REGULAR_1 = ["road-i", "rail-i", "road-l", "rail-l", "road-t", "rail-t"];
 const DICE_REGULAR_2 = ["bridge", "bridge", "rail-road-i", "rail-road-i", "rail-road-l", "rail-road-l"];
@@ -1892,7 +1907,7 @@ function addColumn(table, score, name = "", active = false) {
     body.rows[4].insertCell().textContent = (-score.deadends.length).toString();
     let lakeRow = body.rows[5];
     let lakeScore = sumLakes(score);
-    if (lakeScore) {
+    if (lakeScore > 0) {
         lakeRow.insertCell().textContent = lakeScore.toString();
         lakeRow.hidden = false;
     }
@@ -1900,8 +1915,8 @@ function addColumn(table, score, name = "", active = false) {
         lakeRow.insertCell();
     }
     let forestRow = body.rows[6];
-    if (score.forests) {
-        forestRow.insertCell().textContent = score.forests.toString();
+    if (score.forests.length > 0) {
+        forestRow.insertCell().textContent = score.forests.length.toString();
         forestRow.hidden = false;
     }
     else {
@@ -2372,13 +2387,16 @@ async function goGame(type) {
         goIntro();
     }
 }
+function onClick(name, cb) {
+    document.querySelector(`[name=${name}]`).addEventListener("click", cb);
+}
 function init() {
-    document.querySelector("[name=start-normal]").addEventListener("click", _ => goGame("normal"));
-    document.querySelector("[name=start-lake]").addEventListener("click", _ => goGame("lake"));
-    document.querySelector("[name=start-forest]").addEventListener("click", _ => goGame("forest"));
-    document.querySelector("[name=start-multi]").addEventListener("click", _ => goGame("multi"));
-    document.querySelector("[name=again]").addEventListener("click", _ => goIntro());
-    document.querySelector("[name=download]").addEventListener("click", _ => download());
+    onClick("start-normal", () => goGame("normal"));
+    onClick("start-lake", () => goGame("lake"));
+    onClick("start-forest", () => goGame("forest"));
+    onClick("start-multi", () => goGame("multi"));
+    onClick("again", () => goIntro());
+    onClick("download", () => download());
     goIntro();
 }
 init();

@@ -32,13 +32,17 @@ async function goGame(type: GameType | "multi") {
 	if (!played) { goIntro(); }
 }
 
+function onClick(name: string, cb: () => void | Promise<void>) {
+	(document.querySelector(`[name=${name}]`) as HTMLElement).addEventListener("click", cb);
+}
+
 function init() {
-	(document.querySelector("[name=start-normal]") as HTMLElement).addEventListener("click", _ => goGame("normal"));
-	(document.querySelector("[name=start-lake]") as HTMLElement).addEventListener("click", _ => goGame("lake"));
-	(document.querySelector("[name=start-forest]") as HTMLElement).addEventListener("click", _ => goGame("forest"));
-	(document.querySelector("[name=start-multi]") as HTMLElement).addEventListener("click", _ => goGame("multi"));
-	(document.querySelector("[name=again]") as HTMLElement).addEventListener("click", _ => goIntro());
-	(document.querySelector("[name=download]") as HTMLElement).addEventListener("click", _ => download());
+	onClick("start-normal", () => goGame("normal"));
+	onClick("start-lake", () => goGame("lake"));
+	onClick("start-forest", () => goGame("forest"));
+	onClick("start-multi", () => goGame("multi"));
+	onClick("again", () => goIntro());
+	onClick("download", () => download());
 	goIntro();
 }
 

@@ -12,7 +12,7 @@ export interface TileData {
 export default class Tile {
 	_data: TileData;
 
-	static fromJSON(data: TileData) {
+	static fromJSON<T>(this: new(sid:string, tid:string) => T, data: TileData): T {
 		return new this(data.sid, data.tid);
 	}
 

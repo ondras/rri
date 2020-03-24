@@ -174,6 +174,14 @@ export default class BoardCanvas extends Board {
 			ctx.fillText("✘", pxx, pxy);
 		});
 
+		ctx.globalCompositeOperation = "destination-over";
+		ctx.fillStyle = "rgba(200, 255, 100, 0.2)";
+		score.forests.forEach(cell => {
+			let pxx = cellToPx(cell.x);
+			let pxy = cellToPx(cell.y);
+			ctx.fillRect(pxx, pxy, TILE, TILE);
+		})
+
 		if (ctx.canvas.toBlob) {
 			ctx.canvas.toBlob(blob => this.blob = blob);
 		} else if ("msToBlob" in ctx.canvas) {
