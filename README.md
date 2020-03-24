@@ -30,3 +30,16 @@ Please note that a central server is used; if it comes down, the multiplayer com
 In order to play online, the first player must **create** the game (and name it appropriately). Other players can then **join** the game (they need to use the exact game name) and wait for the host to start.
 
 During the online match, you may freely close and re-open your app. The multiplayer menu will then have a **Continue** option enabled which can be used to re-enter a game in progress.
+
+## *Forests* expansion
+
+*"The old forests are beautiful. We are not allowed to cut them down, but passengers love the view while passing them."*
+
+Rules (created by [Niklas Thomas](https://boardgamegeek.com/thread/2392579/railroad-ink-green-edition-fanmade):
+
+- The Game only lasts for 6 regular rounds (+1 pre-round)
+- During the first round both players draw 4 forests spaces somewhere on their board
+- Forest spaces may not be overbuild, Routes may connect to forest spaces, but they counts as Errors at the end of the game.
+- Edges of forest spaces never counts as errors
+- Each Route adjacent (not diagonal) or connected to at least one forst space is worth 1 point at the end of the game.
+
