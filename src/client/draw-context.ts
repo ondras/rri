@@ -329,25 +329,49 @@ export default class CanvasDrawContext implements DrawContext {
 
 	forest() {
 		const ctx = this._ctx;
-		ctx.font = `${TILE/2}px sans-serif`;
-		ctx.textAlign = "center";
-		ctx.textBaseline = "middle";
-
-		interface Tree { x: number; y: number; ch: string; };
-		let data: Tree[] = [];
+		ctx.lineWidth = LINE_WIDTH;
 
 		for (let i=0; i<3; i++) {
 			let x = Math.round(TILE/4 * (i+1));
-			let y = TILE/2 + TILE/6 * (i % 2 ? -1 : 1);
-			let ch = (Math.random() < 0.5 ? "🌲" : "🌳");
-			data.push({x, y, ch});
-		}
-
-		data.sort((a, b) => b.y-a.y);
-
-		while (data.length) {
-			let tree = data.pop() as Tree;
-			ctx.fillText(tree.ch, tree.x, tree.y);
+			let y = TILE*3/4 + TILE/6 * (i % 2 ? -1 : 1);
+			ctx.beginPath();
+			(Math.random() < 0.5 ? tree1(ctx, x, y) : tree2(ctx, x, y));
+			ctx.fill();
+			ctx.stroke();
 		}
 	}
+}
+
+function tree1(ctx: CanvasRenderingContext2D, x: number, y: number) {
+	const R = TILE/8;
+	const cy = y - TILE/3;
+
+	ctx.fillStyle = "yellowgreen";
+	ctx.moveTo(x, y);
+	ctx.lineTo(x, cy + R);
+
+	ctx.arc(x, cy, R, Math.PI/2, -Math.PI/2);
+	ctx.arc(x, cy, R, -Math.PI/2, Math.PI/2);
+}
+
+function tree2(ctx: CanvasRenderingContext2D, x: number, y: number) {
+	ctx.fillStyle = "forestgreen"
+	ctx.moveTo(x, y);
+
+	const STEP_X = TILE/10;
+	const STEP_Y = TILE/8;
+
+	y -= TILE/5;
+	ctx.lineTo(x, y);
+	ctx.lineTo(x-STEP_X, y);
+	ctx.lineTo(x, y-STEP_Y);
+	ctx.lineTo(x+STEP_X, y);
+	ctx.lineTo(x, y);
+
+	y -= STEP_Y;
+	ctx.moveTo(x, y);
+	ctx.lineTo(x-STEP_X, y);
+	ctx.lineTo(x, y-STEP_Y);
+	ctx.lineTo(x+STEP_X, y);
+	ctx.lineTo(x, y);
 }
