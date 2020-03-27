@@ -10,6 +10,7 @@ import { sum } from "../src/score.ts";
 
 export default class Player {
 	name = "";
+	score = 0;
 	key = Math.random().toString().replace(/\D/g, "");
 	game: Game | null = null;
 	roundEnded = false;
@@ -48,8 +49,7 @@ export default class Player {
 
 		jsonrpc.expose("create-game", (gameType: GameType, gameName: string, playerName: string) => {
 			this.name = playerName;
-			this.game = Game.create(gameType, gameName, this);
-			this._log("game", gameName, "created");
+			this.game = new Game(gameType, gameName, this);
 			return this.key;
 		});
 
@@ -96,7 +96,8 @@ export default class Player {
 			this.board = data.board;
 			this.bonusPool = data.bonusPool;
 			let score = new Board().fromJSON(this.board).getScore();
-			this._log("round ended, score", sum(score));
+			this.score = sum(score);
+			this._log("round ended, score", this.score);
 			game.checkRoundEnd(); // notify all
 		});
 

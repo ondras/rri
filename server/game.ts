@@ -1,4 +1,3 @@
-import * as colors from "https://deno.land/std/fmt/colors.ts";
 import Player from "./player.ts";
 
 import Dice from "../src/dice.ts";
@@ -7,7 +6,7 @@ import { GameType, ROUNDS, createDice } from "../src/rules.ts";
 
 type State = "starting" | "playing";
 
-const games = new Map<string, Game>();
+let games: Game[] = [];
 const GARBAGE_THRESHOLD = 1000*60*10;
 
 export interface InfoOptions {
@@ -22,19 +21,17 @@ export default class Game {
 	ts = performance.now();
 
 	static find(name: string) {
-		return games.get(name);
+		return games.filter(g => g.name == name)[0];
 	}
 
-	static create(type: GameType, name: string, owner: Player) {
-		if (this.find(name)) { throw new Error(`The game "${name}" already exists`); }
-		let game = new this(type, owner);
-		games.set(name, game);
-		return game;
-	}
+	constructor(readonly _type: GameType, readonly name: string, readonly owner: Player) {
+		if (Game.find(name)) { throw new Error(`The game "${name}" already exists`); }
 
-	constructor(readonly _type: GameType, readonly owner: Player) {
+		this._log("created");
 		this.state = "starting";
 		this.addPlayer(owner);
+
+		games.push(this);
 	}
 
 	playerByKey(key: string) {
@@ -114,17 +111,22 @@ export default class Game {
 			this._players.forEach(p => p.roundEnded = false);
 			this.ts = performance.now();
 			this._notifyGameChange();
+
+			this._log(
+				`round ${this._round}:`,
+				this._dice.map(d => d.toJSON().sid).join(" | ")
+			);
+
 		} else {
+			this._players.forEach(player => {
+				this._log("final score for", player.name, "is", player.score);
+			});
 			this.close("over");
 		}
 	}
 
 	close(reason: "destroy" | "over") {
-		let name = "";
-		games.forEach((g, n) => {
-			if (g == this) { name = n; }
-		});
-		console.log(`[game ${name}] closed, reason:`, reason);
+		this._log("closed, reason:", reason);
 
 		let players = this.getInfo({board:true}).players;
 		while (this._players.length) {
@@ -133,45 +135,27 @@ export default class Game {
 			p.jsonrpc.notify(`game-${reason}`, reason == "over" ? players : []);
 		}
 
-		games.delete(name);
+		let index = games.indexOf(this);
+		if (index > -1) { games.splice(index, 1); }
 	}
 
 	_notifyGameChange() {
 		this._players.forEach(player => player.jsonrpc.notify("game-change", []));
 	}
-}
 
-function logStats() {
-	if (games.size == 0) { return; }
-
-	console.group("Active games:");
-	games.forEach((game, name) => {
-		console.group(colors.bold(`${name} (${game.state})`));
-		const info = game.getInfo({board:false});
-		console.log(
-			"players:",
-			info.players.map(p => `${p.name} (${p.roundEnded ? "waiting" : "playing"})`).join(", ")
-		);
-		if (info.state == "playing") {
-			console.log(
-				`round ${info.round}:`,
-				info.dice.map(d => d.sid).join(" | ")
-			);
-		}
-		console.groupEnd();
-	});
-	console.groupEnd();
+	_log(msg: string, ...args: unknown[]) {
+		return console.log(`[game ${this.name} (${this._type})] ${msg}`, ...args);
+	}
 }
 
 function collectGarbage() {
 	let now = performance.now();
-	games.forEach((game, name) => {
-		if ((now-game.ts) < GARBAGE_THRESHOLD) { return; }
-		console.log("Closing idle game", name);
-		game.close("destroy")
-		games.delete(name);
+	games = games.filter(game => {
+		if ((now-game.ts) < GARBAGE_THRESHOLD) { return true; }
+		console.log("Closing idle game", game.name);
+		game.close("destroy");
+		return false;
 	});
 }
 
-setInterval(logStats, 10*1000);
 setInterval(collectGarbage, 5*1000);
