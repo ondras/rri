@@ -1,6 +1,7 @@
 import { GameType } from "../rules.js";
 import Board, { SerializedBoard } from "../board.js";
 import { DiceData } from "../dice.js";
+import { sum as sumScore } from "../score.js";
 
 import Game from "./game.js";
 import JsonRpc from "./json-rpc.js";
@@ -42,6 +43,7 @@ export default class MultiGame extends Game {
 		player: ""
 	};
 	_wait = html.node("p", {className:"wait", hidden:true});
+	_currentScore = html.node("span");
 
 	constructor(board: Board) {
 		super(board);
@@ -213,7 +215,9 @@ export default class MultiGame extends Game {
 
 	_updateRound(response: Response) {
 		let waiting = response.players.filter(p => !p.roundEnded).length;
-		this._wait.textContent = `Waiting for ${waiting} player${waiting>1?"s":""} to end round`;
+		let suffix = (waiting>1 ? "s" : "");
+		this._wait.textContent = `Waiting for ${waiting} player${suffix} to end round. `;
+		this._wait.appendChild(this._currentScore);
 
 		const ended = response.players.filter(p => p.name == this._progress.player)[0].roundEnded;
 		this._wait.hidden = !ended;
@@ -248,6 +252,14 @@ export default class MultiGame extends Game {
 				bonusPool: this._bonusPool.toJSON()
 			}
 			this._rpc.call("end-round", state);
+
+			let button = html.node("button", {}, "Show my current score");
+			button.addEventListener("click", _ => {
+				let s = this._board.getScore();
+				this._currentScore.innerHTML = `My current score is <strong>${sumScore(s)}<strong>.`;
+			});
+			this._currentScore.innerHTML = "";
+			this._currentScore.appendChild(button);
 		}
 	}
 

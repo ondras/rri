@@ -2122,6 +2122,7 @@ class MultiGame extends Game {
             player: ""
         };
         this._wait = node("p", { className: "wait", hidden: true });
+        this._currentScore = node("span");
         const template = document.querySelector("template");
         ["setup", "lobby"].forEach(id => {
             let node = template.content.querySelector(`#multi-${id}`);
@@ -2278,7 +2279,9 @@ class MultiGame extends Game {
     }
     _updateRound(response) {
         let waiting = response.players.filter(p => !p.roundEnded).length;
-        this._wait.textContent = `Waiting for ${waiting} player${waiting > 1 ? "s" : ""} to end round`;
+        let suffix = (waiting > 1 ? "s" : "");
+        this._wait.textContent = `Waiting for ${waiting} player${suffix} to end round. `;
+        this._wait.appendChild(this._currentScore);
         const ended = response.players.filter(p => p.name == this._progress.player)[0].roundEnded;
         this._wait.hidden = !ended;
         const round = this._progress.round;
@@ -2309,6 +2312,13 @@ class MultiGame extends Game {
                 bonusPool: this._bonusPool.toJSON()
             };
             this._rpc.call("end-round", state);
+            let button = node("button", {}, "Show my current score");
+            button.addEventListener("click", _ => {
+                let s = this._board.getScore();
+                this._currentScore.innerHTML = `My current score is <strong>${sum(s)}<strong>.`;
+            });
+            this._currentScore.innerHTML = "";
+            this._currentScore.appendChild(button);
         }
     }
     _showScore(players) {
