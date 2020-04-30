@@ -14,9 +14,9 @@ export default class Player {
 	key = Math.random().toString().replace(/\D/g, "");
 	game: Game | null = null;
 	roundEnded = false;
-	jsonrpc: JsonRpc;
 	board: any | null = null;
 	bonusPool: any | null = null;
+	jsonrpc: JsonRpc;
 
 	constructor(ws: WebSocket) {
 		const io = {

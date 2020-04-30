@@ -70,11 +70,12 @@ export default class Game {
 
 	replacePlayer(newPlayer: Player, oldPlayer: Player) {
 		newPlayer.name = oldPlayer.name;
-		newPlayer.board = oldPlayer.board;
-		newPlayer.bonusPool = oldPlayer.bonusPool;
-		newPlayer.roundEnded = oldPlayer.roundEnded;
+		newPlayer.score = oldPlayer.score;
 		newPlayer.key = oldPlayer.key;
 		newPlayer.game = this;
+		newPlayer.roundEnded = oldPlayer.roundEnded;
+		newPlayer.board = oldPlayer.board;
+		newPlayer.bonusPool = oldPlayer.bonusPool;
 		oldPlayer.game = null;
 
 		const index = this._players.indexOf(oldPlayer);
