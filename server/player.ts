@@ -116,7 +116,7 @@ export default class Player {
 
 	async _receive(ws: WebSocket, io: IO) {
 		try {
-			for await (const e of ws.receive()) {
+			for await (const e of ws) {
 				if (typeof(e) == "string") {
 					io.onData(e);
 				} else if (isWebSocketCloseEvent(e)) { // close

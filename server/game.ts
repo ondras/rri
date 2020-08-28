@@ -7,7 +7,7 @@ import { GameType, ROUNDS, createDice } from "../src/rules.ts";
 type State = "starting" | "playing";
 
 let games: Game[] = [];
-const GARBAGE_THRESHOLD = 1000*60*10;
+const GARBAGE_THRESHOLD = 30*60*1000;
 
 export interface InfoOptions {
 	board: boolean;

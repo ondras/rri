@@ -2,6 +2,13 @@ import { listenAndServe, ServerRequest } from "https://deno.land/std/http/server
 import { acceptWebSocket } from "https://deno.land/std/ws/mod.ts";
 import Player from "./player.ts";
 
+
+declare global {
+	interface ReadableStream<R = any> {
+		getIterator(options?: { preventCancel?: boolean }): AsyncIterableIterator<R>;
+	}
+}
+
 async function processRequest(req: ServerRequest) {
 	try {
 		let ws = await acceptWebSocket({
