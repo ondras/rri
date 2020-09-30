@@ -830,6 +830,16 @@ class Board {
         cell.tile = tile;
         cell.round = round;
     }
+    getNeighborEdges(x, y) {
+        return all.map(dir => {
+            let vector = Vector[dir];
+            let neighbor = this._cells.at(x + vector[0], y + vector[1]).tile;
+            if (!neighbor) {
+                return NONE;
+            }
+            return neighbor.getEdge(clamp(dir + 2)).type;
+        });
+    }
     getAvailableCells(tile) {
         return this._cells.filter(cell => {
             if (cell.border || cell.tile) {
@@ -840,7 +850,7 @@ class Board {
         });
     }
     _getTransforms(tile, x, y) {
-        let neighborEdges = this._getNeighborEdges(x, y);
+        let neighborEdges = this.getNeighborEdges(x, y);
         let clone = tile.clone();
         function compare(t1, t2) {
             clone.transform = t1;
@@ -853,16 +863,6 @@ class Board {
             clone.transform = t;
             return clone.fitsNeighbors(neighborEdges);
         }).sort(compare);
-    }
-    _getNeighborEdges(x, y) {
-        return all.map(dir => {
-            let vector = Vector[dir];
-            let neighbor = this._cells.at(x + vector[0], y + vector[1]).tile;
-            if (!neighbor) {
-                return NONE;
-            }
-            return neighbor.getEdge(clamp(dir + 2)).type;
-        });
     }
     _placeInitialTiles() {
         const Tile = this._tileCtor;
@@ -910,7 +910,7 @@ class Board {
             if (cell.tile || cell.border) {
                 return false;
             }
-            let neighborEdges = this._getNeighborEdges(cell.x, cell.y);
+            let neighborEdges = this.getNeighborEdges(cell.x, cell.y);
             return neighborEdges.filter(e => e == LAKE).length >= 3;
         };
         let surrounded = this._cells.filter(isSurrounded);
@@ -1763,7 +1763,7 @@ class Round {
         this._bonusPool = _bonusPool;
         this._pending = null;
         this._endButton = node("button");
-        this._placedTiles = new Map();
+        this._placedDice = new Map();
         this._lastClickTs = 0;
         this._pool = new Pool();
         this.node = this._pool.node;
@@ -1796,6 +1796,11 @@ class Round {
         this._bonusPool.unlock();
         return new Promise(resolve => {
             this._endButton.addEventListener("click", _ => {
+                let valid = this._validatePlacement();
+                if (!valid) {
+                    alert("Some of your dice were not placed according to the rules. Please re-place them correctly.");
+                    return;
+                }
                 this._end();
                 resolve();
             });
@@ -1837,15 +1842,11 @@ class Round {
         }
     }
     _tryToRemove(cell) {
-        let tile = cell.tile;
-        if (!tile) {
-            return;
-        }
-        let dice = this._placedTiles.get(tile);
+        let dice = this._placedDice.get(cell);
         if (!dice) {
             return;
         }
-        this._placedTiles.delete(tile);
+        this._placedDice.delete(cell);
         this._board.place(null, cell.x, cell.y, 0);
         this._pool.enable(dice);
         this._bonusPool.enable(dice);
@@ -1862,23 +1863,18 @@ class Round {
         }
         const x = cell.x;
         const y = cell.y;
-        const clone = tile.clone();
-        this._board.placeBest(clone, x, y, this.number);
+        this._board.placeBest(tile.clone(), x, y, this.number);
         this._board.signal([]);
         this._pool.pending(null);
         this._bonusPool.pending(null);
         this._pool.disable(this._pending);
         this._bonusPool.disable(this._pending);
-        this._placedTiles.set(clone, this._pending);
+        this._placedDice.set(cell, this._pending);
         this._pending = null;
         this._syncEnd();
     }
     _tryToCycle(cell) {
-        let tile = cell.tile;
-        if (!tile) {
-            return;
-        }
-        if (!this._placedTiles.has(tile)) {
+        if (!this._placedDice.has(cell)) {
             return;
         }
         this._board.cycleTransform(cell.x, cell.y);
@@ -1887,6 +1883,37 @@ class Round {
     _syncEnd() {
         this._pool.sync(this._board);
         this._endButton.disabled = (this._pool.remaining.length > 0);
+    }
+    _validatePlacement() {
+        // retrieve a list of placed tiles (and their cells); empty the board in the process
+        let todo = [];
+        for (let cell of this._placedDice.keys()) {
+            todo.push({
+                cell,
+                tile: cell.tile
+            });
+            this._board.place(null, cell.x, cell.y, 0);
+        }
+        while (todo.length) {
+            // try re-placing any of the items back
+            let placed = todo.some((item, index) => {
+                let cell = item.cell;
+                let neighbors = this._board.getNeighborEdges(cell.x, cell.y);
+                if (item.tile.fitsNeighbors(neighbors)) {
+                    this._board.place(item.tile, cell.x, cell.y, this.number);
+                    todo.splice(index, 1);
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            });
+            if (!placed) { // we found a non-re-insertable situation
+                todo.forEach(item => this._tryToRemove(item.cell)); // return non-placeable back to pool(s)
+                return false;
+            }
+        }
+        return true;
     }
 }
 

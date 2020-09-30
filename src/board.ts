@@ -91,6 +91,15 @@ export default class Board {
 		cell.round = round;
 	}
 
+	getNeighborEdges(x: number, y: number) {
+		return allDirections.map(dir => {
+			let vector = Vector[dir];
+			let neighbor = this._cells.at(x + vector[0], y + vector[1]).tile;
+			if (!neighbor) { return NONE; }
+			return neighbor.getEdge(clamp(dir + 2)).type;
+		});
+	}
+
 	getAvailableCells(tile: Tile) {
 		return this._cells.filter(cell => {
 			if (cell.border || cell.tile) { return false; }
@@ -101,7 +110,7 @@ export default class Board {
 	}
 
 	_getTransforms(tile: Tile, x: number, y: number) {
-		let neighborEdges = this._getNeighborEdges(x, y);
+		let neighborEdges = this.getNeighborEdges(x, y);
 		let clone = tile.clone();
 
 		function compare(t1: string, t2: string) {
@@ -118,14 +127,6 @@ export default class Board {
 		}).sort(compare);
 	}
 
-	_getNeighborEdges(x: number, y: number) {
-		return allDirections.map(dir => {
-			let vector = Vector[dir];
-			let neighbor = this._cells.at(x + vector[0], y + vector[1]).tile;
-			if (!neighbor) { return NONE; }
-			return neighbor.getEdge(clamp(dir + 2)).type;
-		});
-	}
 
 	_placeInitialTiles() {
 		const Tile = this._tileCtor;
@@ -171,7 +172,7 @@ export default class Board {
 
 		const isSurrounded = (cell: Cell) => {
 			if (cell.tile || cell.border) { return false; }
-			let neighborEdges = this._getNeighborEdges(cell.x, cell.y);
+			let neighborEdges = this.getNeighborEdges(cell.x, cell.y);
 			return neighborEdges.filter(e => e == LAKE).length >= 3;
 		}
 		let surrounded = this._cells.filter(isSurrounded);

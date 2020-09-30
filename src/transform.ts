@@ -1,6 +1,6 @@
 import { Direction, clamp } from "./direction.js";
 
-const repo: {[key:string]: Transform} = {};
+const repo: Record<string, Transform> = {};
 
 class Transform {
 	_direction: number;

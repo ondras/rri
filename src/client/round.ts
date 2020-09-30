@@ -1,6 +1,6 @@
 import Board from "../board.js";
-import Tile from "../tile.js";
 import { Cell } from "../cell-repo.js";
+import Tile from "../tile.js";
 
 import Pool, { BonusPool } from "./pool.js";
 import * as html from "./html.js";
@@ -13,7 +13,7 @@ export default class Round {
 	_pending: HTMLDice | null = null;
 	_pool: Pool;
 	_endButton: HTMLButtonElement = html.node("button");
-	_placedTiles = new Map<Tile, HTMLDice>();
+	_placedDice = new Map<Cell, HTMLDice>();
 	_lastClickTs = 0;
 
 	constructor(readonly number: number, readonly _board: Board, readonly _bonusPool: BonusPool) {
@@ -53,6 +53,11 @@ export default class Round {
 
 		return new Promise(resolve => {
 			this._endButton.addEventListener("click", _ => {
+				let valid = this._validatePlacement();
+				if (!valid) {
+					alert("Some of your dice were not placed according to the rules. Please re-place them correctly.");
+					return;
+				}
 				this._end();
 				resolve();
 			});
@@ -96,13 +101,10 @@ export default class Round {
 	}
 
 	_tryToRemove(cell: Cell) {
-		let tile = cell.tile;
-		if (!tile) { return; }
-
-		let dice = this._placedTiles.get(tile);
+		let dice = this._placedDice.get(cell);
 		if (!dice) { return; }
 
-		this._placedTiles.delete(tile);
+		this._placedDice.delete(cell);
 		this._board.place(null, cell.x, cell.y, 0);
 
 		this._pool.enable(dice);
@@ -120,8 +122,7 @@ export default class Round {
 
 		const x = cell.x;
 		const y = cell.y;
-		const clone = tile.clone();
-		this._board.placeBest(clone, x, y, this.number);
+		this._board.placeBest(tile.clone(), x, y, this.number);
 		this._board.signal([]);
 
 		this._pool.pending(null);
@@ -130,15 +131,13 @@ export default class Round {
 		this._pool.disable(this._pending);
 		this._bonusPool.disable(this._pending);
 
-		this._placedTiles.set(clone, this._pending);
+		this._placedDice.set(cell, this._pending);
 		this._pending = null;
 		this._syncEnd();
 	}
 
 	_tryToCycle(cell: Cell) {
-		let tile = cell.tile;
-		if (!tile) { return; }
-		if (!this._placedTiles.has(tile)) { return; }
+		if (!this._placedDice.has(cell)) { return; }
 
 		this._board.cycleTransform(cell.x, cell.y);
 		this._syncEnd();
@@ -147,5 +146,44 @@ export default class Round {
 	_syncEnd() {
 		this._pool.sync(this._board);
 		this._endButton.disabled = (this._pool.remaining.length > 0);
+	}
+
+	_validatePlacement() {
+		interface TodoItem {
+			cell: Cell,
+			tile: Tile
+		};
+
+		// retrieve a list of placed tiles (and their cells); empty the board in the process
+		let todo: TodoItem[] = [];
+		for (let cell of this._placedDice.keys()) {
+			todo.push({
+				cell,
+				tile: cell.tile as Tile
+			});
+			this._board.place(null, cell.x, cell.y, 0);
+		}
+
+		while (todo.length) {
+			// try re-placing any of the items back
+			let placed = todo.some((item, index) => {
+				let cell = item.cell;
+				let neighbors = this._board.getNeighborEdges(cell.x, cell.y);
+				if (item.tile.fitsNeighbors(neighbors)) {
+					this._board.place(item.tile, cell.x, cell.y, this.number);
+					todo.splice(index, 1);
+					return true;
+				} else {
+					return false;
+				}
+			});
+
+			if (!placed) { // we found a non-re-insertable situation
+				todo.forEach(item => this._tryToRemove(item.cell)); // return non-placeable back to pool(s)
+				return false;
+			}
+		}
+
+		return true;
 	}
 }

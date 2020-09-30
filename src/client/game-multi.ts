@@ -34,7 +34,7 @@ interface Progress {
 }
 
 export default class MultiGame extends Game {
-	_nodes: {[key:string]:HTMLElement} = {};
+	_nodes: Record<string, Element> = {};
 	_rpc!: JsonRpc;
 	_resolve!: (result: boolean) => void;
 	_progress: Progress = {
