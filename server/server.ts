@@ -1,30 +1,30 @@
-import { listenAndServe, ServerRequest } from "https://deno.land/std/http/server.ts";
-import { acceptWebSocket } from "https://deno.land/std/ws/mod.ts";
 import Player from "./player.ts";
 
 
-declare global {
-	interface ReadableStream<R = any> {
-		getIterator(options?: { preventCancel?: boolean }): AsyncIterableIterator<R>;
+async function handleReq(req: Request) {
+	if (req.headers.get("upgrade") != "websocket") {
+		console.error("failed to accept websocket for url", req.url);
+		return new Response("this is a websocket endpoint");
+	}
+
+	console.log("new websocket connection");
+	const { socket, response } = Deno.upgradeWebSocket(req);
+	new Player(socket);
+
+	return response;
+}
+
+async function handleConn(conn: Deno.Conn) {
+	const httpConn = Deno.serveHttp(conn);
+	for await (const requestEvent of httpConn) {
+		await requestEvent.respondWith(handleReq(requestEvent.request));
 	}
 }
 
-async function processRequest(req: ServerRequest) {
-	try {
-		let ws = await acceptWebSocket({
-			conn: req.conn,
-			headers: req.headers,
-			bufReader: req.r,
-			bufWriter: req.w
-		});
-		console.log("new websocket connection");
-		new Player(ws);
-	} catch (e) {
-		console.error("failed to accept websocket", e);
-		req.respond({body:"this is a websocket endpoint"});
-	}
-}
+const port = Number(Deno.args[0] || "8080");
+console.log("http server is running on", port);
 
-const port = Deno.args[0] || "8080";
-console.log("websocket server is running on", port);
-listenAndServe(`:${port}`, processRequest);
+const server = Deno.listen({ port });
+for await (const conn of server) {
+	handleConn(conn);
+}
