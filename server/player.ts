@@ -1,5 +1,4 @@
-import { WebSocket, isWebSocketCloseEvent } from "https://deno.land/std/ws/mod.ts";
-import JsonRpc, { IO } from "https://deno.land/x/json_rpc/mod.ts";
+import JsonRpc from "https://deno.land/x/json_rpc/mod.ts";
 
 import Game, { InfoOptions } from "./game.ts";
 
@@ -20,14 +19,20 @@ export default class Player {
 
 	constructor(ws: WebSocket) {
 		const io = {
-			sendData(str: string) { !ws.isClosed && ws.send(str); },
+			sendData(str: string) { ws.send(str); },
 			onData(_str: string) {}
 		}
 		let jsonrpc = new JsonRpc(io);
 		this.jsonrpc = jsonrpc;
 
 		this._exposeInterface(jsonrpc);
-		this._receive(ws, io);
+
+		ws.addEventListener("message", e => io.onData(e.data));
+		ws.addEventListener("close", () => {
+			const { game } = this;
+			this._log("disconnected");
+			if (game && game.state == "starting") {	game.removePlayer(this); }
+		});
 	}
 
 	toJSON(options: InfoOptions) {
@@ -112,22 +117,5 @@ export default class Player {
 			const game = this.game;
 			return (game ? game.getInfo({board:false}) : null);
 		});
-	}
-
-	async _receive(ws: WebSocket, io: IO) {
-		try {
-			for await (const e of ws) {
-				if (typeof(e) == "string") {
-					io.onData(e);
-				} else if (isWebSocketCloseEvent(e)) { // close
-					this._log("disconnected");
-					const game = this.game;
-					if (game && game.state == "starting") {	game.removePlayer(this); }
-				}
-			}
-		} catch (e) {
-			console.error("failed to receive frame", e);
-			await ws.close(1000).catch(console.error);
-		}
 	}
 }

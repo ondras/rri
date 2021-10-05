@@ -14,17 +14,6 @@ async function handleReq(req: Request) {
 	return response;
 }
 
-async function handleConn(conn: Deno.Conn) {
-	const httpConn = Deno.serveHttp(conn);
-	for await (const requestEvent of httpConn) {
-		await requestEvent.respondWith(handleReq(requestEvent.request));
-	}
-}
-
-const port = Number(Deno.args[0] || "8080");
-console.log("http server is running on", port);
-
-const server = Deno.listen({ port });
-for await (const conn of server) {
-	handleConn(conn);
-}
+addEventListener("fetch", event => {
+	event.respondWith(handleReq(event.request));
+});
