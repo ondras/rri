@@ -24,6 +24,8 @@ You shall end the turn after placing all dice (and optionally one dice from the 
 
 ## Networking
 
+**The game server has been recently reworked to support the newest Deno version. Please [open an issue](https://github.com/ondras/rri/issues) if the multiplayer component looks buggy.**
+
 The game supports online multiplayer setup, provided that all participants have a working internet connection.
 Please note that a central server is used; if it comes down, the multiplayer component will not work.
 
