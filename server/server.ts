@@ -2,7 +2,8 @@ import Player from "./player.ts";
 
 
 async function handleReq(req: Request) {
-	if (req.headers.get("upgrade") != "websocket") {
+	let upgrade = req.headers.get("upgrade") || "";
+	if (upgrade.toLowerCase() != "websocket") {
 		console.error("failed to accept websocket for url", req.url);
 		return new Response("this is a websocket endpoint");
 	}
