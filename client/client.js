@@ -1,17 +1,37 @@
-const N = 0;
-const E = 1;
-const S = 2;
-const W = 3;
 function clamp(direction) {
     direction = direction % 4;
-    return (direction >= 0 ? direction : direction + 4);
+    return direction >= 0 ? direction : direction + 4;
 }
-const all = [N, E, S, W];
-const Vector = [[0, -1], [1, 0], [0, 1], [-1, 0]];
-
-const repo = {};
+const all = [
+    0,
+    1,
+    2,
+    3
+];
+const Vector = [
+    [
+        0,
+        -1
+    ],
+    [
+        1,
+        0
+    ],
+    [
+        0,
+        1
+    ],
+    [
+        -1,
+        0
+    ]
+];
+const repo = {
+};
 class Transform {
-    constructor(direction, offset) {
+    _direction;
+    _offset;
+    constructor(direction, offset){
         this._direction = direction;
         this._offset = offset;
     }
@@ -41,7 +61,7 @@ class Transform {
 }
 function create(id) {
     let offset = Math.abs(Number(id));
-    let direction = (id.startsWith("-") ? -1 : 1);
+    let direction = id.startsWith("-") ? -1 : 1;
     repo[id] = new Transform(direction, offset);
     return get(id);
 }
@@ -51,362 +71,973 @@ function get(id) {
     }
     return repo[id];
 }
-const all$1 = ["0", "1", "2", "3", "-0", "-1", "-2", "-3"];
-all$1.forEach(create);
-
-const NONE = 0;
-const RAIL = 1;
-const ROAD = 2;
-const LAKE = 3;
-const FOREST = 4;
-
-const repo$1 = {};
+const all1 = [
+    "0",
+    "1",
+    "2",
+    "3",
+    "-0",
+    "-1",
+    "-2",
+    "-3"
+];
+all1.forEach(create);
+const repo1 = {
+};
 const partials = {
     "rail-half": {
         edges: [
-            { type: RAIL, connects: [] },
-            { type: NONE, connects: [] },
-            { type: NONE, connects: [] },
-            { type: NONE, connects: [] }
+            {
+                type: 1,
+                connects: []
+            },
+            {
+                type: 0,
+                connects: []
+            },
+            {
+                type: 0,
+                connects: []
+            },
+            {
+                type: 0,
+                connects: []
+            }
         ],
-        render(ctx) {
-            ctx.rail(N, 0.35);
-            ctx.redGlow(N);
+        render (ctx) {
+            ctx.rail(0, 0.35);
+            ctx.redGlow(0);
         }
     },
     "road-half": {
         edges: [
-            { type: ROAD, connects: [] },
-            { type: NONE, connects: [] },
-            { type: NONE, connects: [] },
-            { type: NONE, connects: [] }
+            {
+                type: 2,
+                connects: []
+            },
+            {
+                type: 0,
+                connects: []
+            },
+            {
+                type: 0,
+                connects: []
+            },
+            {
+                type: 0,
+                connects: []
+            }
         ],
-        render(ctx) {
-            ctx.road(N, 0.35);
-            ctx.redGlow(N);
+        render (ctx) {
+            ctx.road(0, 0.35);
+            ctx.redGlow(0);
         }
     },
     "rail-i": {
         edges: [
-            { type: RAIL, connects: [S] },
-            { type: NONE, connects: [] },
-            { type: RAIL, connects: [N] },
-            { type: NONE, connects: [] }
+            {
+                type: 1,
+                connects: [
+                    2
+                ]
+            },
+            {
+                type: 0,
+                connects: []
+            },
+            {
+                type: 1,
+                connects: [
+                    0
+                ]
+            },
+            {
+                type: 0,
+                connects: []
+            }
         ],
-        render(ctx) {
-            ctx.rail(N, 1);
+        render (ctx) {
+            ctx.rail(0, 1);
         }
     },
     "road-i": {
         edges: [
-            { type: ROAD, connects: [S] },
-            { type: NONE, connects: [] },
-            { type: ROAD, connects: [N] },
-            { type: NONE, connects: [] }
+            {
+                type: 2,
+                connects: [
+                    2
+                ]
+            },
+            {
+                type: 0,
+                connects: []
+            },
+            {
+                type: 2,
+                connects: [
+                    0
+                ]
+            },
+            {
+                type: 0,
+                connects: []
+            }
         ],
-        render(ctx) {
-            ctx.road(N, 0.5);
-            ctx.road(S, 0.5);
+        render (ctx) {
+            ctx.road(0, 0.5);
+            ctx.road(2, 0.5);
         }
     },
     "rail-t": {
         edges: [
-            { type: RAIL, connects: [E, W] },
-            { type: RAIL, connects: [N, W] },
-            { type: NONE, connects: [] },
-            { type: RAIL, connects: [N, E] }
+            {
+                type: 1,
+                connects: [
+                    1,
+                    3
+                ]
+            },
+            {
+                type: 1,
+                connects: [
+                    0,
+                    3
+                ]
+            },
+            {
+                type: 0,
+                connects: []
+            },
+            {
+                type: 1,
+                connects: [
+                    0,
+                    1
+                ]
+            }
         ],
-        render(ctx) {
-            ctx.rail(N, 0.5);
-            ctx.rail(E, 0.5);
-            ctx.rail(W, 0.5);
+        render (ctx) {
+            ctx.rail(0, 0.5);
+            ctx.rail(1, 0.5);
+            ctx.rail(3, 0.5);
             ctx.railCross();
         }
     },
     "road-t": {
         edges: [
-            { type: ROAD, connects: [E, W] },
-            { type: ROAD, connects: [N, W] },
-            { type: NONE, connects: [] },
-            { type: ROAD, connects: [N, E] }
+            {
+                type: 2,
+                connects: [
+                    1,
+                    3
+                ]
+            },
+            {
+                type: 2,
+                connects: [
+                    0,
+                    3
+                ]
+            },
+            {
+                type: 0,
+                connects: []
+            },
+            {
+                type: 2,
+                connects: [
+                    0,
+                    1
+                ]
+            }
         ],
-        render(ctx) {
-            ctx.arc(N, -1);
-            ctx.arc(E, -1);
-            ctx.roadTicks(N, 0.5);
-            ctx.roadTicks(E, 0.5);
-            ctx.roadTicks(W, 0.5);
-            ctx.roadLine(E, 0.5, 1);
-            ctx.roadLine(W, 0.5, 1);
+        render (ctx) {
+            ctx.arc(0, -1);
+            ctx.arc(1, -1);
+            ctx.roadTicks(0, 0.5);
+            ctx.roadTicks(1, 0.5);
+            ctx.roadTicks(3, 0.5);
+            ctx.roadLine(1, 0.5, 1);
+            ctx.roadLine(3, 0.5, 1);
         }
     },
     "rail-l": {
         edges: [
-            { type: RAIL, connects: [E] },
-            { type: RAIL, connects: [N] },
-            { type: NONE, connects: [] },
-            { type: NONE, connects: [] }
+            {
+                type: 1,
+                connects: [
+                    1
+                ]
+            },
+            {
+                type: 1,
+                connects: [
+                    0
+                ]
+            },
+            {
+                type: 0,
+                connects: []
+            },
+            {
+                type: 0,
+                connects: []
+            }
         ],
-        render(ctx) {
-            ctx.arc(E, 0);
-            ctx.styleRailTicks([1, 7], -3);
-            ctx.arc(E, 0);
+        render (ctx) {
+            ctx.arc(1, 0);
+            ctx.styleRailTicks([
+                1,
+                7
+            ], -3);
+            ctx.arc(1, 0);
         }
     },
     "road-l": {
         edges: [
-            { type: ROAD, connects: [E] },
-            { type: ROAD, connects: [N] },
-            { type: NONE, connects: [] },
-            { type: NONE, connects: [] }
+            {
+                type: 2,
+                connects: [
+                    1
+                ]
+            },
+            {
+                type: 2,
+                connects: [
+                    0
+                ]
+            },
+            {
+                type: 0,
+                connects: []
+            },
+            {
+                type: 0,
+                connects: []
+            }
         ],
-        render(ctx) {
-            ctx.arc(E, -1);
-            ctx.arc(E, 1);
-            ctx.styleRoadTicks([7, 4], -3);
-            ctx.arc(E, 0);
+        render (ctx) {
+            ctx.arc(1, -1);
+            ctx.arc(1, 1);
+            ctx.styleRoadTicks([
+                7,
+                4
+            ], -3);
+            ctx.arc(1, 0);
         }
     },
     "rail-road-l": {
         edges: [
-            { type: RAIL, connects: [E] },
-            { type: ROAD, connects: [N] },
-            { type: NONE, connects: [] },
-            { type: NONE, connects: [] }
+            {
+                type: 1,
+                connects: [
+                    1
+                ]
+            },
+            {
+                type: 2,
+                connects: [
+                    0
+                ]
+            },
+            {
+                type: 0,
+                connects: []
+            },
+            {
+                type: 0,
+                connects: []
+            }
         ],
-        render(ctx) {
-            ctx.rail(N, 0.5);
-            ctx.road(E, 0.5);
+        render (ctx) {
+            ctx.rail(0, 0.5);
+            ctx.road(1, 0.5);
             ctx.station();
         }
     },
     "rail-road-i": {
         edges: [
-            { type: RAIL, connects: [S] },
-            { type: NONE, connects: [] },
-            { type: ROAD, connects: [N] },
-            { type: NONE, connects: [] }
+            {
+                type: 1,
+                connects: [
+                    2
+                ]
+            },
+            {
+                type: 0,
+                connects: []
+            },
+            {
+                type: 2,
+                connects: [
+                    0
+                ]
+            },
+            {
+                type: 0,
+                connects: []
+            }
         ],
-        render(ctx) {
-            ctx.rail(N, 0.5);
-            ctx.road(S, 0.5);
+        render (ctx) {
+            ctx.rail(0, 0.5);
+            ctx.road(2, 0.5);
             ctx.station();
         }
     },
     "bridge": {
         edges: [
-            { type: ROAD, connects: [S] },
-            { type: RAIL, connects: [W] },
-            { type: ROAD, connects: [N] },
-            { type: RAIL, connects: [E] }
+            {
+                type: 2,
+                connects: [
+                    2
+                ]
+            },
+            {
+                type: 1,
+                connects: [
+                    3
+                ]
+            },
+            {
+                type: 2,
+                connects: [
+                    0
+                ]
+            },
+            {
+                type: 1,
+                connects: [
+                    1
+                ]
+            }
         ],
-        render(ctx) {
-            ctx.rail(E, 0.5);
-            ctx.rail(W, 0.5);
-            ctx.road(N, 0.5);
-            ctx.road(S, 0.5);
+        render (ctx) {
+            ctx.rail(1, 0.5);
+            ctx.rail(3, 0.5);
+            ctx.road(0, 0.5);
+            ctx.road(2, 0.5);
         }
     },
     "cross-road-road-rail-road": {
         edges: [
-            { type: ROAD, connects: [S, E, W] },
-            { type: ROAD, connects: [N, S, W] },
-            { type: RAIL, connects: [N, E, W] },
-            { type: ROAD, connects: [N, E, S] }
+            {
+                type: 2,
+                connects: [
+                    2,
+                    1,
+                    3
+                ]
+            },
+            {
+                type: 2,
+                connects: [
+                    0,
+                    2,
+                    3
+                ]
+            },
+            {
+                type: 1,
+                connects: [
+                    0,
+                    1,
+                    3
+                ]
+            },
+            {
+                type: 2,
+                connects: [
+                    0,
+                    1,
+                    2
+                ]
+            }
         ],
-        render(ctx) {
-            ctx.road(N, 0.5);
-            ctx.road(E, 0.5);
-            ctx.rail(S, 0.5);
-            ctx.road(W, 0.5);
+        render (ctx) {
+            ctx.road(0, 0.5);
+            ctx.road(1, 0.5);
+            ctx.rail(2, 0.5);
+            ctx.road(3, 0.5);
             ctx.station();
         }
     },
     "cross-road-rail-rail-rail": {
         edges: [
-            { type: ROAD, connects: [S, E, W] },
-            { type: RAIL, connects: [N, S, W] },
-            { type: RAIL, connects: [N, E, W] },
-            { type: RAIL, connects: [N, E, S] }
+            {
+                type: 2,
+                connects: [
+                    2,
+                    1,
+                    3
+                ]
+            },
+            {
+                type: 1,
+                connects: [
+                    0,
+                    2,
+                    3
+                ]
+            },
+            {
+                type: 1,
+                connects: [
+                    0,
+                    1,
+                    3
+                ]
+            },
+            {
+                type: 1,
+                connects: [
+                    0,
+                    1,
+                    2
+                ]
+            }
         ],
-        render(ctx) {
-            ctx.road(N, 0.5);
-            ctx.rail(E, 0.5);
-            ctx.rail(S, 0.5);
-            ctx.rail(W, 0.5);
+        render (ctx) {
+            ctx.road(0, 0.5);
+            ctx.rail(1, 0.5);
+            ctx.rail(2, 0.5);
+            ctx.rail(3, 0.5);
             ctx.station();
         }
     },
     "cross-road-rail-rail-road": {
         edges: [
-            { type: ROAD, connects: [S, E, W] },
-            { type: RAIL, connects: [N, S, W] },
-            { type: RAIL, connects: [N, E, W] },
-            { type: ROAD, connects: [N, E, S] }
+            {
+                type: 2,
+                connects: [
+                    2,
+                    1,
+                    3
+                ]
+            },
+            {
+                type: 1,
+                connects: [
+                    0,
+                    2,
+                    3
+                ]
+            },
+            {
+                type: 1,
+                connects: [
+                    0,
+                    1,
+                    3
+                ]
+            },
+            {
+                type: 2,
+                connects: [
+                    0,
+                    1,
+                    2
+                ]
+            }
         ],
-        render(ctx) {
-            ctx.road(N, 0.5);
-            ctx.rail(E, 0.5);
-            ctx.rail(S, 0.5);
-            ctx.road(W, 0.5);
+        render (ctx) {
+            ctx.road(0, 0.5);
+            ctx.rail(1, 0.5);
+            ctx.rail(2, 0.5);
+            ctx.road(3, 0.5);
             ctx.station();
         }
     },
     "cross-road-rail-road-rail": {
         edges: [
-            { type: ROAD, connects: [S, E, W] },
-            { type: RAIL, connects: [N, S, W] },
-            { type: ROAD, connects: [N, E, W] },
-            { type: RAIL, connects: [N, E, S] }
+            {
+                type: 2,
+                connects: [
+                    2,
+                    1,
+                    3
+                ]
+            },
+            {
+                type: 1,
+                connects: [
+                    0,
+                    2,
+                    3
+                ]
+            },
+            {
+                type: 2,
+                connects: [
+                    0,
+                    1,
+                    3
+                ]
+            },
+            {
+                type: 1,
+                connects: [
+                    0,
+                    1,
+                    2
+                ]
+            }
         ],
-        render(ctx) {
-            ctx.road(N, 0.5);
-            ctx.rail(E, 0.5);
-            ctx.road(S, 0.5);
-            ctx.rail(W, 0.5);
+        render (ctx) {
+            ctx.road(0, 0.5);
+            ctx.rail(1, 0.5);
+            ctx.road(2, 0.5);
+            ctx.rail(3, 0.5);
             ctx.station();
         }
     },
     "cross-rail": {
         edges: [
-            { type: RAIL, connects: [S, E, W] },
-            { type: RAIL, connects: [N, S, W] },
-            { type: RAIL, connects: [N, E, W] },
-            { type: RAIL, connects: [N, E, S] }
+            {
+                type: 1,
+                connects: [
+                    2,
+                    1,
+                    3
+                ]
+            },
+            {
+                type: 1,
+                connects: [
+                    0,
+                    2,
+                    3
+                ]
+            },
+            {
+                type: 1,
+                connects: [
+                    0,
+                    1,
+                    3
+                ]
+            },
+            {
+                type: 1,
+                connects: [
+                    0,
+                    1,
+                    2
+                ]
+            }
         ],
-        render(ctx) {
-            ctx.rail(N, 0.5);
-            ctx.rail(E, 0.5);
-            ctx.rail(S, 0.5);
-            ctx.rail(W, 0.5);
+        render (ctx) {
+            ctx.rail(0, 0.5);
+            ctx.rail(1, 0.5);
+            ctx.rail(2, 0.5);
+            ctx.rail(3, 0.5);
             ctx.railCross();
         }
     },
     "cross-road": {
         edges: [
-            { type: ROAD, connects: [S, E, W] },
-            { type: ROAD, connects: [N, S, W] },
-            { type: ROAD, connects: [N, E, W] },
-            { type: ROAD, connects: [N, E, S] }
+            {
+                type: 2,
+                connects: [
+                    2,
+                    1,
+                    3
+                ]
+            },
+            {
+                type: 2,
+                connects: [
+                    0,
+                    2,
+                    3
+                ]
+            },
+            {
+                type: 2,
+                connects: [
+                    0,
+                    1,
+                    3
+                ]
+            },
+            {
+                type: 2,
+                connects: [
+                    0,
+                    1,
+                    2
+                ]
+            }
         ],
-        render(ctx) {
-            ctx.arc(N, -1);
-            ctx.arc(E, -1);
-            ctx.arc(S, -1);
-            ctx.arc(W, -1);
-            ctx.roadTicks(N, 0.5);
-            ctx.roadTicks(E, 0.5);
-            ctx.roadTicks(S, 0.5);
-            ctx.roadTicks(W, 0.5);
+        render (ctx) {
+            ctx.arc(0, -1);
+            ctx.arc(1, -1);
+            ctx.arc(2, -1);
+            ctx.arc(3, -1);
+            ctx.roadTicks(0, 0.5);
+            ctx.roadTicks(1, 0.5);
+            ctx.roadTicks(2, 0.5);
+            ctx.roadTicks(3, 0.5);
         }
     },
     "lake-1": {
         edges: [
-            { type: LAKE, connects: [] },
-            { type: NONE, connects: [] },
-            { type: NONE, connects: [] },
-            { type: NONE, connects: [] }
+            {
+                type: 3,
+                connects: []
+            },
+            {
+                type: 0,
+                connects: []
+            },
+            {
+                type: 0,
+                connects: []
+            },
+            {
+                type: 0,
+                connects: []
+            }
         ],
-        render(ctx) {
-            ctx.lake([[0, 0], [1, 0], [.5, .5]]);
+        render (ctx) {
+            ctx.lake([
+                [
+                    0,
+                    0
+                ],
+                [
+                    1,
+                    0
+                ],
+                [
+                    0.5,
+                    0.5
+                ]
+            ]);
         }
     },
     "lake-2": {
         edges: [
-            { type: LAKE, connects: [E] },
-            { type: LAKE, connects: [N] },
-            { type: NONE, connects: [] },
-            { type: NONE, connects: [] }
+            {
+                type: 3,
+                connects: [
+                    1
+                ]
+            },
+            {
+                type: 3,
+                connects: [
+                    0
+                ]
+            },
+            {
+                type: 0,
+                connects: []
+            },
+            {
+                type: 0,
+                connects: []
+            }
         ],
-        render(ctx) {
-            ctx.lake([[0, 0], [1, 0], [1, 1]]);
+        render (ctx) {
+            ctx.lake([
+                [
+                    0,
+                    0
+                ],
+                [
+                    1,
+                    0
+                ],
+                [
+                    1,
+                    1
+                ]
+            ]);
         }
     },
     "lake-3": {
         edges: [
-            { type: LAKE, connects: [E, S] },
-            { type: LAKE, connects: [N, S] },
-            { type: LAKE, connects: [N, E] },
-            { type: NONE, connects: [] }
+            {
+                type: 3,
+                connects: [
+                    1,
+                    2
+                ]
+            },
+            {
+                type: 3,
+                connects: [
+                    0,
+                    2
+                ]
+            },
+            {
+                type: 3,
+                connects: [
+                    0,
+                    1
+                ]
+            },
+            {
+                type: 0,
+                connects: []
+            }
         ],
-        render(ctx) {
-            ctx.lake([[0, 0], [1, 0], [1, 1], [0, 1], [.5, .5]]);
+        render (ctx) {
+            ctx.lake([
+                [
+                    0,
+                    0
+                ],
+                [
+                    1,
+                    0
+                ],
+                [
+                    1,
+                    1
+                ],
+                [
+                    0,
+                    1
+                ],
+                [
+                    0.5,
+                    0.5
+                ]
+            ]);
         }
     },
     "lake-4": {
         edges: [
-            { type: LAKE, connects: [E, S, W] },
-            { type: LAKE, connects: [N, S, W] },
-            { type: LAKE, connects: [N, E, W] },
-            { type: LAKE, connects: [N, E, S] }
+            {
+                type: 3,
+                connects: [
+                    1,
+                    2,
+                    3
+                ]
+            },
+            {
+                type: 3,
+                connects: [
+                    0,
+                    2,
+                    3
+                ]
+            },
+            {
+                type: 3,
+                connects: [
+                    0,
+                    1,
+                    3
+                ]
+            },
+            {
+                type: 3,
+                connects: [
+                    0,
+                    1,
+                    2
+                ]
+            }
         ],
-        render(ctx) {
-            ctx.lake([[0, 0], [1, 0], [1, 1], [0, 1]]);
+        render (ctx) {
+            ctx.lake([
+                [
+                    0,
+                    0
+                ],
+                [
+                    1,
+                    0
+                ],
+                [
+                    1,
+                    1
+                ],
+                [
+                    0,
+                    1
+                ]
+            ]);
         }
     },
     "lake-rail": {
         edges: [
-            { type: LAKE, connects: [S] },
-            { type: NONE, connects: [] },
-            { type: RAIL, connects: [N] },
-            { type: NONE, connects: [] }
+            {
+                type: 3,
+                connects: [
+                    2
+                ]
+            },
+            {
+                type: 0,
+                connects: []
+            },
+            {
+                type: 1,
+                connects: [
+                    0
+                ]
+            },
+            {
+                type: 0,
+                connects: []
+            }
         ],
-        render(ctx) {
-            ctx.lake([[0, 0], [1, 0], [.5, .5]]);
-            ctx.rail(S, 0.5);
+        render (ctx) {
+            ctx.lake([
+                [
+                    0,
+                    0
+                ],
+                [
+                    1,
+                    0
+                ],
+                [
+                    0.5,
+                    0.5
+                ]
+            ]);
+            ctx.rail(2, 0.5);
             ctx.station();
         }
     },
     "lake-road": {
         edges: [
-            { type: LAKE, connects: [S] },
-            { type: NONE, connects: [] },
-            { type: ROAD, connects: [N] },
-            { type: NONE, connects: [] }
+            {
+                type: 3,
+                connects: [
+                    2
+                ]
+            },
+            {
+                type: 0,
+                connects: []
+            },
+            {
+                type: 2,
+                connects: [
+                    0
+                ]
+            },
+            {
+                type: 0,
+                connects: []
+            }
         ],
-        render(ctx) {
-            ctx.lake([[0, 0], [1, 0], [.5, .5]]);
-            ctx.road(S, 0.5);
+        render (ctx) {
+            ctx.lake([
+                [
+                    0,
+                    0
+                ],
+                [
+                    1,
+                    0
+                ],
+                [
+                    0.5,
+                    0.5
+                ]
+            ]);
+            ctx.road(2, 0.5);
             ctx.station();
         }
     },
     "lake-rail-road": {
         edges: [
-            { type: LAKE, connects: [E, S, W] },
-            { type: LAKE, connects: [N, S, W] },
-            { type: ROAD, connects: [N, E, W] },
-            { type: RAIL, connects: [N, E, S] }
+            {
+                type: 3,
+                connects: [
+                    1,
+                    2,
+                    3
+                ]
+            },
+            {
+                type: 3,
+                connects: [
+                    0,
+                    2,
+                    3
+                ]
+            },
+            {
+                type: 2,
+                connects: [
+                    0,
+                    1,
+                    3
+                ]
+            },
+            {
+                type: 1,
+                connects: [
+                    0,
+                    1,
+                    2
+                ]
+            }
         ],
-        render(ctx) {
-            ctx.lake([[0, 0], [1, 0], [1, 1]]);
-            ctx.road(S, 0.5);
-            ctx.rail(W, 0.5);
+        render (ctx) {
+            ctx.lake([
+                [
+                    0,
+                    0
+                ],
+                [
+                    1,
+                    0
+                ],
+                [
+                    1,
+                    1
+                ]
+            ]);
+            ctx.road(2, 0.5);
+            ctx.rail(3, 0.5);
             ctx.station();
         }
     },
     "forest": {
         edges: [
-            { type: FOREST, connects: [] },
-            { type: FOREST, connects: [] },
-            { type: FOREST, connects: [] },
-            { type: FOREST, connects: [] }
+            {
+                type: 4,
+                connects: []
+            },
+            {
+                type: 4,
+                connects: []
+            },
+            {
+                type: 4,
+                connects: []
+            },
+            {
+                type: 4,
+                connects: []
+            }
         ],
-        render(ctx) {
+        render (ctx) {
             ctx.forest();
         }
     }
 };
-function get$1(id) {
-    if (!(id in repo$1)) {
+function get1(id) {
+    if (!(id in repo1)) {
         throw new Error(`Shape ${id} not found`);
     }
-    return repo$1[id];
+    return repo1[id];
 }
 function getTransforms(edges) {
     let cache = new Set();
     function filter(t) {
         let transform = get(t);
-        let key = all.map(d => {
+        let key = all.map((d)=>{
             d = transform.apply(d);
             return edges[d].type;
         }).join("/");
@@ -416,51 +1047,67 @@ function getTransforms(edges) {
         cache.add(key);
         return true;
     }
-    return all$1.filter(filter);
+    return all1.filter(filter);
 }
-for (let key in partials) {
+for(let key in partials){
     let shape = partials[key];
     let transforms = getTransforms(shape.edges);
-    repo$1[key] = Object.assign({}, shape, { transforms });
+    repo1[key] = Object.assign({
+    }, shape, {
+        transforms
+    });
 }
-
 class Tile {
-    constructor(sid, tid) {
-        this._data = { sid, tid };
-    }
+    _data;
     static fromJSON(data) {
         return new this(data.sid, data.tid);
     }
-    get transform() { return this._data.tid; }
-    set transform(transform) { this._data.tid = transform; }
-    toJSON() { return this._data; }
-    clone() { return Tile.fromJSON(this.toJSON()); }
+    constructor(sid, tid){
+        this._data = {
+            sid,
+            tid
+        };
+    }
+    get transform() {
+        return this._data.tid;
+    }
+    set transform(transform) {
+        this._data.tid = transform;
+    }
+    toJSON() {
+        return this._data;
+    }
+    clone() {
+        return Tile.fromJSON(this.toJSON());
+    }
     getEdge(direction) {
         let transform = get(this.transform);
         direction = transform.invert(direction);
-        let edge = get$1(this._data.sid).edges[direction];
+        let edge = get1(this._data.sid).edges[direction];
         return {
             type: edge.type,
-            connects: edge.connects.map(d => transform.apply(d))
+            connects: edge.connects.map((d)=>transform.apply(d)
+            )
         };
     }
-    getTransforms() { return get$1(this._data.sid).transforms; }
+    getTransforms() {
+        return get1(this._data.sid).transforms;
+    }
     fitsNeighbors(neighborEdges) {
         let connections = 0;
         let errors = 0;
-        neighborEdges.forEach((nEdge, dir) => {
+        neighborEdges.forEach((nEdge, dir)=>{
             let ourEdge = this.getEdge(dir).type;
-            if (ourEdge == LAKE || ourEdge == FOREST) {
+            if (ourEdge == 3 || ourEdge == 4) {
                 connections++;
                 return;
             }
-            if (nEdge == NONE || ourEdge == NONE || nEdge == FOREST) {
+            if (nEdge == 0 || ourEdge == 0 || nEdge == 4) {
                 return;
             }
             if (nEdge == ourEdge) {
                 connections++;
-            }
-            else {
+            } else {
                 errors++;
             }
         });
@@ -470,26 +1117,40 @@ class Tile {
         return connections;
     }
 }
-
 function getNeighbor(cell, direction, cells) {
     let x = cell.x + Vector[direction][0];
     let y = cell.y + Vector[direction][1];
     return cells.at(x, y);
 }
 function getCenterCount(cells) {
-    return cells.filter(cell => cell.center && cell.tile).length;
+    return cells.filter((cell)=>cell.center && cell.tile
+    ).length;
 }
 function getEdgeKey(a, b) {
     if (a.x > b.x || a.y > b.y) {
-        [a, b] = [b, a];
+        [a, b] = [
+            b,
+            a
+        ];
     }
-    return [a.x, a.y, b.x, b.y].join("/");
+    return [
+        a.x,
+        a.y,
+        b.x,
+        b.y
+    ].join("/");
 }
 function getSubgraph(start, cells) {
+    ;
     let subgraph = [];
-    let queue = [{ cell: start, from: null }];
+    let queue = [
+        {
+            cell: start,
+            from: null
+        }
+    ];
     let lockedEdges = new Set();
-    while (queue.length) {
+    while(queue.length){
         let current = queue.shift();
         let cell = current.cell;
         if (!cell.tile) {
@@ -497,10 +1158,10 @@ function getSubgraph(start, cells) {
         }
         subgraph.push(cell);
         let tile = cell.tile;
-        let outDirections = (current.from === null ? all : tile.getEdge(current.from).connects);
-        outDirections.forEach(d => {
+        let outDirections = current.from === null ? all : tile.getEdge(current.from).connects;
+        outDirections.forEach((d)=>{
             let edgeType = tile.getEdge(d).type;
-            if (edgeType == NONE) {
+            if (edgeType == 0) {
                 return;
             }
             let neighbor = getNeighbor(cell, d, cells);
@@ -517,25 +1178,31 @@ function getSubgraph(start, cells) {
                 return;
             }
             lockedEdges.add(edgeKey);
-            queue.push({ cell: neighbor, from: neighborEdge });
+            queue.push({
+                cell: neighbor,
+                from: neighborEdge
+            });
         });
     }
     return subgraph;
 }
 function getConnectedExits(start, cells) {
-    return getSubgraph(start, cells).filter(cell => cell.border);
+    return getSubgraph(start, cells).filter((cell)=>cell.border
+    );
 }
 function getExits(cells) {
     let results = [];
-    let exitsArr = cells.filter(cell => cell.border && cell.tile);
+    let exitsArr = cells.filter((cell)=>cell.border && cell.tile
+    );
     let exits = new Set(exitsArr);
-    while (exits.size > 0) {
+    while(exits.size > 0){
         let cell = exits.values().next().value;
         let connected = getConnectedExits(cell, cells);
         if (connected.length > 1) {
             results.push(connected.length);
         }
-        connected.forEach(cell => exits.delete(cell));
+        connected.forEach((cell)=>exits.delete(cell)
+        );
     }
     return results;
 }
@@ -545,11 +1212,10 @@ function getLongestFrom(cell, from, ctx) {
     }
     let path = [];
     let tile = cell.tile;
-    let outDirections = (from === null ? all : tile.getEdge(from).connects);
+    let outDirections = from === null ? all : tile.getEdge(from).connects;
     ctx.lockedCells.add(cell);
-    outDirections
-        .filter(d => tile.getEdge(d).type == ctx.edgeType)
-        .forEach(d => {
+    outDirections.filter((d)=>tile.getEdge(d).type == ctx.edgeType
+    ).forEach((d)=>{
         let neighbor = getNeighbor(cell, d, ctx.cells);
         if (neighbor.border || !neighbor.tile) {
             return;
@@ -577,13 +1243,18 @@ function getLongest(edgeType, cells) {
             return;
         }
         let tile = cell.tile;
-        return all.some(d => tile.getEdge(d).type == edgeType);
+        return all.some((d)=>tile.getEdge(d).type == edgeType
+        );
     }
     let starts = cells.filter(contains);
     let bestPath = [];
-    starts.forEach(cell => {
+    starts.forEach((cell)=>{
         let lockedCells = new Set();
-        let ctx = { cells, edgeType, lockedCells };
+        let ctx = {
+            cells,
+            edgeType,
+            lockedCells
+        };
         let path = getLongestFrom(cell, null, ctx);
         if (path.length > bestPath.length) {
             bestPath = path;
@@ -598,7 +1269,7 @@ function isDeadend(deadend, cells) {
         return false;
     }
     let edge = tile.getEdge(deadend.direction).type;
-    if (edge != RAIL && edge != ROAD) {
+    if (edge != 1 && edge != 2) {
         return false;
     }
     let neighbor = getNeighbor(cell, deadend.direction, cells);
@@ -609,36 +1280,43 @@ function isDeadend(deadend, cells) {
         return true;
     }
     let neighborEdge = clamp(deadend.direction + 2);
-    return (neighbor.tile.getEdge(neighborEdge).type != edge);
+    return neighbor.tile.getEdge(neighborEdge).type != edge;
 }
 function getDeadends(cells) {
     let deadends = [];
-    cells.filter(cell => !cell.border).forEach(cell => {
-        all.forEach(direction => {
-            let deadend = { cell, direction };
+    cells.filter((cell)=>!cell.border
+    ).forEach((cell)=>{
+        all.forEach((direction)=>{
+            let deadend = {
+                cell,
+                direction
+            };
             isDeadend(deadend, cells) && deadends.push(deadend);
         });
     });
     return deadends;
 }
 function extractLake(lakeCells, allCells) {
-    let pending = [lakeCells.shift()];
+    let pending = [
+        lakeCells.shift()
+    ];
     let processed = [];
-    while (pending.length) {
+    while(pending.length){
         const current = pending.shift();
         processed.push(current);
         const tile = current.tile;
         if (!tile) {
             continue;
         }
-        all.filter(d => tile.getEdge(d).type == LAKE).forEach(d => {
+        all.filter((d)=>tile.getEdge(d).type == 3
+        ).forEach((d)=>{
             let neighbor = getNeighbor(current, d, allCells);
             if (!neighbor.tile) {
                 return;
             }
             let neighborEdge = clamp(d + 2);
             let neighborEdgeType = neighbor.tile.getEdge(neighborEdge).type;
-            if (neighborEdgeType != LAKE) {
+            if (neighborEdgeType != 3) {
                 return;
             }
             let index = lakeCells.indexOf(neighbor);
@@ -657,11 +1335,12 @@ function getLakes(cells) {
             return;
         }
         let tile = cell.tile;
-        return all.some(d => tile.getEdge(d).type == LAKE);
+        return all.some((d)=>tile.getEdge(d).type == 3
+        );
     }
     let lakeCells = cells.filter(isLake);
     let sizes = [];
-    while (lakeCells.length) {
+    while(lakeCells.length){
         sizes.push(extractLake(lakeCells, cells).length);
     }
     return sizes;
@@ -672,79 +1351,84 @@ function getForests(cells) {
             return;
         }
         let tile = cell.tile;
-        return all.every(d => tile.getEdge(d).type != FOREST);
+        return all.every((d)=>tile.getEdge(d).type != 4
+        );
     }
     function hasForestNeighbor(cell) {
-        return all.some(d => {
+        return all.some((d)=>{
             let neighbor = getNeighbor(cell, d, cells);
             if (!neighbor.tile) {
                 return;
             }
             let neighborEdge = clamp(d + 2);
-            return (neighbor.tile.getEdge(neighborEdge).type == FOREST);
+            return neighbor.tile.getEdge(neighborEdge).type == 4;
         });
     }
     return cells.filter(isRailRoad).filter(hasForestNeighbor);
 }
-function get$2(cells) {
+function get2(cells) {
     return {
         exits: getExits(cells),
         center: getCenterCount(cells),
-        rail: getLongest(RAIL, cells),
-        road: getLongest(ROAD, cells),
+        rail: getLongest(1, cells),
+        road: getLongest(2, cells),
         deadends: getDeadends(cells),
         lakes: getLakes(cells),
         forests: getForests(cells)
     };
 }
 function mapExits(score) {
-    return score.exits.map(count => count == 12 ? 45 : (count - 1) * 4);
+    return score.exits.map((count)=>count == 12 ? 45 : (count - 1) * 4
+    );
 }
 function sumLakes(score) {
-    return (score.lakes.length > 0 ? score.lakes.sort((a, b) => a - b)[0] : 0);
+    return score.lakes.length > 0 ? score.lakes.sort((a, b)=>a - b
+    )[0] : 0;
 }
 function sum(score) {
     let exits = mapExits(score);
-    let exitScore = exits.reduce((a, b) => a + b, 0);
+    let exitScore = exits.reduce((a, b)=>a + b
+    , 0);
     let lakeScore = sumLakes(score);
-    return exitScore
-        + score.road.length
-        + score.rail.length
-        + score.center
-        - score.deadends.length
-        + lakeScore
-        + score.forests.length;
+    return exitScore + score.road.length + score.rail.length + score.center - score.deadends.length + lakeScore + score.forests.length;
 }
-
 const BOARD = 7;
 function inBoard(x, y) {
-    return (x > 0 && y > 0 && x <= BOARD && y <= BOARD);
+    return x > 0 && y > 0 && x <= 7 && y <= 7;
 }
 class CellRepo {
-    constructor() {
-        this._cells = [];
+    _cells = [];
+    constructor(){
         const tile = null;
         const round = 0;
-        for (let y = 0; y < BOARD + 2; y++) {
+        for(let y = 0; y < 7 + 2; y++){
             let row = [];
             this._cells.push(row);
-            for (let x = 0; x < BOARD + 2; x++) {
+            for(let x = 0; x < 7 + 2; x++){
                 let border = !inBoard(x, y);
-                let center = (x >= 3 && x <= 5 && y >= 3 && y <= 5);
-                let cell = { x, y, border, center, tile, round };
+                let center = x >= 3 && x <= 5 && y >= 3 && y <= 5;
+                let cell = {
+                    x,
+                    y,
+                    border,
+                    center,
+                    tile: null,
+                    round: 0
+                };
                 row.push(cell);
             }
         }
     }
     forEach(cb) {
-        this._cells.forEach(row => {
-            row.forEach(cell => cb(cell));
+        this._cells.forEach((row)=>{
+            row.forEach((cell)=>cb(cell)
+            );
         });
     }
     filter(test) {
         let results = [];
-        this._cells.forEach(row => {
-            row.forEach(cell => {
+        this._cells.forEach((row)=>{
+            row.forEach((cell)=>{
                 test(cell) && results.push(cell);
             });
         });
@@ -754,30 +1438,30 @@ class CellRepo {
         return this._cells[y][x];
     }
 }
-
 class Board {
-    constructor(_tileCtor = Tile) {
-        this._tileCtor = _tileCtor;
-        this.blob = null;
-        this._cells = new CellRepo();
-        this.node = this._build();
-        this._placeInitialTiles();
+    _tileCtor;
+    blob = null;
+    _cells = new CellRepo();
+    constructor(_tileCtor1 = Tile){
+        this._tileCtor = _tileCtor1;
     }
-    _build() { return null; }
-    ;
-    signal(_cells) { }
-    ;
-    showScore(_score) { }
-    onClick(_cell) { }
-    getScore() { return get$2(this._cells); }
+    signal(_cells) {
+    }
+    showScore(_score) {
+    }
+    onClick(_cell) {
+    }
+    getScore() {
+        return get2(this._cells);
+    }
     fromJSON(cells) {
         const Tile = this._tileCtor;
-        this._cells.forEach(cell => {
+        this._cells.forEach((cell)=>{
             if (!cell.border) {
                 cell.tile = null;
             }
         });
-        cells.forEach(cell => {
+        cells.forEach((cell)=>{
             let tile = Tile.fromJSON(cell.tile);
             this.place(tile, cell.x, cell.y, cell.round);
         });
@@ -786,7 +1470,7 @@ class Board {
     }
     toJSON() {
         let result = [];
-        this._cells.forEach(cell => {
+        this._cells.forEach((cell)=>{
             const tile = cell.tile;
             if (cell.border || !tile) {
                 return;
@@ -831,22 +1515,22 @@ class Board {
         cell.round = round;
     }
     getNeighborEdges(x, y) {
-        return all.map(dir => {
+        return all.map((dir)=>{
             let vector = Vector[dir];
             let neighbor = this._cells.at(x + vector[0], y + vector[1]).tile;
             if (!neighbor) {
-                return NONE;
+                return 0;
             }
             return neighbor.getEdge(clamp(dir + 2)).type;
         });
     }
     getAvailableCells(tile) {
-        return this._cells.filter(cell => {
+        return this._cells.filter((cell)=>{
             if (cell.border || cell.tile) {
                 return false;
             }
             let transforms = this._getTransforms(tile, cell.x, cell.y);
-            return (transforms.length > 0);
+            return transforms.length > 0;
         });
     }
     _getTransforms(tile, x, y) {
@@ -859,44 +1543,44 @@ class Board {
             let c2 = clone.fitsNeighbors(neighborEdges);
             return c2 - c1;
         }
-        return tile.getTransforms().filter(t => {
+        return tile.getTransforms().filter((t)=>{
             clone.transform = t;
             return clone.fitsNeighbors(neighborEdges);
         }).sort(compare);
     }
     _placeInitialTiles() {
         const Tile = this._tileCtor;
-        this._cells.forEach(cell => {
+        this._cells.forEach((cell)=>{
             const x = cell.x;
             const y = cell.y;
             let tile = null;
-            switch (true) {
-                case (x == 2 && y == 0):
-                case (x == 6 && y == 0):
+            switch(true){
+                case x == 2 && y == 0:
+                case x == 6 && y == 0:
                     tile = new Tile("road-half", "2");
                     break;
-                case (x == 2 && y == 8):
-                case (x == 6 && y == 8):
+                case x == 2 && y == 8:
+                case x == 6 && y == 8:
                     tile = new Tile("road-half", "0");
                     break;
-                case (x == 0 && y == 2):
-                case (x == 0 && y == 6):
+                case x == 0 && y == 2:
+                case x == 0 && y == 6:
                     tile = new Tile("rail-half", "1");
                     break;
-                case (x == 8 && y == 2):
-                case (x == 8 && y == 6):
+                case x == 8 && y == 2:
+                case x == 8 && y == 6:
                     tile = new Tile("rail-half", "-1");
                     break;
-                case (x == 4 && y == 0):
+                case x == 4 && y == 0:
                     tile = new Tile("rail-half", "2");
                     break;
-                case (x == 4 && y == 8):
+                case x == 4 && y == 8:
                     tile = new Tile("rail-half", "0");
                     break;
-                case (x == 0 && y == 4):
+                case x == 0 && y == 4:
                     tile = new Tile("road-half", "1");
                     break;
-                case (x == 8 && y == 4):
+                case x == 8 && y == 4:
                     tile = new Tile("road-half", "-1");
                     break;
             }
@@ -906,76 +1590,106 @@ class Board {
     }
     _surroundLakes(round) {
         const Tile = this._tileCtor;
-        const isSurrounded = (cell) => {
+        const isSurrounded = (cell)=>{
             if (cell.tile || cell.border) {
                 return false;
             }
             let neighborEdges = this.getNeighborEdges(cell.x, cell.y);
-            return neighborEdges.filter(e => e == LAKE).length >= 3;
+            return neighborEdges.filter((e)=>e == 3
+            ).length >= 3;
         };
         let surrounded = this._cells.filter(isSurrounded);
-        surrounded.forEach(cell => {
+        surrounded.forEach((cell)=>{
             let tile = new Tile("lake-4", "0");
             this.place(tile, cell.x, cell.y, round);
         });
         surrounded.length && this.commit(round);
     }
 }
-
-function node(name, attrs = {}, content) {
+function node1(name, attrs = {
+}, content) {
     let node = document.createElement(name);
     Object.assign(node, attrs);
     content && (node.textContent = content);
     return node;
 }
-
 const TILE = Number(window.getComputedStyle(document.body).getPropertyValue("--tile-size"));
-const DBLCLICK = 400;
-const DOWN_EVENT = ("onpointerdown" in window ? "pointerdown" : "touchstart");
+const DOWN_EVENT = "onpointerdown" in window ? "pointerdown" : "touchstart";
 const SERVER = "wss://ws.toad.cz/";
-
 const RAIL_TICK_WIDTH = 1;
 const LINE_WIDTH = 2;
-const STATION = 18;
-const RADIUS = 16;
 const RAIL_WIDTH = 12;
 const ROAD_WIDTH = 14;
-const RAIL_TICK_SMALL = [RAIL_TICK_WIDTH, 6];
-const RAIL_TICK_LARGE = [RAIL_TICK_WIDTH, 8];
-const ROAD_TICK = [6, 4];
-const STARTS = [[0.5, 0], [1, 0.5], [0.5, 1], [0, 0.5]];
-const TO_CENTER = Vector.map((_, i, all) => all[clamp(i + 2)]);
+const RAIL_TICK_SMALL = [
+    1,
+    6
+];
+const RAIL_TICK_LARGE = [
+    1,
+    8
+];
+const ROAD_TICK = [
+    6,
+    4
+];
+const STARTS = [
+    [
+        0.5,
+        0
+    ],
+    [
+        1,
+        0.5
+    ],
+    [
+        0.5,
+        1
+    ],
+    [
+        0,
+        0.5
+    ]
+];
+const TO_CENTER = Vector.map((_, i, all)=>all[clamp(i + 2)]
+);
 function toAbs(p) {
-    return p.map($ => $ * TILE);
+    return p.map(($)=>$ * TILE
+    );
 }
 function computeControlPoint(p1, p2) {
     if (p1[0] == p2[0]) {
-        return [1 - p1[0], 0.5];
-    }
-    else {
-        return [0.5, 1 - p1[1]];
+        return [
+            1 - p1[0],
+            0.5
+        ];
+    } else {
+        return [
+            0.5,
+            1 - p1[1]
+        ];
     }
 }
 function createLakeCanvas() {
     const N = 4;
     const PX = 2;
-    const canvas = node("canvas");
+    const canvas = node1("canvas");
     canvas.width = canvas.height = N * PX;
     const ctx = canvas.getContext("2d");
-    for (let i = 0; i < N; i++) {
-        for (let j = 0; j < N; j++) {
+    for(let i = 0; i < 4; i++){
+        for(let j = 0; j < 4; j++){
             const H = 200 + ~~(Math.random() * (240 - 200));
             const S = 100;
             const V = 70 + ~~(Math.random() * (90 - 70));
             ctx.fillStyle = `hsl(${H}, ${S}%, ${V}%)`;
-            ctx.fillRect(i * PX, j * PX, PX, PX);
+            ctx.fillRect(i * 2, j * 2, 2, 2);
         }
     }
     return canvas;
 }
 const lakeCanvas = createLakeCanvas();
 class CanvasDrawContext {
-    constructor(canvas) {
+    _ctx;
+    constructor(canvas){
         canvas.width = canvas.height = TILE * devicePixelRatio;
         this._ctx = canvas.getContext("2d");
         this._ctx.scale(devicePixelRatio, devicePixelRatio);
@@ -1005,17 +1719,24 @@ class CanvasDrawContext {
     }
     station() {
         const ctx = this._ctx;
-        let size = [ctx.canvas.width, ctx.canvas.height].map($ => $ / devicePixelRatio);
+        let size = [
+            ctx.canvas.width,
+            ctx.canvas.height
+        ].map(($)=>$ / devicePixelRatio
+        );
         ctx.fillStyle = "#000";
-        ctx.fillRect(size[0] / 2 - STATION / 2, size[1] / 2 - STATION / 2, STATION, STATION);
+        ctx.fillRect(size[0] / 2 - 18 / 2, size[1] / 2 - 18 / 2, 18, 18);
     }
     railCross() {
         const ctx = this._ctx;
         this.styleLine();
         ctx.lineWidth = RAIL_TICK_WIDTH;
         ctx.beginPath();
-        let c = [TILE / 2, TILE / 2];
-        let d = RAIL_WIDTH / 2;
+        let c = [
+            TILE / 2,
+            TILE / 2
+        ];
+        let d = 12 / 2;
         ctx.moveTo(c[0] - d, c[1] - d);
         ctx.lineTo(c[0] + d, c[1] + d);
         ctx.moveTo(c[0] - d, c[1] + d);
@@ -1027,7 +1748,10 @@ class CanvasDrawContext {
         let pxLength = length * TILE;
         let start = toAbs(STARTS[edge]);
         let vec = TO_CENTER[edge];
-        let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
+        let end = [
+            start[0] + vec[0] * pxLength,
+            start[1] + vec[1] * pxLength
+        ];
         this.styleRoadTicks(ROAD_TICK, -3);
         ctx.beginPath();
         ctx.moveTo(...start);
@@ -1039,11 +1763,13 @@ class CanvasDrawContext {
         let pxLength = length * TILE;
         let start = toAbs(STARTS[edge]);
         let vec = TO_CENTER[edge];
-        let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
+        let end = [
+            start[0] + vec[0] * pxLength,
+            start[1] + vec[1] * pxLength
+        ];
         if (length > 0.5) {
             this.styleRailTicks(RAIL_TICK_LARGE, 5);
-        }
-        else {
+        } else {
             this.styleRailTicks(RAIL_TICK_SMALL, 3);
         }
         ctx.beginPath();
@@ -1057,7 +1783,10 @@ class CanvasDrawContext {
         let pxLength = length * TILE;
         let vec = TO_CENTER[edge];
         let start = toAbs(STARTS[edge]);
-        let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
+        let end = [
+            start[0] + vec[0] * pxLength,
+            start[1] + vec[1] * pxLength
+        ];
         ctx.beginPath();
         ctx.moveTo(...start);
         ctx.lineTo(...end);
@@ -1065,7 +1794,7 @@ class CanvasDrawContext {
         let ticksLength = length;
         if (length <= 0.5) {
             ticksLength = Math.min(ticksLength, 0.35);
-        } // short rail segments have a max of .35 ticks
+        }
         this.railTicks(edge, ticksLength);
     }
     roadLine(edge, length, diff) {
@@ -1075,16 +1804,19 @@ class CanvasDrawContext {
         diff *= ROAD_WIDTH / 2;
         let vec = TO_CENTER[edge];
         let start = toAbs(STARTS[edge]);
-        let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
+        let end = [
+            start[0] + vec[0] * pxLength,
+            start[1] + vec[1] * pxLength
+        ];
         ctx.beginPath();
-        switch (edge) {
-            case N:
-            case S:
+        switch(edge){
+            case 0:
+            case 2:
                 ctx.moveTo(start[0] + diff, start[1]);
                 ctx.lineTo(end[0] + diff, end[1]);
                 break;
-            case W:
-            case E:
+            case 3:
+            case 1:
                 ctx.moveTo(start[0], start[1] + diff);
                 ctx.lineTo(end[0], end[1] + diff);
                 break;
@@ -1096,19 +1828,22 @@ class CanvasDrawContext {
         let pxLength = length * TILE;
         let vec = TO_CENTER[edge];
         let start = toAbs(STARTS[edge]);
-        let end = [start[0] + vec[0] * pxLength, start[1] + vec[1] * pxLength];
-        switch (edge) {
-            case N:
-                ctx.clearRect(start[0] - ROAD_WIDTH / 2, start[1], ROAD_WIDTH, pxLength);
+        let end = [
+            start[0] + vec[0] * pxLength,
+            start[1] + vec[1] * pxLength
+        ];
+        switch(edge){
+            case 0:
+                ctx.clearRect(start[0] - 14 / 2, start[1], 14, pxLength);
                 break;
-            case S:
-                ctx.clearRect(end[0] - ROAD_WIDTH / 2, end[1], ROAD_WIDTH, pxLength);
+            case 2:
+                ctx.clearRect(end[0] - 14 / 2, end[1], 14, pxLength);
                 break;
-            case W:
-                ctx.clearRect(start[0], start[1] - ROAD_WIDTH / 2, pxLength, ROAD_WIDTH);
+            case 3:
+                ctx.clearRect(start[0], start[1] - 14 / 2, pxLength, 14);
                 break;
-            case E:
-                ctx.clearRect(end[0], end[1] - ROAD_WIDTH / 2, pxLength, ROAD_WIDTH);
+            case 1:
+                ctx.clearRect(end[0], end[1] - 14 / 2, pxLength, 14);
                 break;
         }
         this.roadLine(edge, length, -1);
@@ -1118,26 +1853,32 @@ class CanvasDrawContext {
     arc(quadrant, diff) {
         const ctx = this._ctx;
         diff *= ROAD_WIDTH / 2;
-        let R = RADIUS + diff;
+        let R = 16 + diff;
         ctx.beginPath();
-        let start = [0, 0]; // N/S edge
-        let end = [0, 0]; // E/W edge
-        switch (quadrant) {
-            case N: // top-left
+        let start = [
+            0,
+            0
+        ];
+        let end = [
+            0,
+            0
+        ];
+        switch(quadrant){
+            case 0:
                 start[0] = end[1] = TILE / 2 + diff;
                 break;
-            case E: // top-right
+            case 1:
                 start[0] = TILE / 2 - diff;
                 end[0] = TILE;
                 end[1] = TILE / 2 + diff;
                 break;
-            case S: // bottom-right
+            case 2:
                 start[0] = TILE / 2 - diff;
                 start[1] = TILE;
                 end[0] = TILE;
                 end[1] = TILE / 2 - diff;
                 break;
-            case W: // bottom-left
+            case 3:
                 end[1] = TILE / 2 - diff;
                 start[0] = TILE / 2 + diff;
                 start[1] = TILE;
@@ -1153,16 +1894,16 @@ class CanvasDrawContext {
         let point = toAbs(STARTS[direction]);
         const R = 12;
         ctx.beginPath();
-        ctx.arc(point[0], point[1], R, 0, Math.PI, false);
+        ctx.arc(point[0], point[1], 12, 0, Math.PI, false);
         ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
         ctx.fill();
     }
     lake(points) {
-        points.push(points[0]); // implicitly closed
+        points.push(points[0]);
         const ctx = this._ctx;
         const fillPath = new Path2D();
         const strokePath = new Path2D();
-        for (let i = 0; i < points.length; i++) {
+        for(let i = 0; i < points.length; i++){
             const point = points[i];
             const absPoint = toAbs(point);
             if (i == 0) {
@@ -1171,7 +1912,7 @@ class CanvasDrawContext {
                 continue;
             }
             const prevPoint = points[i - 1];
-            if (point[0] == 0.5) { // arc
+            if (point[0] == 0.5) {
                 let nextPoint = points[i + 1];
                 let cp = computeControlPoint(prevPoint, nextPoint);
                 cp = toAbs(cp);
@@ -1179,14 +1920,11 @@ class CanvasDrawContext {
                 fillPath.quadraticCurveTo(cp[0], cp[1], ...nextPoint);
                 strokePath.quadraticCurveTo(cp[0], cp[1], ...nextPoint);
                 i++;
-            }
-            else { // straight line
+            } else {
                 fillPath.lineTo(...absPoint);
-                // only diagonals are stroked
                 if (point[0] == prevPoint[0] || point[1] == prevPoint[1]) {
                     strokePath.moveTo(...absPoint);
-                }
-                else {
+                } else {
                     strokePath.lineTo(...absPoint);
                 }
             }
@@ -1199,11 +1937,11 @@ class CanvasDrawContext {
     forest() {
         const ctx = this._ctx;
         ctx.lineWidth = LINE_WIDTH;
-        for (let i = 0; i < 3; i++) {
+        for(let i = 0; i < 3; i++){
             let x = Math.round(TILE / 4 * (i + 1));
             let y = TILE * 3 / 4 + TILE / 6 * (i % 2 ? -1 : 1);
             ctx.beginPath();
-            (Math.random() < 0.5 ? tree1(ctx, x, y) : tree2(ctx, x, y));
+            Math.random() < 0.5 ? tree1(ctx, x, y) : tree2(ctx, x, y);
             ctx.fill();
             ctx.stroke();
         }
@@ -1236,20 +1974,21 @@ function tree2(ctx, x, y) {
     ctx.lineTo(x + STEP_X, y);
     ctx.lineTo(x, y);
 }
-
 let cache = new Map();
 function createVisual(id) {
     let result;
     if (cache.has(id)) {
         result = cache.get(id);
-    }
-    else {
-        let shape = get$1(id);
-        let canvas = node("canvas");
+    } else {
+        let shape = get1(id);
+        let canvas = node1("canvas");
         let ctx = new CanvasDrawContext(canvas);
         shape.render(ctx);
         let data = canvas.toDataURL("image/png");
-        result = { canvas, data };
+        result = {
+            canvas,
+            data
+        };
         if (id != "forest") {
             cache.set(id, result);
         }
@@ -1257,21 +1996,34 @@ function createVisual(id) {
     return result;
 }
 class HTMLTile extends Tile {
-    constructor(sid, tid, visual = null) {
-        super(sid, tid);
+    node;
+    _visual;
+    constructor(sid1, tid1, visual = null){
+        super(sid1, tid1);
         this._visual = visual || createVisual(this._data.sid);
-        this.node = node("img", { className: "tile", alt: "tile", src: this._visual.data });
+        this.node = node1("img", {
+            className: "tile",
+            alt: "tile",
+            src: this._visual.data
+        });
         this._applyTransform();
     }
-    get transform() { return super.transform; }
+    get transform() {
+        return super.transform;
+    }
     set transform(transform) {
         super.transform = transform;
         this._applyTransform();
     }
-    clone() { return new HTMLTile(this._data.sid, this._data.tid, this._visual); }
+    clone() {
+        return new HTMLTile(this._data.sid, this._data.tid, this._visual);
+    }
     createCanvas() {
         const source = this._visual.canvas;
-        const canvas = node("canvas", { width: source.width, height: source.height });
+        const canvas = node1("canvas", {
+            width: source.width,
+            height: source.height
+        });
         const ctx = canvas.getContext("2d");
         get(this._data.tid).applyToContext(ctx);
         ctx.drawImage(source, 0, 0);
@@ -1281,14 +2033,13 @@ class HTMLTile extends Tile {
         this.node.style.transform = get(this._data.tid).getCSS();
     }
 }
-
 const DPR = devicePixelRatio;
 const BTILE = TILE / 2;
 const bodyStyle = getComputedStyle(document.body);
 const BORDER = Number(bodyStyle.getPropertyValue("--border-thick"));
 const THIN = Number(bodyStyle.getPropertyValue("--border-thin"));
 function pxToCell(px) {
-    for (let i = 0; i < BOARD + 2; i++) {
+    for(let i = 0; i < 7 + 2; i++){
         let cellPx = cellToPx(i);
         if (px >= cellPx && px < cellPx + TILE) {
             return i;
@@ -1301,27 +2052,31 @@ function cellToPx(cell) {
         return BTILE - TILE;
     }
     let offset = BTILE + BORDER;
-    if (cell <= BOARD) {
+    if (cell <= 7) {
         return offset + (cell - 1) * (TILE + THIN);
     }
-    return offset + BOARD * TILE + (BOARD - 1) * THIN + BORDER;
+    return offset + 7 * TILE + (7 - 1) * THIN + BORDER;
 }
 class BoardCanvas extends Board {
-    constructor() {
+    _ctx;
+    _pendingCells = [];
+    _signals = [];
+    node;
+    constructor(){
         super(HTMLTile);
-        this._signals = [];
+        this.node = this._build();
+        this._placeInitialTiles();
         this.node.addEventListener(DOWN_EVENT, this);
     }
     handleEvent(e) {
-        switch (e.type) {
+        switch(e.type){
             case DOWN_EVENT:
                 let pxx = null;
                 let pxy = null;
                 if ("touches" in e) {
                     pxx = e.touches[0].clientX;
                     pxy = e.touches[0].clientY;
-                }
-                else {
+                } else {
                     pxx = e.clientX;
                     pxy = e.clientY;
                 }
@@ -1340,7 +2095,8 @@ class BoardCanvas extends Board {
     }
     place(tile, x, y, round) {
         super.place(tile, x, y, round);
-        let index = this._pendingCells.findIndex(cell => cell.x == x && cell.y == y);
+        let index = this._pendingCells.findIndex((cell)=>cell.x == x && cell.y == y
+        );
         if (index > -1) {
             this._pendingCells[index].node.remove();
             this._pendingCells.splice(index, 1);
@@ -1348,20 +2104,30 @@ class BoardCanvas extends Board {
         if (!tile) {
             return;
         }
-        let node$1 = node("div", { className: "cell" });
-        node$1.style.left = `${cellToPx(x)}px`;
-        node$1.style.top = `${cellToPx(y)}px`;
-        node$1.appendChild(tile.node);
-        round && node$1.appendChild(node("div", { className: "round" }, round.toString()));
-        this.node.appendChild(node$1);
-        this._pendingCells.push({ x, y, node: node$1, tile, round });
+        let node = node1("div", {
+            className: "cell"
+        });
+        node.style.left = `${cellToPx(x)}px`;
+        node.style.top = `${cellToPx(y)}px`;
+        node.appendChild(tile.node);
+        round && node.appendChild(node1("div", {
+            className: "round"
+        }, round.toString()));
+        this.node.appendChild(node);
+        this._pendingCells.push({
+            x,
+            y,
+            node,
+            tile,
+            round
+        });
     }
     commit(round) {
         super.commit(round);
         const ctx = this._ctx;
         ctx.save();
         ctx.setTransform(1, 0, 0, 1, 0, 0);
-        this._pendingCells.forEach(cell => {
+        this._pendingCells.forEach((cell)=>{
             let pxx = cellToPx(cell.x) * DPR;
             let pxy = cellToPx(cell.y) * DPR;
             ctx.drawImage(cell.tile.createCanvas(), pxx, pxy);
@@ -1371,7 +2137,7 @@ class BoardCanvas extends Board {
         ctx.font = bodyStyle.getPropertyValue("--round-font");
         const size = Number(bodyStyle.getPropertyValue("--round-size"));
         const bg = bodyStyle.getPropertyValue("--round-bg");
-        this._pendingCells.forEach(cell => {
+        this._pendingCells.forEach((cell)=>{
             if (!cell.round) {
                 return;
             }
@@ -1385,9 +2151,12 @@ class BoardCanvas extends Board {
         this._pendingCells = [];
     }
     signal(cells) {
-        this._signals.forEach(signal => signal.remove());
-        this._signals = cells.map(cell => {
-            let signal = node("div", { className: "signal" });
+        this._signals.forEach((signal)=>signal.remove()
+        );
+        this._signals = cells.map((cell)=>{
+            let signal = node1("div", {
+                className: "signal"
+            });
             let pxx = cellToPx(cell.x);
             let pxy = cellToPx(cell.y);
             signal.style.left = `${pxx}px`;
@@ -1405,7 +2174,7 @@ class BoardCanvas extends Board {
         this._drawPolyline(score.road);
         ctx.font = "14px sans-serif";
         ctx.fillStyle = "red";
-        score.deadends.forEach(deadend => {
+        score.deadends.forEach((deadend)=>{
             let pxx = cellToPx(deadend.cell.x) + TILE / 2;
             let pxy = cellToPx(deadend.cell.y) + TILE / 2;
             const offset = TILE / 2 + 10;
@@ -1416,25 +2185,25 @@ class BoardCanvas extends Board {
         });
         ctx.globalCompositeOperation = "destination-over";
         ctx.fillStyle = "rgba(200, 255, 100, 0.2)";
-        score.forests.forEach(cell => {
+        score.forests.forEach((cell)=>{
             let pxx = cellToPx(cell.x);
             let pxy = cellToPx(cell.y);
             ctx.fillRect(pxx, pxy, TILE, TILE);
         });
         if (ctx.canvas.toBlob) {
-            ctx.canvas.toBlob(blob => this.blob = blob);
-        }
-        else if ("msToBlob" in ctx.canvas) {
-            // @ts-ignore
+            ctx.canvas.toBlob((blob)=>this.blob = blob
+            );
+        } else if ("msToBlob" in ctx.canvas) {
             this.blob = ctx.canvas.msToBlob();
         }
     }
     _build() {
-        this._pendingCells = [];
-        let node$1 = node("div", { className: "board" });
-        let canvas = node("canvas");
-        node$1.appendChild(canvas);
-        const SIZE = 2 * (BTILE + BORDER) + BOARD * TILE + (BOARD - 1) * THIN;
+        let node = node1("div", {
+            className: "board"
+        });
+        let canvas = node1("canvas");
+        node.appendChild(canvas);
+        const SIZE = 2 * (BTILE + BORDER) + 7 * TILE + (7 - 1) * THIN;
         canvas.width = canvas.height = SIZE * DPR;
         const PX = `${SIZE}px`;
         canvas.style.width = canvas.style.height = PX;
@@ -1445,20 +2214,18 @@ class BoardCanvas extends Board {
         ctx.scale(DPR, DPR);
         this._ctx = ctx;
         this._drawGrid();
-        return node$1;
+        return node;
     }
     _drawGrid() {
         const ctx = this._ctx;
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-        // fill center
         ctx.fillStyle = bodyStyle.getPropertyValue("--center-bg");
         let start = cellToPx(3) - THIN / 2;
         let length = 3 * (TILE + THIN);
         ctx.fillRect(start, start, length, length);
-        // grid
         ctx.beginPath();
         let offsetOdd = 0, offsetEven = 0, lineWidth = THIN;
-        switch (DPR) {
+        switch(DPR){
             case 1:
                 offsetOdd = offsetEven = 0.5;
                 break;
@@ -1471,23 +2238,21 @@ class BoardCanvas extends Board {
         ctx.lineWidth = lineWidth;
         start = BTILE + BORDER;
         length = BOARD * TILE + (BOARD - 1) * THIN;
-        for (let i = 0; i < BOARD - 1; i++) {
+        for(let i = 0; i < 7 - 1; i++){
             let x = start + TILE + i * (TILE + THIN);
             let y = start + TILE + i * (TILE + THIN);
-            x += (x % 2 ? offsetOdd : offsetEven);
-            y += (y % 2 ? offsetOdd : offsetEven);
+            x += x % 2 ? offsetOdd : offsetEven;
+            y += y % 2 ? offsetOdd : offsetEven;
             ctx.moveTo(start, y);
             ctx.lineTo(start + length, y);
             ctx.moveTo(x, start);
             ctx.lineTo(x, start + length);
         }
         ctx.stroke();
-        // grid border
         start = BTILE + BORDER / 2;
         length = length + BORDER;
         ctx.lineWidth = BORDER;
         ctx.strokeRect(start, start, length, length);
-        // center border
         ctx.strokeStyle = "red";
         ctx.lineWidth = BORDER;
         start = cellToPx(3) - THIN / 2;
@@ -1500,24 +2265,24 @@ class BoardCanvas extends Board {
         }
         const ctx = this._ctx;
         ctx.beginPath();
-        cells.forEach((cell, i, all) => {
+        cells.forEach((cell, i, all)=>{
             let cx = cellToPx(cell.x) + TILE / 2;
             let cy = cellToPx(cell.y) + TILE / 2;
-            if (i == 0) { // first
+            if (i == 0) {
                 ctx.moveTo(cx, cy);
-            }
-            else if (i == all.length - 1) { // last
+            } else if (i == all.length - 1) {
                 ctx.lineTo(cx, cy);
-            }
-            else { // midpoint
+            } else {
                 let inDir = this._getDirectionBetweenCells(all[i - 1], cell);
                 let outDir = this._getDirectionBetweenCells(cell, all[i + 1]);
                 if (inDir == outDir) {
                     ctx.lineTo(cx, cy);
-                }
-                else if (outDir !== null) {
+                } else if (outDir !== null) {
                     let vec = Vector[outDir];
-                    let endpoint = [cx + TILE / 2 * vec[0], cy + TILE / 2 * vec[1]];
+                    let endpoint = [
+                        cx + TILE / 2 * vec[0],
+                        cy + TILE / 2 * vec[1]
+                    ];
                     ctx.arcTo(cx, cy, endpoint[0], endpoint[1], 12);
                 }
             }
@@ -1526,21 +2291,20 @@ class BoardCanvas extends Board {
     }
     _getDirectionBetweenCells(c1, c2) {
         if (c1.y > c2.y) {
-            return N;
+            return 0;
         }
         if (c1.x > c2.x) {
-            return W;
+            return 3;
         }
         if (c1.y < c2.y) {
-            return S;
+            return 2;
         }
         if (c1.x < c2.x) {
-            return E;
+            return 1;
         }
         return null;
     }
 }
-
 let current = null;
 function showBoard(board) {
     if (!board.node) {
@@ -1548,14 +2312,12 @@ function showBoard(board) {
     }
     if (current) {
         current.node && current.node.replaceWith(board.node);
-    }
-    else {
-        let next = document.querySelector("#score");
+    } else {
+        const next = document.querySelector("#score");
         next.parentNode.insertBefore(board.node, next);
     }
     current = board;
 }
-
 const ROUNDS = {
     "normal": 7,
     "lake": 6,
@@ -1566,54 +2328,99 @@ function randomType(types) {
     return types[Math.floor(Math.random() * types.length)];
 }
 function createDice(Ctor, type, round) {
-    switch (type) {
+    switch(type){
         case "demo":
-            return DEMO.map(type => new Ctor("plain", type));
+            return DEMO.map((type)=>new Ctor("plain", type)
+            );
+            break;
         case "lake":
             return [
                 ...createDice(Ctor, "normal", round),
                 new Ctor("lake", randomType(DICE_LAKE)),
                 new Ctor("lake", randomType(DICE_LAKE))
             ];
+            break;
         case "forest":
             if (round == 1) {
                 let result = [];
-                for (let i = 0; i < 4; i++) {
+                for(let i = 0; i < 4; i++){
                     result.push(new Ctor("forest", "forest"));
                 }
                 return result;
-            }
-            else {
+            } else {
                 return createDice(Ctor, "normal", round);
             }
+            break;
         default:
             let result = [];
-            let templates = [DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_1, DICE_REGULAR_2];
-            while (templates.length) {
+            let templates = [
+                DICE_REGULAR_1,
+                DICE_REGULAR_1,
+                DICE_REGULAR_1,
+                DICE_REGULAR_2
+            ];
+            while(templates.length){
                 let index = Math.floor(Math.random() * templates.length);
                 let template = templates.splice(index, 1)[0];
                 let sid = randomType(template);
                 result.push(new Ctor("plain", sid));
             }
             return result;
+            break;
     }
 }
 const DEMO = [
-    "bridge", "rail-i", "road-i", "rail-road-l", "rail-road-i", "rail-t", "road-l", "rail-l", "road-t",
-    "lake-1", "lake-2", "lake-3", "lake-4", "lake-rail", "lake-road", "lake-rail-road",
+    "bridge",
+    "rail-i",
+    "road-i",
+    "rail-road-l",
+    "rail-road-i",
+    "rail-t",
+    "road-l",
+    "rail-l",
+    "road-t",
+    "lake-1",
+    "lake-2",
+    "lake-3",
+    "lake-4",
+    "lake-rail",
+    "lake-road",
+    "lake-rail-road",
     "forest"
 ];
-const DICE_REGULAR_1 = ["road-i", "rail-i", "road-l", "rail-l", "road-t", "rail-t"];
-const DICE_REGULAR_2 = ["bridge", "bridge", "rail-road-i", "rail-road-i", "rail-road-l", "rail-road-l"];
-const DICE_LAKE = ["lake-1", "lake-2", "lake-3", "lake-rail", "lake-road", "lake-rail-road"];
-
+const DICE_REGULAR_1 = [
+    "road-i",
+    "rail-i",
+    "road-l",
+    "rail-l",
+    "road-t",
+    "rail-t"
+];
+const DICE_REGULAR_2 = [
+    "bridge",
+    "bridge",
+    "rail-road-i",
+    "rail-road-i",
+    "rail-road-l",
+    "rail-road-l"
+];
+const DICE_LAKE = [
+    "lake-1",
+    "lake-2",
+    "lake-3",
+    "lake-rail",
+    "lake-road",
+    "lake-rail-road"
+];
 class Dice {
-    constructor(_type, _sid) {
-        this._type = _type;
-        this._sid = _sid;
-    }
+    _type;
+    _sid;
     static fromJSON(data) {
         return new this(data.type, data.sid);
+    }
+    constructor(_type1, _sid1){
+        this._type = _type1;
+        this._sid = _sid1;
     }
     toJSON() {
         return {
@@ -1622,13 +2429,20 @@ class Dice {
         };
     }
 }
-
 class HTMLDice extends Dice {
-    constructor(_type, _sid) {
-        super(_type, _sid);
-        this._type = _type;
-        this._sid = _sid;
-        this.node = node("div", { className: "dice" });
+    _type;
+    _sid;
+    blocked;
+    pending;
+    disabled;
+    _tile;
+    node = node1("div", {
+        className: "dice"
+    });
+    constructor(_type2, _sid2){
+        super(_type2, _sid2);
+        this._type = _type2;
+        this._sid = _sid2;
         if (this._type == "lake") {
             this.node.classList.add("lake");
         }
@@ -1638,28 +2452,40 @@ class HTMLDice extends Dice {
         this._tile = new HTMLTile(this._sid, "0");
         this.node.appendChild(this._tile.node);
     }
-    get tile() { return this._tile; }
-    get mandatory() { return this._type == "plain" || this._type == "forest"; }
+    get tile() {
+        return this._tile;
+    }
+    get mandatory() {
+        return this._type == "plain" || this._type == "forest";
+    }
 }
-["blocked", "pending", "disabled"].forEach(prop => {
-    Object.defineProperty(Dice.prototype, prop, {
-        get() { return this.node.classList.contains(prop); },
-        set(flag) { this.node.classList.toggle(prop, flag); }
+[
+    "blocked",
+    "pending",
+    "disabled"
+].forEach((prop)=>{
+    Object.defineProperty(HTMLDice.prototype, prop, {
+        get () {
+            return this.node.classList.contains(prop);
+        },
+        set (flag) {
+            this.node.classList.toggle(prop, flag);
+        }
     });
 });
-
-const MAX_BONUSES = 3;
 class Pool {
-    constructor() {
-        this.node = node("div", { className: "pool" });
-        this._dices = [];
-    }
+    node = node1("div", {
+        className: "pool"
+    });
+    _dices = [];
     get remaining() {
-        return this._dices.filter(d => d.mandatory && !d.disabled && !d.blocked);
+        return this._dices.filter((d)=>d.mandatory && !d.disabled && !d.blocked
+        );
     }
     handleEvent(e) {
         let target = e.currentTarget;
-        let dice = this._dices.filter(dice => dice.node == target)[0];
+        let dice = this._dices.filter((dice)=>dice.node == target
+        )[0];
         if (!dice || dice.disabled || dice.blocked) {
             return;
         }
@@ -1685,36 +2511,45 @@ class Pool {
         return true;
     }
     pending(dice) {
-        this._dices.forEach(d => d.pending = (dice == d));
+        this._dices.forEach((d)=>d.pending = dice == d
+        );
     }
-    onClick(_dice) { }
+    onClick(_dice) {
+    }
     sync(board) {
-        this._dices.filter(dice => !dice.disabled).forEach(dice => {
+        this._dices.filter((dice)=>!dice.disabled
+        ).forEach((dice)=>{
             let cells = board.getAvailableCells(dice.tile);
-            dice.blocked = (cells.length == 0);
+            dice.blocked = cells.length == 0;
         });
     }
 }
 class BonusPool extends Pool {
-    constructor() {
+    _used = 0;
+    _locked = false;
+    constructor(){
         super();
-        this._used = 0;
-        this._locked = false;
         this.node.classList.add("bonus");
-        ["cross-road-road-rail-road", "cross-road-rail-rail-rail", "cross-road",
-            "cross-rail", "cross-road-rail-rail-road", "cross-road-rail-road-rail"].forEach(sid => {
+        [
+            "cross-road-road-rail-road",
+            "cross-road-rail-rail-rail",
+            "cross-road",
+            "cross-rail",
+            "cross-road-rail-rail-road",
+            "cross-road-rail-road-rail"
+        ].forEach((sid)=>{
             this.add(new HTMLDice("plain", sid));
         });
     }
     handleEvent(e) {
-        if (this._locked || this._used == MAX_BONUSES) {
+        if (this._locked || this._used == 3) {
             return;
         }
         super.handleEvent(e);
     }
     disable(dice) {
         let disabled = super.disable(dice);
-        if (disabled) { // only if disabled, i.e. the tile was ours
+        if (disabled) {
             this._used++;
             this._locked = true;
         }
@@ -1732,20 +2567,23 @@ class BonusPool extends Pool {
         this._locked = false;
     }
     toJSON() {
-        return this._dices.filter(d => d.disabled).map(d => this._dices.indexOf(d));
+        return this._dices.filter((d)=>d.disabled
+        ).map((d)=>this._dices.indexOf(d)
+        );
     }
     fromJSON(indices) {
         this._locked = false;
-        indices.forEach(i => this.disable(this._dices[i]));
+        indices.forEach((i)=>this.disable(this._dices[i])
+        );
     }
 }
-
 const dataset = document.body.dataset;
 class Game {
-    constructor(_board) {
-        this._board = _board;
-        this._node = document.querySelector("#game");
-        this._bonusPool = new BonusPool();
+    _board;
+    _node = document.querySelector("#game");
+    _bonusPool = new BonusPool();
+    constructor(_board1){
+        this._board = _board1;
     }
     async play() {
         dataset.stage = "game";
@@ -1755,47 +2593,38 @@ class Game {
         dataset.stage = "outro";
     }
 }
-
 class Round {
-    constructor(number, _board, _bonusPool) {
-        this.number = number;
-        this._board = _board;
-        this._bonusPool = _bonusPool;
-        this._pending = null;
-        this._endButton = node("button");
-        this._placedDice = new Map();
-        this._lastClickTs = 0;
+    number;
+    _board;
+    _bonusPool;
+    node;
+    _pending = null;
+    _pool;
+    _endButton = node1("button");
+    _placedDice = new Map();
+    _lastClickTs = 0;
+    constructor(number1, _board2, _bonusPool1){
+        this.number = number1;
+        this._board = _board2;
+        this._bonusPool = _bonusPool1;
         this._pool = new Pool();
         this.node = this._pool.node;
         this._endButton.textContent = `End round #${this.number}`;
-        /**
-                window.addEventListener("keydown", e => {
-                    if (e.ctrlKey && e.key == "a") {
-                        e.preventDefault();
-                        while (true) {
-                            let r = this._pool.remaining;
-                            if (!r.length) break;
-                            let d = r.shift() as Dice;
-                            this._onPoolClick(d);
-                            let avail = this._board.getAvailableCells(d.tile);
-                            if (!avail.length) break;
-                            let cell = avail[Math.floor(Math.random() * avail.length)];
-                            this._onBoardClick(cell);
-                        }
-                    }
-                });
-        /**/
     }
     play(dice) {
-        dice.forEach(dice => this._pool.add(dice));
+        dice.forEach((dice)=>this._pool.add(dice)
+        );
         this.node.appendChild(this._endButton);
-        this._pool.onClick = dice => this._onPoolClick(dice);
-        this._bonusPool.onClick = dice => this._onPoolClick(dice);
-        this._board.onClick = cell => this._onBoardClick(cell);
+        this._pool.onClick = (dice)=>this._onPoolClick(dice)
+        ;
+        this._bonusPool.onClick = (dice)=>this._onPoolClick(dice)
+        ;
+        this._board.onClick = (cell)=>this._onBoardClick(cell)
+        ;
         this._syncEnd();
         this._bonusPool.unlock();
-        return new Promise(resolve => {
-            this._endButton.addEventListener("click", _ => {
+        return new Promise((resolve)=>{
+            this._endButton.addEventListener("click", (_)=>{
                 let valid = this._validatePlacement();
                 if (!valid) {
                     alert("Some of your dice were not placed according to the rules. Please re-place them correctly.");
@@ -1808,7 +2637,8 @@ class Round {
     }
     _end() {
         this._board.commit(this.number);
-        function noop() { }
+        function noop() {
+        }
         this._pool.onClick = noop;
         this._bonusPool.onClick = noop;
         this._board.onClick = noop;
@@ -1819,8 +2649,7 @@ class Round {
             this._board.signal([]);
             this._pool.pending(null);
             this._bonusPool.pending(null);
-        }
-        else {
+        } else {
             this._pending = dice;
             let available = this._board.getAvailableCells(dice.tile);
             this._board.signal(available);
@@ -1830,13 +2659,11 @@ class Round {
     }
     _onBoardClick(cell) {
         const ts = Date.now();
-        if (ts - this._lastClickTs < DBLCLICK) {
+        if (ts - this._lastClickTs < 400) {
             this._tryToRemove(cell);
-        }
-        else if (this._pending) {
+        } else if (this._pending) {
             this._tryToAdd(cell);
-        }
-        else {
+        } else {
             this._tryToCycle(cell);
             this._lastClickTs = ts;
         }
@@ -1882,64 +2709,75 @@ class Round {
     }
     _syncEnd() {
         this._pool.sync(this._board);
-        this._endButton.disabled = (this._pool.remaining.length > 0);
+        this._endButton.disabled = this._pool.remaining.length > 0;
     }
     _validatePlacement() {
-        // retrieve a list of placed tiles (and their cells); empty the board in the process
         let todo = [];
-        for (let cell of this._placedDice.keys()) {
+        for (let cell of this._placedDice.keys()){
             todo.push({
                 cell,
                 tile: cell.tile
             });
             this._board.place(null, cell.x, cell.y, 0);
         }
-        while (todo.length) {
-            // try re-placing any of the items back
-            let placed = todo.some((item, index) => {
+        while(todo.length){
+            let placed = todo.some((item, index)=>{
                 let cell = item.cell;
                 let neighbors = this._board.getNeighborEdges(cell.x, cell.y);
                 if (item.tile.fitsNeighbors(neighbors)) {
                     this._board.place(item.tile, cell.x, cell.y, this.number);
                     todo.splice(index, 1);
                     return true;
-                }
-                else {
+                } else {
                     return false;
                 }
             });
-            if (!placed) { // we found a non-re-insertable situation
-                todo.forEach(item => this._tryToRemove(item.cell)); // return non-placeable back to pool(s)
+            if (!placed) {
+                todo.forEach((item)=>this._tryToRemove(item.cell)
+                );
                 return false;
             }
         }
         return true;
     }
 }
-
 function buildTable() {
-    const table = node("table", { className: "score" });
-    table.appendChild(node("thead"));
-    table.appendChild(node("tbody"));
+    const table = node1("table", {
+        className: "score"
+    });
+    table.appendChild(node1("thead"));
+    table.appendChild(node1("tbody"));
     table.tHead.insertRow().insertCell();
     const body = table.tBodies[0];
-    ["Connected exits", "Longest road", "Longest rail", "Center tiles", "Dead ends", "Smallest lake", "Forest views"].forEach(label => {
+    [
+        "Connected exits",
+        "Longest road",
+        "Longest rail",
+        "Center tiles",
+        "Dead ends",
+        "Smallest lake",
+        "Forest views"
+    ].forEach((label)=>{
         body.insertRow().insertCell().textContent = label;
     });
     body.rows[body.rows.length - 1].hidden = true;
     body.rows[body.rows.length - 2].hidden = true;
-    table.appendChild(node("tfoot"));
+    table.appendChild(node1("tfoot"));
     table.tFoot.insertRow().insertCell().textContent = "Score";
     return table;
 }
 function addColumn(table, score, name = "", active = false) {
-    let result = { onClick() { } };
+    let result = {
+        onClick () {
+        }
+    };
     if (name) {
         const row = table.tHead.rows[0];
         const cell = row.insertCell();
         cell.textContent = name;
         function activate() {
-            Array.from(row.cells).forEach(c => c.classList.toggle("active", c == cell));
+            Array.from(row.cells).forEach((c)=>c.classList.toggle("active", c == cell)
+            );
             result.onClick();
         }
         cell.addEventListener("click", activate);
@@ -1947,8 +2785,9 @@ function addColumn(table, score, name = "", active = false) {
     }
     const body = table.tBodies[0];
     let exits = mapExits(score);
-    let exitScore = exits.reduce((a, b) => a + b, 0);
-    body.rows[0].insertCell().textContent = (exitScore ? `${score.exits.join("+")} = ${exitScore}` : "0");
+    let exitScore = exits.reduce((a, b)=>a + b
+    , 0);
+    body.rows[0].insertCell().textContent = exitScore ? `${score.exits.join("+")} = ${exitScore}` : "0";
     body.rows[1].insertCell().textContent = score.road.length.toString();
     body.rows[2].insertCell().textContent = score.rail.length.toString();
     body.rows[3].insertCell().textContent = score.center.toString();
@@ -1958,32 +2797,31 @@ function addColumn(table, score, name = "", active = false) {
     if (lakeScore > 0) {
         lakeRow.insertCell().textContent = lakeScore.toString();
         lakeRow.hidden = false;
-    }
-    else {
+    } else {
         lakeRow.insertCell();
     }
     let forestRow = body.rows[6];
     if (score.forests.length > 0) {
         forestRow.insertCell().textContent = score.forests.length.toString();
         forestRow.hidden = false;
-    }
-    else {
+    } else {
         forestRow.insertCell();
     }
     let total = sum(score);
     const totalRow = table.tFoot.rows[0];
     totalRow.insertCell().textContent = total.toString();
-    Array.from(table.querySelectorAll("tbody tr, tfoot tr")).forEach(row => {
+    Array.from(table.querySelectorAll("tbody tr, tfoot tr")).forEach((row)=>{
         let cells = Array.from(row.cells).slice(1);
         let numbers = cells.map(extractCellValue);
         let best = Math.max(...numbers);
-        cells.forEach(c => c.classList.toggle("best", extractCellValue(c) == best));
+        cells.forEach((c)=>c.classList.toggle("best", extractCellValue(c) == best)
+        );
     });
     return result;
 }
 function extractCellValue(cell) {
     let match = (cell.textContent || "").match(/[-\d]+$/);
-    return (match ? Number(match[0]) : 0);
+    return match ? Number(match[0]) : 0;
 }
 function renderSingle(score) {
     const table = buildTable();
@@ -1992,27 +2830,28 @@ function renderSingle(score) {
 }
 function renderMulti(names, scores, onClick, activeName) {
     const table = buildTable();
-    names.forEach((name, i) => {
-        let active = (name == activeName);
-        addColumn(table, scores[i], name, active).onClick = () => onClick(i);
+    names.forEach((name, i)=>{
+        let active = name == activeName;
+        addColumn(table, scores[i], name, active).onClick = ()=>onClick(i)
+        ;
         if (active) {
             onClick(i);
         }
     });
     return table;
 }
-
 class SingleGame extends Game {
-    constructor(_board, _type) {
-        super(_board);
-        this._type = _type;
+    _type;
+    constructor(_board3, _type3){
+        super(_board3);
+        this._type = _type3;
     }
     async play() {
         super.play();
         this._node.innerHTML = "";
         this._node.appendChild(this._bonusPool.node);
         let num = 1;
-        while (num <= ROUNDS[this._type]) {
+        while(num <= ROUNDS[this._type]){
             let round = new Round(num, this._board, this._bonusPool);
             this._node.appendChild(round.node);
             let dice = createDice(HTMLDice, this._type, num);
@@ -2032,7 +2871,6 @@ class SingleGame extends Game {
         parent.appendChild(renderSingle(s));
     }
 }
-
 const V = "2.0";
 function debug(msg, ...args) {
     console.debug(`[jsonrpc] ${msg}`, ...args);
@@ -2041,32 +2879,50 @@ function warn(msg, ...args) {
     console.warn(`[jsonrpc] ${msg}`, ...args);
 }
 function createErrorMessage(id, code, message, data) {
-    let error = { code, message };
+    let error = {
+        code,
+        message
+    };
     if (data) {
         error.data = data;
     }
-    return { id, error, jsonrpc: V };
+    return {
+        id,
+        error,
+        jsonrpc: V
+    };
 }
 function createResultMessage(id, result) {
-    return { id, result, jsonrpc: V };
+    return {
+        id,
+        result,
+        jsonrpc: V
+    };
 }
 function createCallMessage(method, params, id) {
-    let message = { method, params, jsonrpc: V };
+    let message = {
+        method,
+        params,
+        jsonrpc: V
+    };
     if (id) {
         message.id = id;
     }
     return message;
 }
 class JsonRpc {
-    constructor(_io, options = {}) {
-        this._io = _io;
-        this._interface = new Map();
-        this._pendingPromises = new Map();
-        this._options = {
-            log: false
-        };
+    _io;
+    _interface = new Map();
+    _pendingPromises = new Map();
+    _options = {
+        log: false
+    };
+    constructor(_io1, options = {
+    }){
+        this._io = _io1;
         Object.assign(this._options, options);
-        _io.onData = (m) => this._onData(m);
+        _io1.onData = (m)=>this._onData(m)
+        ;
     }
     expose(name, method) {
         this._interface.set(name, method);
@@ -2074,8 +2930,11 @@ class JsonRpc {
     async call(method, params) {
         let id = Math.random().toString();
         let message = createCallMessage(method, params, id);
-        return new Promise((resolve, reject) => {
-            this._pendingPromises.set(id, { resolve, reject });
+        return new Promise((resolve, reject)=>{
+            this._pendingPromises.set(id, {
+                resolve,
+                reject
+            });
             this._send(message);
         });
     }
@@ -2093,80 +2952,91 @@ class JsonRpc {
         let message;
         try {
             message = JSON.parse(str);
-        }
-        catch (e) {
+        } catch (e) {
             let reply = createErrorMessage(null, -32700, e.message);
             this._send(reply);
             return;
         }
         let reply;
         if (message instanceof Array) {
-            let mapped = message.map(m => this._processMessage(m)).filter(m => m);
-            reply = (mapped.length ? mapped : null);
-        }
-        else {
+            let mapped = message.map((m)=>this._processMessage(m)
+            ).filter((m)=>m
+            );
+            reply = mapped.length ? mapped : null;
+        } else {
             reply = this._processMessage(message);
         }
         reply && this._send(reply);
     }
     _processMessage(message) {
-        if ("method" in message) { // call
+        if ("method" in message) {
             const method = this._interface.get(message.method);
             if (!method) {
-                return (message.id ? createErrorMessage(message.id, -32601, "method not found") : null);
+                return message.id ? createErrorMessage(message.id, -32601, "method not found") : null;
             }
             try {
-                const result = (message.params instanceof Array ? method(...message.params) : method(message.params));
-                return (message.id ? createResultMessage(message.id, result) : null);
-            }
-            catch (e) {
+                const result = message.params instanceof Array ? method(...message.params) : method(message.params);
+                return message.id ? createResultMessage(message.id, result) : null;
+            } catch (e) {
                 this._options.log && warn("caught", e);
-                return (message.id ? createErrorMessage(message.id, -32000, e.message) : null);
+                return message.id ? createErrorMessage(message.id, -32000, e.message) : null;
             }
-        }
-        else if (message.id) { // result/error
+        } else if (message.id) {
             let promise = this._pendingPromises.get(message.id);
             if (!promise) {
                 throw new Error(`Received a non-matching response id "${message.id}"`);
             }
             this._pendingPromises.delete(message.id);
-            ("error" in message ? promise.reject(message.error) : promise.resolve(message.result));
-        }
-        else {
+            "error" in message ? promise.reject(message.error) : promise.resolve(message.result);
+        } else {
             throw new Error("Received a non-call non-id JSON-RPC message");
         }
         return null;
     }
 }
-
 class MultiGame extends Game {
-    constructor(board) {
+    _nodes = {
+    };
+    _rpc;
+    _resolve;
+    _progress = {
+        key: "",
+        game: "",
+        player: ""
+    };
+    _wait = node1("p", {
+        className: "wait",
+        hidden: true
+    });
+    _currentScore = node1("span");
+    constructor(board){
         super(board);
-        this._nodes = {};
-        this._progress = {
-            key: "",
-            game: "",
-            player: ""
-        };
-        this._wait = node("p", { className: "wait", hidden: true });
-        this._currentScore = node("span");
         const template = document.querySelector("template");
-        ["setup", "lobby"].forEach(id => {
+        [
+            "setup",
+            "lobby"
+        ].forEach((id)=>{
             let node = template.content.querySelector(`#multi-${id}`);
             this._nodes[id] = node.cloneNode(true);
         });
         const setup = this._nodes["setup"];
-        setup.querySelector("[name=join]").addEventListener("click", _ => this._joinOrCreate());
-        setup.querySelector("[name=continue]").addEventListener("click", _ => this._continue());
-        setup.querySelector("[name=create-normal]").addEventListener("click", _ => this._joinOrCreate("normal"));
-        setup.querySelector("[name=create-lake]").addEventListener("click", _ => this._joinOrCreate("lake"));
-        setup.querySelector("[name=create-forest]").addEventListener("click", _ => this._joinOrCreate("forest"));
+        setup.querySelector("[name=join]").addEventListener("click", (_)=>this._joinOrCreate()
+        );
+        setup.querySelector("[name=continue]").addEventListener("click", (_)=>this._continue()
+        );
+        setup.querySelector("[name=create-normal]").addEventListener("click", (_)=>this._joinOrCreate("normal")
+        );
+        setup.querySelector("[name=create-lake]").addEventListener("click", (_)=>this._joinOrCreate("lake")
+        );
+        setup.querySelector("[name=create-forest]").addEventListener("click", (_)=>this._joinOrCreate("forest")
+        );
         const lobby = this._nodes["lobby"];
-        lobby.querySelector("button").addEventListener("click", _ => this._rpc.call("start-game", []));
+        lobby.querySelector("button").addEventListener("click", (_)=>this._rpc.call("start-game", [])
+        );
     }
     async play() {
         super.play();
-        return new Promise(resolve => {
+        return new Promise((resolve)=>{
             this._resolve = resolve;
             this._setup();
         });
@@ -2175,7 +3045,10 @@ class MultiGame extends Game {
         const setup = this._nodes["setup"];
         this._node.innerHTML = "";
         this._node.appendChild(setup);
-        ["player", "game"].forEach(key => {
+        [
+            "player",
+            "game"
+        ].forEach((key)=>{
             let value = load(key);
             if (value === null) {
                 return;
@@ -2184,7 +3057,7 @@ class MultiGame extends Game {
             input.value = value;
         });
         let cont = setup.querySelector(`[name=continue]`);
-        cont.parentNode.hidden = (load("progress") === null);
+        cont.parentNode.hidden = load("progress") === null;
     }
     _onClose(e) {
         if (e.code != 0 && e.code != 1000 && e.code != 1001) {
@@ -2196,23 +3069,26 @@ class MultiGame extends Game {
         const url = new URL(location.href).searchParams.get("url") || SERVER;
         const ws = await openWebSocket(url);
         const rpc = createRpc(ws);
-        ws.addEventListener("close", e => this._onClose(e));
-        rpc.expose("game-change", () => this._sync());
-        rpc.expose("game-destroy", () => {
+        ws.addEventListener("close", (e)=>this._onClose(e)
+        );
+        rpc.expose("game-change", ()=>this._sync()
+        );
+        rpc.expose("game-destroy", ()=>{
             alert("The game has been cancelled");
             ws.close();
             this._resolve(false);
         });
-        rpc.expose("game-over", (...players) => {
+        rpc.expose("game-over", (...players)=>{
             save("progress", null);
             this._outro();
             this._showScore(players);
             ws.close();
             this._resolve(true);
         });
-        let quit = node("button", {}, "Quit game");
-        quit.addEventListener("click", async (_) => {
-            if (!(confirm("Really quit the game?"))) {
+        let quit = node1("button", {
+        }, "Quit game");
+        quit.addEventListener("click", async (_)=>{
+            if (!confirm("Really quit the game?")) {
                 return;
             }
             save("progress", null);
@@ -2237,10 +3113,14 @@ class MultiGame extends Game {
         }
         save("player", playerName);
         save("game", gameName);
-        buttons.forEach(b => b.disabled = true);
+        buttons.forEach((b)=>b.disabled = true
+        );
         try {
             const rpc = await this._connectRPC();
-            let args = [gameName, playerName];
+            let args = [
+                gameName,
+                playerName
+            ];
             if (type) {
                 args.unshift(type);
             }
@@ -2249,13 +3129,12 @@ class MultiGame extends Game {
             this._progress.game = gameName;
             this._progress.key = key;
             this._enterLobby(type);
-        }
-        catch (e) {
+        } catch (e) {
             alert(e.message);
             this._resolve(false);
-        }
-        finally {
-            buttons.forEach(b => b.disabled = false);
+        } finally{
+            buttons.forEach((b)=>b.disabled = false
+            );
         }
     }
     async _continue() {
@@ -2265,12 +3144,14 @@ class MultiGame extends Game {
             this._progress.game = saved.game;
             this._progress.key = saved.key;
             let rpc = await this._connectRPC();
-            let state = await rpc.call("continue-game", [saved.game, saved.key]);
+            let state = await rpc.call("continue-game", [
+                saved.game,
+                saved.key
+            ]);
             state.board && this._board.fromJSON(state.board);
             state.bonusPool && this._bonusPool.fromJSON(state.bonusPool);
             this._sync();
-        }
-        catch (e) {
+        } catch (e) {
             save("progress", null);
             alert(e.message);
             this._resolve(false);
@@ -2278,7 +3159,7 @@ class MultiGame extends Game {
     }
     async _sync() {
         const response = await this._rpc.call("game-info", []);
-        switch (response.state) {
+        switch(response.state){
             case "starting":
                 this._updateLobby(response.players);
                 break;
@@ -2289,7 +3170,7 @@ class MultiGame extends Game {
     }
     _enterLobby(type) {
         const lobby = this._nodes["lobby"];
-        lobby.querySelector("button").disabled = (!type);
+        lobby.querySelector("button").disabled = !type;
         this._node.innerHTML = "";
         this._node.appendChild(lobby);
     }
@@ -2297,25 +3178,27 @@ class MultiGame extends Game {
         const lobby = this._nodes["lobby"];
         const list = lobby.querySelector("ul");
         list.innerHTML = "";
-        players.forEach(p => {
-            let item = node("li", {}, p.name);
+        players.forEach((p)=>{
+            let item = node1("li", {
+            }, p.name);
             list.appendChild(item);
         });
         const button = lobby.querySelector("button");
-        button.textContent = (button.disabled ? `Wait for ${players[0].name} to start the game` : "Start the game");
+        button.textContent = button.disabled ? `Wait for ${players[0].name} to start the game` : "Start the game";
     }
     _updateRound(response) {
-        let waiting = response.players.filter(p => !p.roundEnded).length;
-        let suffix = (waiting > 1 ? "s" : "");
+        let waiting = response.players.filter((p)=>!p.roundEnded
+        ).length;
+        let suffix = waiting > 1 ? "s" : "";
         this._wait.textContent = `Waiting for ${waiting} player${suffix} to end round. `;
         this._wait.appendChild(this._currentScore);
-        const ended = response.players.filter(p => p.name == this._progress.player)[0].roundEnded;
+        const ended = response.players.filter((p)=>p.name == this._progress.player
+        )[0].roundEnded;
         this._wait.hidden = !ended;
         const round = this._progress.round;
         if (round && round.number == response.round) {
             ended && round.end();
-        }
-        else {
+        } else {
             this._newRound(response, ended);
         }
         this._saveProgress();
@@ -2327,20 +3210,21 @@ class MultiGame extends Game {
         this._node.appendChild(this._bonusPool.node);
         this._node.appendChild(round.node);
         this._node.appendChild(this._wait);
-        let dice = response.dice.map(data => HTMLDice.fromJSON(data));
+        let dice = response.dice.map((data)=>HTMLDice.fromJSON(data)
+        );
         let promise = round.play(dice);
         if (ended) {
             round.end();
-        }
-        else {
+        } else {
             await promise;
             const state = {
                 board: this._board.toJSON(),
                 bonusPool: this._bonusPool.toJSON()
             };
             this._rpc.call("end-round", state);
-            let button = node("button", {}, "Show my current score");
-            button.addEventListener("click", _ => {
+            let button = node1("button", {
+            }, "Show my current score");
+            button.addEventListener("click", (_)=>{
                 let s = this._board.getScore();
                 this._currentScore.innerHTML = `My current score is <strong>${sum(s)}<strong>.`;
             });
@@ -2353,12 +3237,18 @@ class MultiGame extends Game {
         this._board.showScore(s);
         const parent = document.querySelector("#score");
         parent.innerHTML = "";
-        let names = players.map(p => p.name);
-        let boards = players.map(p => new BoardCanvas().fromJSON(p.board));
-        let scores = boards.map(b => b.getScore());
-        boards.forEach((b, i) => b.showScore(scores[i]));
+        let names = players.map((p)=>p.name
+        );
+        let boards = players.map((p)=>new BoardCanvas().fromJSON(p.board)
+        );
+        let scores = boards.map((b)=>b.getScore()
+        );
+        boards.forEach((b, i)=>b.showScore(scores[i])
+        );
         const player = this._progress.player;
-        function showByIndex(i) { showBoard(boards[i]); }
+        function showByIndex(i) {
+            showBoard(boards[i]);
+        }
         parent.appendChild(renderMulti(names, scores, showByIndex, player));
     }
     _saveProgress() {
@@ -2374,13 +3264,14 @@ class MultiplayerRound extends Round {
     play(dice) {
         try {
             navigator.vibrate(200);
+        } catch (e) {
         }
-        catch (e) { }
         return super.play(dice);
     }
     end() {
         this._endButton.disabled = true;
-        this._pool.remaining.forEach(d => this._pool.disable(d));
+        this._pool.remaining.forEach((d)=>this._pool.disable(d)
+        );
     }
     _end() {
         super._end();
@@ -2389,57 +3280,63 @@ class MultiplayerRound extends Round {
 }
 function createRpc(ws) {
     let io = {
-        onData(_s) { },
-        sendData(s) { ws.send(s); }
+        onData (_s) {
+        },
+        sendData (s) {
+            ws.send(s);
+        }
     };
-    ws.addEventListener("message", e => io.onData(e.data));
+    ws.addEventListener("message", (e)=>io.onData(e.data)
+    );
     return new JsonRpc(io);
 }
 function openWebSocket(url) {
     const ws = new WebSocket(url);
-    return new Promise((resolve, reject) => {
-        ws.addEventListener("open", e => resolve(e.target));
-        ws.addEventListener("error", _ => reject(new Error("Cannot connect to server")));
+    return new Promise((resolve, reject)=>{
+        ws.addEventListener("open", (e)=>resolve(e.target)
+        );
+        ws.addEventListener("error", (_)=>reject(new Error("Cannot connect to server"))
+        );
     });
 }
 function save(key, value) {
     key = `rri-${key}`;
     try {
-        (value === null ? localStorage.removeItem(key) : localStorage.setItem(key, value));
-    }
-    catch (e) {
+        value === null ? localStorage.removeItem(key) : localStorage.setItem(key, value);
+    } catch (e) {
         console.warn(e);
     }
 }
 function load(key) {
     try {
         return localStorage.getItem(`rri-${key}`);
-    }
-    catch (e) {
+    } catch (e) {
         console.warn(e);
         return null;
     }
 }
-
-const dataset$1 = document.body.dataset;
-let board;
+const dataset1 = document.body.dataset;
+let board1;
 function download() {
-    if (!board.blob) {
+    if (!board1.blob) {
         return;
     }
-    const href = URL.createObjectURL(board.blob);
-    let a = node("a", { href, download: "railroad-ink.png" });
+    const href = URL.createObjectURL(board1.blob);
+    let a = node1("a", {
+        href,
+        download: "railroad-ink.png"
+    });
     document.body.appendChild(a);
     a.click();
     a.remove();
 }
 function goIntro() {
-    dataset$1.stage = "intro";
-    board = new BoardCanvas();
-    showBoard(board);
+    dataset1.stage = "intro";
+    board1 = new BoardCanvas();
+    showBoard(board1);
 }
 async function goGame(type) {
-    const game = (type == "multi" ? new MultiGame(board) : new SingleGame(board, type));
+    const game = type == "multi" ? new MultiGame(board1) : new SingleGame(board1, type);
     let played = await game.play();
     if (!played) {
         goIntro();
@@ -2449,12 +3346,19 @@ function onClick(name, cb) {
     document.querySelector(`[name=${name}]`).addEventListener("click", cb);
 }
 function init() {
-    onClick("start-normal", () => goGame("normal"));
-    onClick("start-lake", () => goGame("lake"));
-    onClick("start-forest", () => goGame("forest"));
-    onClick("start-multi", () => goGame("multi"));
-    onClick("again", () => goIntro());
-    onClick("download", () => download());
+    onClick("start-normal", ()=>goGame("normal")
+    );
+    onClick("start-lake", ()=>goGame("lake")
+    );
+    onClick("start-forest", ()=>goGame("forest")
+    );
+    onClick("start-multi", ()=>goGame("multi")
+    );
+    onClick("again", ()=>goIntro()
+    );
+    onClick("download", ()=>download()
+    );
     goIntro();
 }
 init();
+

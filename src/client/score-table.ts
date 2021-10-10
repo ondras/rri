@@ -1,6 +1,6 @@
-import { Score, mapExits, sumLakes, sum } from "../score.js";
+import { Score, mapExits, sumLakes, sum } from "../score.ts";
 
-import * as html from "./html.js";
+import * as html from "./html.ts";
 
 
 function buildTable() {

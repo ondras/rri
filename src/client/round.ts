@@ -1,11 +1,11 @@
-import Board from "../board.js";
-import { Cell } from "../cell-repo.js";
-import Tile from "../tile.js";
+import Board from "../board.ts";
+import { Cell } from "../cell-repo.ts";
+import Tile from "../tile.ts";
 
-import Pool, { BonusPool } from "./pool.js";
-import * as html from "./html.js";
-import { DBLCLICK } from "./conf.js";
-import HTMLDice from "./html-dice.js";
+import Pool, { BonusPool } from "./pool.ts";
+import * as html from "./html.ts";
+import { DBLCLICK } from "./conf.ts";
+import HTMLDice from "./html-dice.ts";
 
 
 export default class Round {
@@ -51,7 +51,7 @@ export default class Round {
 		this._syncEnd();
 		this._bonusPool.unlock();
 
-		return new Promise(resolve => {
+		return new Promise<void>(resolve => {
 			this._endButton.addEventListener("click", _ => {
 				let valid = this._validatePlacement();
 				if (!valid) {

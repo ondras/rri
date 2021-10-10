@@ -1,0 +1,6 @@
+{
+	"deno.enable": true,
+	"deno.config": "./deno.json",
+	"deno.lint": true,
+	"deno.unstable": true
+}

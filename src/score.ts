@@ -1,6 +1,6 @@
-import CellRepo, { Cell } from "./cell-repo.js";
-import { Direction, clamp, all as allDirections, Vector } from "./direction.js";
-import { NONE, ROAD, RAIL, LAKE, FOREST, EdgeType } from "./edge.js";
+import CellRepo, { Cell } from "./cell-repo.ts";
+import { Direction, clamp, all as allDirections, Vector } from "./direction.ts";
+import { NONE, ROAD, RAIL, LAKE, FOREST, EdgeType } from "./edge.ts";
 
 
 export interface Score {

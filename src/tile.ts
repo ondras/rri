@@ -1,7 +1,7 @@
-import { get as getTransform } from "./transform.js";
-import { get as getShape } from "./shapes.js";
-import { Direction } from "./direction.js";
-import { Edge, EdgeType, NONE, LAKE, FOREST } from "./edge.js";
+import { get as getTransform } from "./transform.ts";
+import { get as getShape } from "./shapes.ts";
+import { Direction } from "./direction.ts";
+import { Edge, EdgeType, NONE, LAKE, FOREST } from "./edge.ts";
 
 
 export interface TileData {

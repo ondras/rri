@@ -1,4 +1,4 @@
-import { Direction } from "./direction.js";
+import { Direction } from "./direction.ts";
 
 
 export type Point = [number, number];

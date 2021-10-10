@@ -1,7 +1,7 @@
-import { get as getTransform, all as allTransforms } from "./transform.js";
-import { N, E, S, W, all as allDirections } from "./direction.js";
-import { Edge, NONE, RAIL, ROAD, LAKE, FOREST } from "./edge.js";
-import DrawContext from "./draw-context.js";
+import { get as getTransform, all as allTransforms } from "./transform.ts";
+import { N, E, S, W, all as allDirections } from "./direction.ts";
+import { Edge, NONE, RAIL, ROAD, LAKE, FOREST } from "./edge.ts";
+import DrawContext from "./draw-context.ts";
 
 
 type Edges = [Edge, Edge, Edge, Edge];

@@ -1,4 +1,4 @@
-import { Direction } from "./direction.js";
+import { Direction } from "./direction.ts";
 
 export type EdgeType = 0 | 1 | 2 | 3 | 4;
 export const NONE: EdgeType = 0;

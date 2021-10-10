@@ -1,9 +1,9 @@
-import Tile from "../tile.js";
-import { get as getShape } from "../shapes.js";
-import { get as getTransform } from "../transform.js";
+import Tile from "../tile.ts";
+import { get as getShape } from "../shapes.ts";
+import { get as getTransform } from "../transform.ts";
 
-import * as html from "./html.js";
-import DrawContext from "./draw-context.js";
+import * as html from "./html.ts";
+import DrawContext from "./draw-context.ts";
 
 
 interface Visual {

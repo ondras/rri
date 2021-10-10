@@ -1,16 +1,18 @@
-import { Cell } from "../cell-repo.js";
-import Board from "../board.js";
+import { Cell } from "../cell-repo.ts";
+import Board from "../board.ts";
 
-import HTMLTile from "./html-tile.js";
-import * as html from "./html.js";
-import { TILE, DOWN_EVENT } from "./conf.js";
+import HTMLTile from "./html-tile.ts";
+import * as html from "./html.ts";
+import { TILE, DOWN_EVENT } from "./conf.ts";
 
 export default class BoardTable extends Board {
-	node!: HTMLTableElement;
+	node: HTMLTableElement;
 
 	constructor() {
 		super(HTMLTile);
 
+		this.node = this._build();
+		this._placeInitialTiles();
 		this.node.addEventListener(DOWN_EVENT, this);
 	}
 

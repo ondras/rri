@@ -1,5 +1,5 @@
-import Board from "../board.js";
-import { BonusPool } from "./pool.js";
+import Board from "../board.ts";
+import { BonusPool } from "./pool.ts";
 
 const dataset = document.body.dataset;
 

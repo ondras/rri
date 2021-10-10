@@ -1,7 +1,7 @@
-import HTMLDice from "./html-dice.js";
-import Board from "../board.js";
-import * as html from "./html.js";
-import { DOWN_EVENT } from "./conf.js";
+import HTMLDice from "./html-dice.ts";
+import Board from "../board.ts";
+import * as html from "./html.ts";
+import { DOWN_EVENT } from "./conf.ts";
 
 
 const MAX_BONUSES = 3;

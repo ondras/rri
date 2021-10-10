@@ -1,4 +1,4 @@
-import Dice, { DiceType } from "./dice.js";
+import Dice, { DiceType } from "./dice.ts";
 
 
 interface Type<T> {

@@ -1,4 +1,4 @@
-import Tile from "./tile.js";
+import Tile from "./tile.ts";
 
 export interface Cell {
 	tile: Tile | null;

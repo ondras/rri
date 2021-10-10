@@ -1,10 +1,10 @@
-import { GameType, ROUNDS, createDice } from "../rules.js";
+import { GameType, ROUNDS, createDice } from "../rules.ts";
+import Board from "../board.ts";
 
-import HTMLDice from "./html-dice.js";
-import Game from "./game.js";
-import Round from "./round.js";
-import Board from "./board-canvas.js";
-import * as scoreTable from "./score-table.js";
+import HTMLDice from "./html-dice.ts";
+import Game from "./game.ts";
+import Round from "./round.ts";
+import * as scoreTable from "./score-table.ts";
 
 
 export default class SingleGame extends Game {

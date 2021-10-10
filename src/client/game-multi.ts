@@ -1,17 +1,17 @@
-import { GameType } from "../rules.js";
-import Board, { SerializedBoard } from "../board.js";
-import { DiceData } from "../dice.js";
-import { sum as sumScore } from "../score.js";
+import { GameType } from "../rules.ts";
+import Board, { SerializedBoard } from "../board.ts";
+import { DiceData } from "../dice.ts";
+import { sum as sumScore } from "../score.ts";
 
-import Game from "./game.js";
-import JsonRpc from "./json-rpc.js";
-import Round from "./round.js";
-import BoardCanvas from "./board-canvas.js";
-import HTMLDice from "./html-dice.js";
-import * as html from "./html.js";
-import * as scoreTable from "./score-table.js";
-import * as conf from "./conf.js";
-import * as boardManager from "./board-manager.js";
+import Game from "./game.ts";
+import JsonRpc from "./json-rpc.ts";
+import Round from "./round.ts";
+import BoardCanvas from "./board-canvas.ts";
+import HTMLDice from "./html-dice.ts";
+import * as html from "./html.ts";
+import * as scoreTable from "./score-table.ts";
+import * as conf from "./conf.ts";
+import * as boardManager from "./board-manager.ts";
 
 type GameState = "" | "starting" | "playing";
 interface Player {

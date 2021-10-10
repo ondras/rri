@@ -1,18 +1,8 @@
-SHELL := /bin/bash
 DENO := ~/deno/deno
+SHELL := /bin/bash
 
-run: importmap.json
-#	$(DENO) --allow-net -c tsconfig.json server.ts 1234
-	$(DENO) run --allow-net --importmap importmap.json -c tsconfig.json server.ts 1234 | tee >(logger -t rri)
-
-importmap.json: ../src/*.ts
-	echo '{"imports":{' > $@
-	for i in $^; do \
-		TS=file://`readlink -f $$i`; \
-		JS=`echo -n $$TS | sed -e s/.ts$$/.js/`; \
-		echo '"'$$JS'": "'$$TS'"', >> $@; \
-	done; \
-	echo '"":""}}' >> $@
+run:
+	$(DENO) run --allow-net -c tsconfig.json server.ts 1234 | tee >(logger -t rri)
 
 docker-image:
 	docker build -f Dockerfile -t ondras/rri ..
@@ -22,6 +12,3 @@ docker-run:
 
 loop:
 	while true; do make run; done
-
-clean:
-	rm -f importmap.json

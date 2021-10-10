@@ -1,9 +1,9 @@
-import Board from "./board-canvas.js";
-import * as html from "./html.js";
-import * as boardManager from "./board-manager.js";
-import { GameType } from "../rules.js";
-import SingleGame from "./game-single.js";
-import MultiGame from "./game-multi.js";
+import Board from "./board-canvas.ts";
+import * as html from "./html.ts";
+import * as boardManager from "./board-manager.ts";
+import { GameType } from "../rules.ts";
+import SingleGame from "./game-single.ts";
+import MultiGame from "./game-multi.ts";
 
 const dataset = document.body.dataset;
 let board: Board;

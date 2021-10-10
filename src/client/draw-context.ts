@@ -1,8 +1,8 @@
-import { Direction, Vector, clamp, N, E, S, W } from "../direction.js";
-import DrawContext, { Point } from "../draw-context.js";
+import { Direction, Vector, clamp, N, E, S, W } from "../direction.ts";
+import DrawContext, { Point } from "../draw-context.ts";
 
-import { TILE } from "./conf.js";
-import * as html from "./html.js";
+import { TILE } from "./conf.ts";
+import * as html from "./html.ts";
 
 
 const RAIL_TICK_WIDTH = 1;

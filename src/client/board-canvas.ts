@@ -1,11 +1,11 @@
-import Board from "../board.js";
-import { Score } from "../score.js";
-import { Cell, BOARD } from "../cell-repo.js";
-import { N, E, S, W, Vector } from "../direction.js";
+import Board from "../board.ts";
+import { Score } from "../score.ts";
+import { Cell, BOARD } from "../cell-repo.ts";
+import { N, E, S, W, Vector } from "../direction.ts";
 
-import * as html from "./html.js";
-import HTMLTile from "./html-tile.js";
-import { TILE, DOWN_EVENT } from "./conf.js";
+import * as html from "./html.ts";
+import HTMLTile from "./html-tile.ts";
+import { TILE, DOWN_EVENT } from "./conf.ts";
 
 
 const DPR = devicePixelRatio;
@@ -40,13 +40,15 @@ interface PendingCell {
 
 export default class BoardCanvas extends Board {
 	_ctx!: CanvasRenderingContext2D;
-	_pendingCells!: PendingCell[];
+	_pendingCells: PendingCell[] = [];
 	_signals = [] as HTMLElement[];
-	node!: HTMLElement;
+	node: HTMLElement;
 
 	constructor() {
 		super(HTMLTile);
 
+		this.node = this._build();
+		this._placeInitialTiles();
 		this.node.addEventListener(DOWN_EVENT, this);
 	}
 
@@ -188,12 +190,9 @@ export default class BoardCanvas extends Board {
 			// @ts-ignore
 			this.blob = ctx.canvas.msToBlob();
 		}
-
 	}
 
 	_build() {
-		this._pendingCells = [];
-
 		let node = html.node("div", {className:"board"});
 
 		let canvas = html.node("canvas");

@@ -1,8 +1,5 @@
 {
   "devDependencies": {
-    "less": "^3.11.1",
-    "rollup": "^2.3.2",
-    "rollup-plugin-graph": "^2.0.0",
-    "typescript": "^3.7.4"
+    "less": "^3.11.1"
   }
 }

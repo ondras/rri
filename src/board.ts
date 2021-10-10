@@ -1,9 +1,10 @@
-import Tile, { TileData } from "./tile.js";
-import { clamp, all as allDirections, Vector } from "./direction.js";
-import { NONE } from "./edge.js";
-import { Score, get as getScore } from "./score.js";
-import CellRepo, { Cell } from "./cell-repo.js";
-import { LAKE } from "./edge.js";
+import Tile, { TileData } from "./tile.ts";
+import { clamp, all as allDirections, Vector } from "./direction.ts";
+import { NONE } from "./edge.ts";
+import { Score, get as getScore } from "./score.ts";
+import CellRepo, { Cell } from "./cell-repo.ts";
+import { LAKE } from "./edge.ts";
+
 
 interface CellData {
 	x: number;
@@ -15,16 +16,11 @@ interface CellData {
 export type SerializedBoard = CellData[];
 
 export default class Board {
-	node: HTMLElement | null;
 	blob: Blob | null = null;
 	_cells = new CellRepo();
 
-	constructor(readonly _tileCtor = Tile) {
-		this.node = this._build();
-		this._placeInitialTiles();
-	}
+	constructor(readonly _tileCtor = Tile) {}
 
-	_build(): HTMLElement | null { return null; };
 	signal(_cells: Cell[]) {};
 	showScore(_score: Score) {}
 	onClick(_cell: Cell) {}

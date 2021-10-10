@@ -1,7 +1,7 @@
-import Dice, { DiceType } from "../dice.js";
+import Dice, { DiceType } from "../dice.ts";
 
-import HTMLTile from "./html-tile.js";
-import * as html from "./html.js";
+import HTMLTile from "./html-tile.ts";
+import * as html from "./html.ts";
 
 
 export default class HTMLDice extends Dice {
@@ -26,7 +26,7 @@ export default class HTMLDice extends Dice {
 }
 
 ["blocked", "pending", "disabled"].forEach(prop => {
-	Object.defineProperty(Dice.prototype, prop, {
+	Object.defineProperty(HTMLDice.prototype, prop, {
 		get() { return this.node.classList.contains(prop); },
 		set(flag) { this.node.classList.toggle(prop, flag); }
 	});
