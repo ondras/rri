@@ -13,12 +13,15 @@ import * as scoreTable from "./score-table.ts";
 import * as conf from "./conf.ts";
 import * as boardManager from "./board-manager.ts";
 
+
 type GameState = "" | "starting" | "playing";
+
 interface Player {
 	name: string;
 	roundEnded: boolean;
 	board: SerializedBoard;
 }
+
 interface Response {
 	state: GameState;
 	round: number;
