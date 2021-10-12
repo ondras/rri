@@ -2432,9 +2432,6 @@ class Dice {
 class HTMLDice extends Dice {
     _type;
     _sid;
-    blocked;
-    pending;
-    disabled;
     _tile;
     node = node1("div", {
         className: "dice"
@@ -2452,27 +2449,34 @@ class HTMLDice extends Dice {
         this._tile = new HTMLTile(this._sid, "0");
         this.node.appendChild(this._tile.node);
     }
+    get classList() {
+        return this.node.classList;
+    }
     get tile() {
         return this._tile;
     }
     get mandatory() {
         return this._type == "plain" || this._type == "forest";
     }
+    get blocked() {
+        return this.classList.contains("blocked");
+    }
+    set blocked(value) {
+        this.classList.toggle("blocked", value);
+    }
+    get pending() {
+        return this.classList.contains("pending");
+    }
+    set pending(value) {
+        this.classList.toggle("pending", value);
+    }
+    get disabled() {
+        return this.classList.contains("disabled");
+    }
+    set disabled(value) {
+        this.classList.toggle("disabled", value);
+    }
 }
-[
-    "blocked",
-    "pending",
-    "disabled"
-].forEach((prop)=>{
-    Object.defineProperty(HTMLDice.prototype, prop, {
-        get () {
-            return this.node.classList.contains(prop);
-        },
-        set (flag) {
-            this.node.classList.toggle(prop, flag);
-        }
-    });
-});
 class Pool {
     node = node1("div", {
         className: "pool"

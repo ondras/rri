@@ -3,7 +3,6 @@
 		"strict": false,
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
-		"useDefineForClassFields": false,
 		"lib": ["deno.ns", "esnext", "dom"]
 	}
 }

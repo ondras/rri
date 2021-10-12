@@ -5,9 +5,6 @@ import * as html from "./html.ts";
 
 
 export default class HTMLDice extends Dice {
-	blocked!: boolean;
-	pending!: boolean;
-	disabled!: boolean;
 	_tile: HTMLTile;
 	node: HTMLElement = html.node("div", {className:"dice"});
 
@@ -21,13 +18,17 @@ export default class HTMLDice extends Dice {
 		this.node.appendChild(this._tile.node);
 	}
 
+	protected get classList() { return this.node.classList; }
+
 	get tile() { return this._tile; }
 	get mandatory() { return this._type == "plain" || this._type == "forest"; }
-}
 
-["blocked", "pending", "disabled"].forEach(prop => {
-	Object.defineProperty(HTMLDice.prototype, prop, {
-		get() { return this.node.classList.contains(prop); },
-		set(flag) { this.node.classList.toggle(prop, flag); }
-	});
-});
+	get blocked() { return this.classList.contains("blocked"); }
+	set blocked(value: boolean) { this.classList.toggle("blocked", value); }
+
+	get pending() { return this.classList.contains("pending"); }
+	set pending(value: boolean) { this.classList.toggle("pending", value); }
+
+	get disabled() { return this.classList.contains("disabled"); }
+	set disabled(value: boolean) { this.classList.toggle("disabled", value); }
+}
