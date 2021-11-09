@@ -2,7 +2,7 @@ DENO := ~/deno/deno
 SHELL := /bin/bash
 
 run:
-	$(DENO) run --allow-net -c tsconfig.json server.ts 1234 | tee >(logger -t rri)
+	$(DENO) run --allow-net -c ../deno.json server.ts 1234 | tee >(logger -t rri)
 
 docker-image:
 	docker build -f Dockerfile -t ondras/rri ..

@@ -1,6 +1,6 @@
 {
 	"compilerOptions": {
-		"strict": false,
+		"strict": true,
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
 		"lib": ["deno.ns", "esnext", "dom"]
