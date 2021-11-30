@@ -1,4 +1,4 @@
-FROM hayd/deno:alpine-0.32.0
+FROM denoland/deno:latest
 WORKDIR /rri
 ENV PORT 80
 
