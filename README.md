@@ -16,7 +16,7 @@ Please report any bugs found to the [issue tracker](https://github.com/ondras/rr
 
 ## How to play
 
-Familiarize yourself with [game rules](https://www.horrible-games.com/wp-content/uploads/2018/07/RRI_BLU_Rulebook_ENG_v05_light.pdf) first. Rules for the [forests expansion](#forests-expansion) follow.
+Familiarize yourself with [game rules](https://www.dropbox.com/s/pu4yifwuhfivwmg/RRI_BLUE_Rulebook-EN_v02_Web.pdf) first. Rules for the [forests expansion](#forests-expansion) follow.
 
 Playing the game is very straightforward; you pick pieces by clicking/touching the dice pool and you place them by clicking/touching the game board afterwards. To **rotate** a tile, place it and then touch it again. To **remove** a tile, double-click/double-touch it.
 

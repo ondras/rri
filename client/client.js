@@ -945,6 +945,7 @@ const RAIL_TICK_LARGE = [RAIL_TICK_WIDTH, 8];
 const ROAD_TICK = [6, 4];
 const STARTS = [[0.5, 0], [1, 0.5], [0.5, 1], [0, 0.5]];
 const TO_CENTER = Vector.map((_, i, all) => all[clamp(i + 2)]);
+const DPR = devicePixelRatio;
 function toAbs(p) {
     return p.map($ => $ * TILE);
 }
@@ -976,9 +977,9 @@ function createLakeCanvas() {
 const lakeCanvas = createLakeCanvas();
 class CanvasDrawContext {
     constructor(canvas) {
-        canvas.width = canvas.height = TILE * devicePixelRatio;
+        canvas.width = canvas.height = TILE * DPR;
         this._ctx = canvas.getContext("2d");
-        this._ctx.scale(devicePixelRatio, devicePixelRatio);
+        this._ctx.scale(DPR, DPR);
         this._ctx.lineWidth = LINE_WIDTH;
     }
     styleLine() {
@@ -1005,7 +1006,7 @@ class CanvasDrawContext {
     }
     station() {
         const ctx = this._ctx;
-        let size = [ctx.canvas.width, ctx.canvas.height].map($ => $ / devicePixelRatio);
+        let size = [ctx.canvas.width, ctx.canvas.height].map($ => $ / DPR);
         ctx.fillStyle = "#000";
         ctx.fillRect(size[0] / 2 - STATION / 2, size[1] / 2 - STATION / 2, STATION, STATION);
     }
@@ -1282,7 +1283,7 @@ class HTMLTile extends Tile {
     }
 }
 
-const DPR = devicePixelRatio;
+const DPR$1 = devicePixelRatio;
 const BTILE = TILE / 2;
 const bodyStyle = getComputedStyle(document.body);
 const BORDER = Number(bodyStyle.getPropertyValue("--border-thick"));
@@ -1362,8 +1363,8 @@ class BoardCanvas extends Board {
         ctx.save();
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         this._pendingCells.forEach(cell => {
-            let pxx = cellToPx(cell.x) * DPR;
-            let pxy = cellToPx(cell.y) * DPR;
+            let pxx = cellToPx(cell.x) * DPR$1;
+            let pxy = cellToPx(cell.y) * DPR$1;
             ctx.drawImage(cell.tile.createCanvas(), pxx, pxy);
             cell.node.remove();
         });
@@ -1435,14 +1436,14 @@ class BoardCanvas extends Board {
         let canvas = node("canvas");
         node$1.appendChild(canvas);
         const SIZE = 2 * (BTILE + BORDER) + BOARD * TILE + (BOARD - 1) * THIN;
-        canvas.width = canvas.height = SIZE * DPR;
+        canvas.width = canvas.height = SIZE * DPR$1;
         const PX = `${SIZE}px`;
         canvas.style.width = canvas.style.height = PX;
         document.body.style.setProperty("--board-width", PX);
         const ctx = canvas.getContext("2d");
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.scale(DPR, DPR);
+        ctx.scale(DPR$1, DPR$1);
         this._ctx = ctx;
         this._drawGrid();
         return node$1;
@@ -1458,14 +1459,14 @@ class BoardCanvas extends Board {
         // grid
         ctx.beginPath();
         let offsetOdd = 0, offsetEven = 0, lineWidth = THIN;
-        switch (DPR) {
+        switch (DPR$1) {
             case 1:
                 offsetOdd = offsetEven = 0.5;
                 break;
             case 1.5:
                 offsetOdd = 2 / 3;
                 offsetEven = 1 / 3;
-                lineWidth /= DPR;
+                lineWidth /= DPR$1;
                 break;
         }
         ctx.lineWidth = lineWidth;
