@@ -1,4 +1,3 @@
-SHELL := /bin/bash
 DENO := ~/deno/deno
 
 run: importmap.json
@@ -18,7 +17,7 @@ docker-image:
 	docker build -f Dockerfile -t ondras/rri ..
 
 docker-run:
-	docker run -i --network=host --env PORT=${PORT} ondras/rri
+	docker run -it -p 1234:80 ondras/rri
 
 loop:
 	while true; do make run; done

@@ -1,4 +1,4 @@
-import JsonRpc from "https://deno.land/x/json_rpc/mod.ts";
+import JsonRpc from "https://deno.land/x/json_rpc@v1.0.0/mod.ts";
 
 import Game, { InfoOptions } from "./game.ts";
 
