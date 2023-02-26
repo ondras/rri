@@ -19,7 +19,7 @@ export default class Player {
 
 	constructor(ws: WebSocket) {
 		const io = {
-			sendData(str: string) { ws.send(str); },
+			sendData(str: string) { try { ws.send(str); } catch (e) {} },
 			onData(_str: string) {}
 		}
 		let jsonrpc = new JsonRpc(io);

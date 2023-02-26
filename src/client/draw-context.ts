@@ -20,6 +20,8 @@ const ROAD_TICK = [6, 4];
 const STARTS: Point[] = [[0.5, 0], [1, 0.5], [0.5, 1], [0, 0.5]];
 const TO_CENTER = Vector.map((_, i, all) => all[clamp(i+2)]);
 
+const DPR = devicePixelRatio;
+
 function toAbs(p:Point) {
 	return p.map($ => $*TILE) as Point;
 }
@@ -59,9 +61,9 @@ export default class CanvasDrawContext implements DrawContext {
 	_ctx: CanvasRenderingContext2D;
 
 	constructor(canvas: HTMLCanvasElement) {
-		canvas.width = canvas.height = TILE * devicePixelRatio;
+		canvas.width = canvas.height = TILE * DPR;
 		this._ctx = canvas.getContext("2d") as CanvasRenderingContext2D
-		this._ctx.scale(devicePixelRatio, devicePixelRatio);
+		this._ctx.scale(DPR, DPR);
 		this._ctx.lineWidth = LINE_WIDTH;
 	}
 
@@ -96,7 +98,7 @@ export default class CanvasDrawContext implements DrawContext {
 
 	station() {
 		const ctx = this._ctx;
-		let size = [ctx.canvas.width, ctx.canvas.height].map($ => $ / devicePixelRatio);
+		let size = [ctx.canvas.width, ctx.canvas.height].map($ => $ / DPR);
 		ctx.fillStyle = "#000";
 		ctx.fillRect(size[0]/2 - STATION/2, size[1]/2 - STATION/2, STATION, STATION);
 	}

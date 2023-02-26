@@ -1,3 +1,7 @@
+// deno-fmt-ignore-file
+// deno-lint-ignore-file
+// This code was bundled using `deno bundle` and it's not recommended to edit it manually
+
 function clamp(direction) {
     direction = direction % 4;
     return direction >= 0 ? direction : direction + 4;
@@ -26,8 +30,7 @@ const Vector = [
         0
     ]
 ];
-const repo = {
-};
+const repo = {};
 class Transform {
     _direction;
     _offset;
@@ -82,8 +85,7 @@ const all1 = [
     "-3"
 ];
 all1.forEach(create);
-const repo1 = {
-};
+const repo1 = {};
 const partials = {
     "rail-half": {
         edges: [
@@ -709,8 +711,8 @@ const partials = {
                     0
                 ],
                 [
-                    0.5,
-                    0.5
+                    .5,
+                    .5
                 ]
             ]);
         }
@@ -802,8 +804,8 @@ const partials = {
                     1
                 ],
                 [
-                    0.5,
-                    0.5
+                    .5,
+                    .5
                 ]
             ]);
         }
@@ -898,8 +900,8 @@ const partials = {
                     0
                 ],
                 [
-                    0.5,
-                    0.5
+                    .5,
+                    .5
                 ]
             ]);
             ctx.rail(2, 0.5);
@@ -940,8 +942,8 @@ const partials = {
                     0
                 ],
                 [
-                    0.5,
-                    0.5
+                    .5,
+                    .5
                 ]
             ]);
             ctx.road(2, 0.5);
@@ -1052,8 +1054,7 @@ function getTransforms(edges) {
 for(let key in partials){
     let shape = partials[key];
     let transforms = getTransforms(shape.edges);
-    repo1[key] = Object.assign({
-    }, shape, {
+    repo1[key] = Object.assign({}, shape, {
         transforms
     });
 }
@@ -1086,8 +1087,7 @@ class Tile {
         let edge = get1(this._data.sid).edges[direction];
         return {
             type: edge.type,
-            connects: edge.connects.map((d)=>transform.apply(d)
-            )
+            connects: edge.connects.map((d)=>transform.apply(d))
         };
     }
     getTransforms() {
@@ -1123,8 +1123,7 @@ function getNeighbor(cell, direction, cells) {
     return cells.at(x, y);
 }
 function getCenterCount(cells) {
-    return cells.filter((cell)=>cell.center && cell.tile
-    ).length;
+    return cells.filter((cell)=>cell.center && cell.tile).length;
 }
 function getEdgeKey(a, b) {
     if (a.x > b.x || a.y > b.y) {
@@ -1141,7 +1140,6 @@ function getEdgeKey(a, b) {
     ].join("/");
 }
 function getSubgraph(start, cells) {
-    ;
     let subgraph = [];
     let queue = [
         {
@@ -1187,13 +1185,11 @@ function getSubgraph(start, cells) {
     return subgraph;
 }
 function getConnectedExits(start, cells) {
-    return getSubgraph(start, cells).filter((cell)=>cell.border
-    );
+    return getSubgraph(start, cells).filter((cell)=>cell.border);
 }
 function getExits(cells) {
     let results = [];
-    let exitsArr = cells.filter((cell)=>cell.border && cell.tile
-    );
+    let exitsArr = cells.filter((cell)=>cell.border && cell.tile);
     let exits = new Set(exitsArr);
     while(exits.size > 0){
         let cell = exits.values().next().value;
@@ -1201,8 +1197,7 @@ function getExits(cells) {
         if (connected.length > 1) {
             results.push(connected.length);
         }
-        connected.forEach((cell)=>exits.delete(cell)
-        );
+        connected.forEach((cell)=>exits.delete(cell));
     }
     return results;
 }
@@ -1214,8 +1209,7 @@ function getLongestFrom(cell, from, ctx) {
     let tile = cell.tile;
     let outDirections = from === null ? all : tile.getEdge(from).connects;
     ctx.lockedCells.add(cell);
-    outDirections.filter((d)=>tile.getEdge(d).type == ctx.edgeType
-    ).forEach((d)=>{
+    outDirections.filter((d)=>tile.getEdge(d).type == ctx.edgeType).forEach((d)=>{
         let neighbor = getNeighbor(cell, d, ctx.cells);
         if (neighbor.border || !neighbor.tile) {
             return;
@@ -1243,8 +1237,7 @@ function getLongest(edgeType, cells) {
             return;
         }
         let tile = cell.tile;
-        return all.some((d)=>tile.getEdge(d).type == edgeType
-        );
+        return all.some((d)=>tile.getEdge(d).type == edgeType);
     }
     let starts = cells.filter(contains);
     let bestPath = [];
@@ -1284,8 +1277,7 @@ function isDeadend(deadend, cells) {
 }
 function getDeadends(cells) {
     let deadends = [];
-    cells.filter((cell)=>!cell.border
-    ).forEach((cell)=>{
+    cells.filter((cell)=>!cell.border).forEach((cell)=>{
         all.forEach((direction)=>{
             let deadend = {
                 cell,
@@ -1308,8 +1300,7 @@ function extractLake(lakeCells, allCells) {
         if (!tile) {
             continue;
         }
-        all.filter((d)=>tile.getEdge(d).type == 3
-        ).forEach((d)=>{
+        all.filter((d)=>tile.getEdge(d).type == 3).forEach((d)=>{
             let neighbor = getNeighbor(current, d, allCells);
             if (!neighbor.tile) {
                 return;
@@ -1335,8 +1326,7 @@ function getLakes(cells) {
             return;
         }
         let tile = cell.tile;
-        return all.some((d)=>tile.getEdge(d).type == 3
-        );
+        return all.some((d)=>tile.getEdge(d).type == 3);
     }
     let lakeCells = cells.filter(isLake);
     let sizes = [];
@@ -1351,8 +1341,7 @@ function getForests(cells) {
             return;
         }
         let tile = cell.tile;
-        return all.every((d)=>tile.getEdge(d).type != 4
-        );
+        return all.every((d)=>tile.getEdge(d).type != 4);
     }
     function hasForestNeighbor(cell) {
         return all.some((d)=>{
@@ -1378,17 +1367,14 @@ function get2(cells) {
     };
 }
 function mapExits(score) {
-    return score.exits.map((count)=>count == 12 ? 45 : (count - 1) * 4
-    );
+    return score.exits.map((count)=>count == 12 ? 45 : (count - 1) * 4);
 }
 function sumLakes(score) {
-    return score.lakes.length > 0 ? score.lakes.sort((a, b)=>a - b
-    )[0] : 0;
+    return score.lakes.length > 0 ? score.lakes.sort((a, b)=>a - b)[0] : 0;
 }
 function sum(score) {
     let exits = mapExits(score);
-    let exitScore = exits.reduce((a, b)=>a + b
-    , 0);
+    let exitScore = exits.reduce((a, b)=>a + b, 0);
     let lakeScore = sumLakes(score);
     return exitScore + score.road.length + score.rail.length + score.center - score.deadends.length + lakeScore + score.forests.length;
 }
@@ -1399,8 +1385,6 @@ function inBoard(x, y) {
 class CellRepo {
     _cells = [];
     constructor(){
-        const tile = null;
-        const round = 0;
         for(let y = 0; y < 7 + 2; y++){
             let row = [];
             this._cells.push(row);
@@ -1421,8 +1405,7 @@ class CellRepo {
     }
     forEach(cb) {
         this._cells.forEach((row)=>{
-            row.forEach((cell)=>cb(cell)
-            );
+            row.forEach((cell)=>cb(cell));
         });
     }
     filter(test) {
@@ -1439,18 +1422,16 @@ class CellRepo {
     }
 }
 class Board {
-    _tileCtor;
-    blob = null;
-    _cells = new CellRepo();
-    constructor(_tileCtor1 = Tile){
-        this._tileCtor = _tileCtor1;
+    blob;
+    _cells;
+    constructor(_tileCtor = Tile){
+        this._tileCtor = _tileCtor;
+        this.blob = null;
+        this._cells = new CellRepo();
     }
-    signal(_cells) {
-    }
-    showScore(_score) {
-    }
-    onClick(_cell) {
-    }
+    signal(_cells) {}
+    showScore(_score) {}
+    onClick(_cell) {}
     getScore() {
         return get2(this._cells);
     }
@@ -1595,8 +1576,7 @@ class Board {
                 return false;
             }
             let neighborEdges = this.getNeighborEdges(cell.x, cell.y);
-            return neighborEdges.filter((e)=>e == 3
-            ).length >= 3;
+            return neighborEdges.filter((e)=>e == 3).length >= 3;
         };
         let surrounded = this._cells.filter(isSurrounded);
         surrounded.forEach((cell)=>{
@@ -1605,9 +1585,9 @@ class Board {
         });
         surrounded.length && this.commit(round);
     }
+    _tileCtor;
 }
-function node1(name, attrs = {
-}, content) {
+function node(name, attrs = {}, content) {
     let node = document.createElement(name);
     Object.assign(node, attrs);
     content && (node.textContent = content);
@@ -1650,11 +1630,10 @@ const STARTS = [
         0.5
     ]
 ];
-const TO_CENTER = Vector.map((_, i, all)=>all[clamp(i + 2)]
-);
+const TO_CENTER = Vector.map((_, i, all)=>all[clamp(i + 2)]);
+const DPR = devicePixelRatio;
 function toAbs(p) {
-    return p.map(($)=>$ * TILE
-    );
+    return p.map(($)=>$ * TILE);
 }
 function computeControlPoint(p1, p2) {
     if (p1[0] == p2[0]) {
@@ -1672,7 +1651,7 @@ function computeControlPoint(p1, p2) {
 function createLakeCanvas() {
     const N = 4;
     const PX = 2;
-    const canvas = node1("canvas");
+    const canvas = node("canvas");
     canvas.width = canvas.height = N * PX;
     const ctx = canvas.getContext("2d");
     for(let i = 0; i < 4; i++){
@@ -1690,9 +1669,9 @@ const lakeCanvas = createLakeCanvas();
 class CanvasDrawContext {
     _ctx;
     constructor(canvas){
-        canvas.width = canvas.height = TILE * devicePixelRatio;
+        canvas.width = canvas.height = TILE * DPR;
         this._ctx = canvas.getContext("2d");
-        this._ctx.scale(devicePixelRatio, devicePixelRatio);
+        this._ctx.scale(DPR, DPR);
         this._ctx.lineWidth = LINE_WIDTH;
     }
     styleLine() {
@@ -1722,8 +1701,7 @@ class CanvasDrawContext {
         let size = [
             ctx.canvas.width,
             ctx.canvas.height
-        ].map(($)=>$ / devicePixelRatio
-        );
+        ].map(($)=>$ / DPR);
         ctx.fillStyle = "#000";
         ctx.fillRect(size[0] / 2 - 18 / 2, size[1] / 2 - 18 / 2, 18, 18);
     }
@@ -1892,7 +1870,6 @@ class CanvasDrawContext {
     redGlow(direction) {
         const ctx = this._ctx;
         let point = toAbs(STARTS[direction]);
-        const R = 12;
         ctx.beginPath();
         ctx.arc(point[0], point[1], 12, 0, Math.PI, false);
         ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
@@ -1981,7 +1958,7 @@ function createVisual(id) {
         result = cache.get(id);
     } else {
         let shape = get1(id);
-        let canvas = node1("canvas");
+        let canvas = node("canvas");
         let ctx = new CanvasDrawContext(canvas);
         shape.render(ctx);
         let data = canvas.toDataURL("image/png");
@@ -1998,10 +1975,10 @@ function createVisual(id) {
 class HTMLTile extends Tile {
     node;
     _visual;
-    constructor(sid1, tid1, visual = null){
-        super(sid1, tid1);
+    constructor(sid, tid, visual = null){
+        super(sid, tid);
         this._visual = visual || createVisual(this._data.sid);
-        this.node = node1("img", {
+        this.node = node("img", {
             className: "tile",
             alt: "tile",
             src: this._visual.data
@@ -2020,7 +1997,7 @@ class HTMLTile extends Tile {
     }
     createCanvas() {
         const source = this._visual.canvas;
-        const canvas = node1("canvas", {
+        const canvas = node("canvas", {
             width: source.width,
             height: source.height
         });
@@ -2033,7 +2010,7 @@ class HTMLTile extends Tile {
         this.node.style.transform = get(this._data.tid).getCSS();
     }
 }
-const DPR = devicePixelRatio;
+const DPR1 = devicePixelRatio;
 const BTILE = TILE / 2;
 const bodyStyle = getComputedStyle(document.body);
 const BORDER = Number(bodyStyle.getPropertyValue("--border-thick"));
@@ -2095,8 +2072,7 @@ class BoardCanvas extends Board {
     }
     place(tile, x, y, round) {
         super.place(tile, x, y, round);
-        let index = this._pendingCells.findIndex((cell)=>cell.x == x && cell.y == y
-        );
+        let index = this._pendingCells.findIndex((cell)=>cell.x == x && cell.y == y);
         if (index > -1) {
             this._pendingCells[index].node.remove();
             this._pendingCells.splice(index, 1);
@@ -2104,20 +2080,20 @@ class BoardCanvas extends Board {
         if (!tile) {
             return;
         }
-        let node = node1("div", {
+        let node1 = node("div", {
             className: "cell"
         });
-        node.style.left = `${cellToPx(x)}px`;
-        node.style.top = `${cellToPx(y)}px`;
-        node.appendChild(tile.node);
-        round && node.appendChild(node1("div", {
+        node1.style.left = `${cellToPx(x)}px`;
+        node1.style.top = `${cellToPx(y)}px`;
+        node1.appendChild(tile.node);
+        round && node1.appendChild(node("div", {
             className: "round"
         }, round.toString()));
-        this.node.appendChild(node);
+        this.node.appendChild(node1);
         this._pendingCells.push({
             x,
             y,
-            node,
+            node: node1,
             tile,
             round
         });
@@ -2128,8 +2104,8 @@ class BoardCanvas extends Board {
         ctx.save();
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         this._pendingCells.forEach((cell)=>{
-            let pxx = cellToPx(cell.x) * DPR;
-            let pxy = cellToPx(cell.y) * DPR;
+            let pxx = cellToPx(cell.x) * DPR1;
+            let pxy = cellToPx(cell.y) * DPR1;
             ctx.drawImage(cell.tile.createCanvas(), pxx, pxy);
             cell.node.remove();
         });
@@ -2151,10 +2127,9 @@ class BoardCanvas extends Board {
         this._pendingCells = [];
     }
     signal(cells) {
-        this._signals.forEach((signal)=>signal.remove()
-        );
+        this._signals.forEach((signal)=>signal.remove());
         this._signals = cells.map((cell)=>{
-            let signal = node1("div", {
+            let signal = node("div", {
                 className: "signal"
             });
             let pxx = cellToPx(cell.x);
@@ -2191,30 +2166,29 @@ class BoardCanvas extends Board {
             ctx.fillRect(pxx, pxy, TILE, TILE);
         });
         if (ctx.canvas.toBlob) {
-            ctx.canvas.toBlob((blob)=>this.blob = blob
-            );
+            ctx.canvas.toBlob((blob)=>this.blob = blob);
         } else if ("msToBlob" in ctx.canvas) {
             this.blob = ctx.canvas.msToBlob();
         }
     }
     _build() {
-        let node = node1("div", {
+        let node1 = node("div", {
             className: "board"
         });
-        let canvas = node1("canvas");
-        node.appendChild(canvas);
+        let canvas = node("canvas");
+        node1.appendChild(canvas);
         const SIZE = 2 * (BTILE + BORDER) + 7 * TILE + (7 - 1) * THIN;
-        canvas.width = canvas.height = SIZE * DPR;
+        canvas.width = canvas.height = SIZE * DPR1;
         const PX = `${SIZE}px`;
         canvas.style.width = canvas.style.height = PX;
         document.body.style.setProperty("--board-width", PX);
         const ctx = canvas.getContext("2d");
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.scale(DPR, DPR);
+        ctx.scale(DPR1, DPR1);
         this._ctx = ctx;
         this._drawGrid();
-        return node;
+        return node1;
     }
     _drawGrid() {
         const ctx = this._ctx;
@@ -2225,14 +2199,14 @@ class BoardCanvas extends Board {
         ctx.fillRect(start, start, length, length);
         ctx.beginPath();
         let offsetOdd = 0, offsetEven = 0, lineWidth = THIN;
-        switch(DPR){
+        switch(DPR1){
             case 1:
                 offsetOdd = offsetEven = 0.5;
                 break;
             case 1.5:
                 offsetOdd = 2 / 3;
                 offsetEven = 1 / 3;
-                lineWidth /= DPR;
+                lineWidth /= DPR1;
                 break;
         }
         ctx.lineWidth = lineWidth;
@@ -2330,8 +2304,7 @@ function randomType(types) {
 function createDice(Ctor, type, round) {
     switch(type){
         case "demo":
-            return DEMO.map((type)=>new Ctor("plain", type)
-            );
+            return DEMO.map((type)=>new Ctor("plain", type));
             break;
         case "lake":
             return [
@@ -2352,7 +2325,7 @@ function createDice(Ctor, type, round) {
             }
             break;
         default:
-            let result = [];
+            let result1 = [];
             let templates = [
                 DICE_REGULAR_1,
                 DICE_REGULAR_1,
@@ -2363,9 +2336,9 @@ function createDice(Ctor, type, round) {
                 let index = Math.floor(Math.random() * templates.length);
                 let template = templates.splice(index, 1)[0];
                 let sid = randomType(template);
-                result.push(new Ctor("plain", sid));
+                result1.push(new Ctor("plain", sid));
             }
-            return result;
+            return result1;
             break;
     }
 }
@@ -2413,14 +2386,12 @@ const DICE_LAKE = [
     "lake-rail-road"
 ];
 class Dice {
-    _type;
-    _sid;
     static fromJSON(data) {
         return new this(data.type, data.sid);
     }
-    constructor(_type1, _sid1){
-        this._type = _type1;
-        this._sid = _sid1;
+    constructor(_type, _sid){
+        this._type = _type;
+        this._sid = _sid;
     }
     toJSON() {
         return {
@@ -2428,18 +2399,19 @@ class Dice {
             sid: this._sid
         };
     }
-}
-class HTMLDice extends Dice {
     _type;
     _sid;
+}
+class HTMLDice extends Dice {
     _tile;
-    node = node1("div", {
-        className: "dice"
-    });
-    constructor(_type2, _sid2){
-        super(_type2, _sid2);
-        this._type = _type2;
-        this._sid = _sid2;
+    node;
+    constructor(_type, _sid){
+        super(_type, _sid);
+        this._type = _type;
+        this._sid = _sid;
+        this.node = node("div", {
+            className: "dice"
+        });
         if (this._type == "lake") {
             this.node.classList.add("lake");
         }
@@ -2476,20 +2448,20 @@ class HTMLDice extends Dice {
     set disabled(value) {
         this.classList.toggle("disabled", value);
     }
+    _type;
+    _sid;
 }
 class Pool {
-    node = node1("div", {
+    node = node("div", {
         className: "pool"
     });
     _dices = [];
     get remaining() {
-        return this._dices.filter((d)=>d.mandatory && !d.disabled && !d.blocked
-        );
+        return this._dices.filter((d)=>d.mandatory && !d.disabled && !d.blocked);
     }
     handleEvent(e) {
         let target = e.currentTarget;
-        let dice = this._dices.filter((dice)=>dice.node == target
-        )[0];
+        let dice = this._dices.filter((dice)=>dice.node == target)[0];
         if (!dice || dice.disabled || dice.blocked) {
             return;
         }
@@ -2515,14 +2487,11 @@ class Pool {
         return true;
     }
     pending(dice) {
-        this._dices.forEach((d)=>d.pending = dice == d
-        );
+        this._dices.forEach((d)=>d.pending = dice == d);
     }
-    onClick(_dice) {
-    }
+    onClick(_dice) {}
     sync(board) {
-        this._dices.filter((dice)=>!dice.disabled
-        ).forEach((dice)=>{
+        this._dices.filter((dice)=>!dice.disabled).forEach((dice)=>{
             let cells = board.getAvailableCells(dice.tile);
             dice.blocked = cells.length == 0;
         });
@@ -2571,23 +2540,21 @@ class BonusPool extends Pool {
         this._locked = false;
     }
     toJSON() {
-        return this._dices.filter((d)=>d.disabled
-        ).map((d)=>this._dices.indexOf(d)
-        );
+        return this._dices.filter((d)=>d.disabled).map((d)=>this._dices.indexOf(d));
     }
     fromJSON(indices) {
         this._locked = false;
-        indices.forEach((i)=>this.disable(this._dices[i])
-        );
+        indices.forEach((i)=>this.disable(this._dices[i]));
     }
 }
 const dataset = document.body.dataset;
 class Game {
-    _board;
-    _node = document.querySelector("#game");
-    _bonusPool = new BonusPool();
-    constructor(_board1){
-        this._board = _board1;
+    _node;
+    _bonusPool;
+    constructor(_board){
+        this._board = _board;
+        this._node = document.querySelector("#game");
+        this._bonusPool = new BonusPool();
     }
     async play() {
         dataset.stage = "game";
@@ -2596,35 +2563,33 @@ class Game {
     _outro() {
         dataset.stage = "outro";
     }
+    _board;
 }
 class Round {
-    number;
-    _board;
-    _bonusPool;
     node;
-    _pending = null;
+    _pending;
     _pool;
-    _endButton = node1("button");
-    _placedDice = new Map();
-    _lastClickTs = 0;
-    constructor(number1, _board2, _bonusPool1){
-        this.number = number1;
-        this._board = _board2;
-        this._bonusPool = _bonusPool1;
+    _endButton;
+    _placedDice;
+    _lastClickTs;
+    constructor(number, _board, _bonusPool){
+        this.number = number;
+        this._board = _board;
+        this._bonusPool = _bonusPool;
+        this._pending = null;
+        this._endButton = node("button");
+        this._placedDice = new Map();
+        this._lastClickTs = 0;
         this._pool = new Pool();
         this.node = this._pool.node;
         this._endButton.textContent = `End round #${this.number}`;
     }
     play(dice) {
-        dice.forEach((dice)=>this._pool.add(dice)
-        );
+        dice.forEach((dice)=>this._pool.add(dice));
         this.node.appendChild(this._endButton);
-        this._pool.onClick = (dice)=>this._onPoolClick(dice)
-        ;
-        this._bonusPool.onClick = (dice)=>this._onPoolClick(dice)
-        ;
-        this._board.onClick = (cell)=>this._onBoardClick(cell)
-        ;
+        this._pool.onClick = (dice)=>this._onPoolClick(dice);
+        this._bonusPool.onClick = (dice)=>this._onPoolClick(dice);
+        this._board.onClick = (cell)=>this._onBoardClick(cell);
         this._syncEnd();
         this._bonusPool.unlock();
         return new Promise((resolve)=>{
@@ -2641,8 +2606,7 @@ class Round {
     }
     _end() {
         this._board.commit(this.number);
-        function noop() {
-        }
+        function noop() {}
         this._pool.onClick = noop;
         this._bonusPool.onClick = noop;
         this._board.onClick = noop;
@@ -2737,20 +2701,22 @@ class Round {
                 }
             });
             if (!placed) {
-                todo.forEach((item)=>this._tryToRemove(item.cell)
-                );
+                todo.forEach((item)=>this._tryToRemove(item.cell));
                 return false;
             }
         }
         return true;
     }
+    number;
+    _board;
+    _bonusPool;
 }
 function buildTable() {
-    const table = node1("table", {
+    const table = node("table", {
         className: "score"
     });
-    table.appendChild(node1("thead"));
-    table.appendChild(node1("tbody"));
+    table.appendChild(node("thead"));
+    table.appendChild(node("tbody"));
     table.tHead.insertRow().insertCell();
     const body = table.tBodies[0];
     [
@@ -2766,22 +2732,20 @@ function buildTable() {
     });
     body.rows[body.rows.length - 1].hidden = true;
     body.rows[body.rows.length - 2].hidden = true;
-    table.appendChild(node1("tfoot"));
+    table.appendChild(node("tfoot"));
     table.tFoot.insertRow().insertCell().textContent = "Score";
     return table;
 }
 function addColumn(table, score, name = "", active = false) {
     let result = {
-        onClick () {
-        }
+        onClick () {}
     };
     if (name) {
         const row = table.tHead.rows[0];
         const cell = row.insertCell();
         cell.textContent = name;
         function activate() {
-            Array.from(row.cells).forEach((c)=>c.classList.toggle("active", c == cell)
-            );
+            Array.from(row.cells).forEach((c)=>c.classList.toggle("active", c == cell));
             result.onClick();
         }
         cell.addEventListener("click", activate);
@@ -2789,8 +2753,7 @@ function addColumn(table, score, name = "", active = false) {
     }
     const body = table.tBodies[0];
     let exits = mapExits(score);
-    let exitScore = exits.reduce((a, b)=>a + b
-    , 0);
+    let exitScore = exits.reduce((a, b)=>a + b, 0);
     body.rows[0].insertCell().textContent = exitScore ? `${score.exits.join("+")} = ${exitScore}` : "0";
     body.rows[1].insertCell().textContent = score.road.length.toString();
     body.rows[2].insertCell().textContent = score.rail.length.toString();
@@ -2818,8 +2781,7 @@ function addColumn(table, score, name = "", active = false) {
         let cells = Array.from(row.cells).slice(1);
         let numbers = cells.map(extractCellValue);
         let best = Math.max(...numbers);
-        cells.forEach((c)=>c.classList.toggle("best", extractCellValue(c) == best)
-        );
+        cells.forEach((c)=>c.classList.toggle("best", extractCellValue(c) == best));
     });
     return result;
 }
@@ -2836,8 +2798,7 @@ function renderMulti(names, scores, onClick, activeName) {
     const table = buildTable();
     names.forEach((name, i)=>{
         let active = name == activeName;
-        addColumn(table, scores[i], name, active).onClick = ()=>onClick(i)
-        ;
+        addColumn(table, scores[i], name, active).onClick = ()=>onClick(i);
         if (active) {
             onClick(i);
         }
@@ -2845,10 +2806,9 @@ function renderMulti(names, scores, onClick, activeName) {
     return table;
 }
 class SingleGame extends Game {
-    _type;
-    constructor(_board3, _type3){
-        super(_board3);
-        this._type = _type3;
+    constructor(_board, _type){
+        super(_board);
+        this._type = _type;
     }
     async play() {
         super.play();
@@ -2874,6 +2834,7 @@ class SingleGame extends Game {
         parent.innerHTML = "";
         parent.appendChild(renderSingle(s));
     }
+    _type;
 }
 const V = "2.0";
 function debug(msg, ...args) {
@@ -2915,18 +2876,18 @@ function createCallMessage(method, params, id) {
     return message;
 }
 class JsonRpc {
-    _io;
-    _interface = new Map();
-    _pendingPromises = new Map();
-    _options = {
-        log: false
-    };
-    constructor(_io1, options = {
-    }){
-        this._io = _io1;
+    _interface;
+    _pendingPromises;
+    _options;
+    constructor(_io, options = {}){
+        this._io = _io;
+        this._interface = new Map();
+        this._pendingPromises = new Map();
+        this._options = {
+            log: false
+        };
         Object.assign(this._options, options);
-        _io1.onData = (m)=>this._onData(m)
-        ;
+        _io.onData = (m)=>this._onData(m);
     }
     expose(name, method) {
         this._interface.set(name, method);
@@ -2961,16 +2922,14 @@ class JsonRpc {
             this._send(reply);
             return;
         }
-        let reply;
+        let reply1;
         if (message instanceof Array) {
-            let mapped = message.map((m)=>this._processMessage(m)
-            ).filter((m)=>m
-            );
-            reply = mapped.length ? mapped : null;
+            let mapped = message.map((m)=>this._processMessage(m)).filter((m)=>m);
+            reply1 = mapped.length ? mapped : null;
         } else {
-            reply = this._processMessage(message);
+            reply1 = this._processMessage(message);
         }
-        reply && this._send(reply);
+        reply1 && this._send(reply1);
     }
     _processMessage(message) {
         if ("method" in message) {
@@ -2997,10 +2956,10 @@ class JsonRpc {
         }
         return null;
     }
+    _io;
 }
 class MultiGame extends Game {
-    _nodes = {
-    };
+    _nodes = {};
     _rpc;
     _resolve;
     _progress = {
@@ -3008,11 +2967,11 @@ class MultiGame extends Game {
         game: "",
         player: ""
     };
-    _wait = node1("p", {
+    _wait = node("p", {
         className: "wait",
         hidden: true
     });
-    _currentScore = node1("span");
+    _currentScore = node("span");
     constructor(board){
         super(board);
         const template = document.querySelector("template");
@@ -3024,19 +2983,13 @@ class MultiGame extends Game {
             this._nodes[id] = node.cloneNode(true);
         });
         const setup = this._nodes["setup"];
-        setup.querySelector("[name=join]").addEventListener("click", (_)=>this._joinOrCreate()
-        );
-        setup.querySelector("[name=continue]").addEventListener("click", (_)=>this._continue()
-        );
-        setup.querySelector("[name=create-normal]").addEventListener("click", (_)=>this._joinOrCreate("normal")
-        );
-        setup.querySelector("[name=create-lake]").addEventListener("click", (_)=>this._joinOrCreate("lake")
-        );
-        setup.querySelector("[name=create-forest]").addEventListener("click", (_)=>this._joinOrCreate("forest")
-        );
+        setup.querySelector("[name=join]").addEventListener("click", (_)=>this._joinOrCreate());
+        setup.querySelector("[name=continue]").addEventListener("click", (_)=>this._continue());
+        setup.querySelector("[name=create-normal]").addEventListener("click", (_)=>this._joinOrCreate("normal"));
+        setup.querySelector("[name=create-lake]").addEventListener("click", (_)=>this._joinOrCreate("lake"));
+        setup.querySelector("[name=create-forest]").addEventListener("click", (_)=>this._joinOrCreate("forest"));
         const lobby = this._nodes["lobby"];
-        lobby.querySelector("button").addEventListener("click", (_)=>this._rpc.call("start-game", [])
-        );
+        lobby.querySelector("button").addEventListener("click", (_)=>this._rpc.call("start-game", []));
     }
     async play() {
         super.play();
@@ -3073,10 +3026,8 @@ class MultiGame extends Game {
         const url = new URL(location.href).searchParams.get("url") || SERVER;
         const ws = await openWebSocket(url);
         const rpc = createRpc(ws);
-        ws.addEventListener("close", (e)=>this._onClose(e)
-        );
-        rpc.expose("game-change", ()=>this._sync()
-        );
+        ws.addEventListener("close", (e)=>this._onClose(e));
+        rpc.expose("game-change", ()=>this._sync());
         rpc.expose("game-destroy", ()=>{
             alert("The game has been cancelled");
             ws.close();
@@ -3089,8 +3040,7 @@ class MultiGame extends Game {
             ws.close();
             this._resolve(true);
         });
-        let quit = node1("button", {
-        }, "Quit game");
+        let quit = node("button", {}, "Quit game");
         quit.addEventListener("click", async (_)=>{
             if (!confirm("Really quit the game?")) {
                 return;
@@ -3117,8 +3067,7 @@ class MultiGame extends Game {
         }
         save("player", playerName);
         save("game", gameName);
-        buttons.forEach((b)=>b.disabled = true
-        );
+        buttons.forEach((b)=>b.disabled = true);
         try {
             const rpc = await this._connectRPC();
             let args = [
@@ -3137,8 +3086,7 @@ class MultiGame extends Game {
             alert(e.message);
             this._resolve(false);
         } finally{
-            buttons.forEach((b)=>b.disabled = false
-            );
+            buttons.forEach((b)=>b.disabled = false);
         }
     }
     async _continue() {
@@ -3183,21 +3131,18 @@ class MultiGame extends Game {
         const list = lobby.querySelector("ul");
         list.innerHTML = "";
         players.forEach((p)=>{
-            let item = node1("li", {
-            }, p.name);
+            let item = node("li", {}, p.name);
             list.appendChild(item);
         });
         const button = lobby.querySelector("button");
         button.textContent = button.disabled ? `Wait for ${players[0].name} to start the game` : "Start the game";
     }
     _updateRound(response) {
-        let waiting = response.players.filter((p)=>!p.roundEnded
-        ).length;
+        let waiting = response.players.filter((p)=>!p.roundEnded).length;
         let suffix = waiting > 1 ? "s" : "";
         this._wait.textContent = `Waiting for ${waiting} player${suffix} to end round. `;
         this._wait.appendChild(this._currentScore);
-        const ended = response.players.filter((p)=>p.name == this._progress.player
-        )[0].roundEnded;
+        const ended = response.players.filter((p)=>p.name == this._progress.player)[0].roundEnded;
         this._wait.hidden = !ended;
         const round = this._progress.round;
         if (round && round.number == response.round) {
@@ -3214,8 +3159,7 @@ class MultiGame extends Game {
         this._node.appendChild(this._bonusPool.node);
         this._node.appendChild(round.node);
         this._node.appendChild(this._wait);
-        let dice = response.dice.map((data)=>HTMLDice.fromJSON(data)
-        );
+        let dice = response.dice.map((data)=>HTMLDice.fromJSON(data));
         let promise = round.play(dice);
         if (ended) {
             round.end();
@@ -3226,8 +3170,7 @@ class MultiGame extends Game {
                 bonusPool: this._bonusPool.toJSON()
             };
             this._rpc.call("end-round", state);
-            let button = node1("button", {
-            }, "Show my current score");
+            let button = node("button", {}, "Show my current score");
             button.addEventListener("click", (_)=>{
                 let s = this._board.getScore();
                 this._currentScore.innerHTML = `My current score is <strong>${sum(s)}<strong>.`;
@@ -3241,14 +3184,10 @@ class MultiGame extends Game {
         this._board.showScore(s);
         const parent = document.querySelector("#score");
         parent.innerHTML = "";
-        let names = players.map((p)=>p.name
-        );
-        let boards = players.map((p)=>new BoardCanvas().fromJSON(p.board)
-        );
-        let scores = boards.map((b)=>b.getScore()
-        );
-        boards.forEach((b, i)=>b.showScore(scores[i])
-        );
+        let names = players.map((p)=>p.name);
+        let boards = players.map((p)=>new BoardCanvas().fromJSON(p.board));
+        let scores = boards.map((b)=>b.getScore());
+        boards.forEach((b, i)=>b.showScore(scores[i]));
         const player = this._progress.player;
         function showByIndex(i) {
             showBoard(boards[i]);
@@ -3268,14 +3207,12 @@ class MultiplayerRound extends Round {
     play(dice) {
         try {
             navigator.vibrate(200);
-        } catch (e) {
-        }
+        } catch (e) {}
         return super.play(dice);
     }
     end() {
         this._endButton.disabled = true;
-        this._pool.remaining.forEach((d)=>this._pool.disable(d)
-        );
+        this._pool.remaining.forEach((d)=>this._pool.disable(d));
     }
     _end() {
         super._end();
@@ -3284,23 +3221,19 @@ class MultiplayerRound extends Round {
 }
 function createRpc(ws) {
     let io = {
-        onData (_s) {
-        },
+        onData (_s) {},
         sendData (s) {
             ws.send(s);
         }
     };
-    ws.addEventListener("message", (e)=>io.onData(e.data)
-    );
+    ws.addEventListener("message", (e)=>io.onData(e.data));
     return new JsonRpc(io);
 }
 function openWebSocket(url) {
     const ws = new WebSocket(url);
     return new Promise((resolve, reject)=>{
-        ws.addEventListener("open", (e)=>resolve(e.target)
-        );
-        ws.addEventListener("error", (_)=>reject(new Error("Cannot connect to server"))
-        );
+        ws.addEventListener("open", (e)=>resolve(e.target));
+        ws.addEventListener("error", (_)=>reject(new Error("Cannot connect to server")));
     });
 }
 function save(key, value) {
@@ -3320,13 +3253,13 @@ function load(key) {
     }
 }
 const dataset1 = document.body.dataset;
-let board1;
+let board;
 function download() {
-    if (!board1.blob) {
+    if (!board.blob) {
         return;
     }
-    const href = URL.createObjectURL(board1.blob);
-    let a = node1("a", {
+    const href = URL.createObjectURL(board.blob);
+    let a = node("a", {
         href,
         download: "railroad-ink.png"
     });
@@ -3336,11 +3269,11 @@ function download() {
 }
 function goIntro() {
     dataset1.stage = "intro";
-    board1 = new BoardCanvas();
-    showBoard(board1);
+    board = new BoardCanvas();
+    showBoard(board);
 }
 async function goGame(type) {
-    const game = type == "multi" ? new MultiGame(board1) : new SingleGame(board1, type);
+    const game = type == "multi" ? new MultiGame(board) : new SingleGame(board, type);
     let played = await game.play();
     if (!played) {
         goIntro();
@@ -3350,18 +3283,12 @@ function onClick(name, cb) {
     document.querySelector(`[name=${name}]`).addEventListener("click", cb);
 }
 function init() {
-    onClick("start-normal", ()=>goGame("normal")
-    );
-    onClick("start-lake", ()=>goGame("lake")
-    );
-    onClick("start-forest", ()=>goGame("forest")
-    );
-    onClick("start-multi", ()=>goGame("multi")
-    );
-    onClick("again", ()=>goIntro()
-    );
-    onClick("download", ()=>download()
-    );
+    onClick("start-normal", ()=>goGame("normal"));
+    onClick("start-lake", ()=>goGame("lake"));
+    onClick("start-forest", ()=>goGame("forest"));
+    onClick("start-multi", ()=>goGame("multi"));
+    onClick("again", ()=>goIntro());
+    onClick("download", ()=>download());
     goIntro();
 }
 init();

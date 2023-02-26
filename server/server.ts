@@ -17,9 +17,11 @@ async function handleReq(req: Request) {
 
 async function handleConn(conn: Deno.Conn) {
 	const httpConn = Deno.serveHttp(conn);
-	for await (const requestEvent of httpConn) {
-		await requestEvent.respondWith(handleReq(requestEvent.request));
-	}
+	try {
+		for await (const requestEvent of httpConn) {
+			await requestEvent.respondWith(handleReq(requestEvent.request));
+		}
+	} catch (e) {}
 }
 
 const port = Number(Deno.args[0] || "8080");
