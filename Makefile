@@ -1,4 +1,4 @@
-DENO := ~/deno/deno
+DENO := deno
 LESSC := $(shell npm bin)/lessc
 
 all: client/client.js client/client.css icons
