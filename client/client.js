@@ -932,7 +932,7 @@ function node(name, attrs = {}, content) {
 const TILE = Number(window.getComputedStyle(document.body).getPropertyValue("--tile-size"));
 const DBLCLICK = 400;
 const DOWN_EVENT = ("onpointerdown" in window ? "pointerdown" : "touchstart");
-const SERVER = "wss://ws.toad.cz/";
+const SERVER = "wss://rri.toad.cz/";
 
 const RAIL_TICK_WIDTH = 1;
 const LINE_WIDTH = 2;

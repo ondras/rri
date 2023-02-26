@@ -1,6 +1,6 @@
-TSC := $(shell npm bin)/tsc
-LESSC := $(shell npm bin)/lessc
-ROLLUP := $(shell npm bin)/rollup
+TSC := npm exec -- tsc
+LESSC := npm exec -- lessc
+ROLLUP := npm exec -- rollup
 FLAG := .build/.tsflag
 
 all: client/client.js client/client.css icons
