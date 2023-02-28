@@ -3,7 +3,7 @@ import Player from "./player.ts";
 
 
 async function handleReq(req: Request, conn: ConnInfo) {
-	console.log("new http request", conn.remoteAddr, req.url);
+	console.log("new http request", req.headers.get("x-real-ip") || conn.remoteAddr.hostname);
 	try {
 		const { socket, response } = Deno.upgradeWebSocket(req);
 		console.log("accepted websocket upgrade")
