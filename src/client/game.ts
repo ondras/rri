@@ -5,7 +5,7 @@ const dataset = document.body.dataset;
 
 export default class Game {
 	_node = document.querySelector("#game") as HTMLElement;
-	_bonusPool = new BonusPool();
+	_bonusPool = new BonusPool("Special Routes");
 
 	constructor(readonly _board:Board) {}
 
