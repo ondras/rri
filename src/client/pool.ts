@@ -12,7 +12,6 @@ export default class Pool {
 	poolHeading: HTMLHeadingElement = html.node("h2", {className:"heading"});
 
 	constructor(label: string) {
-    // create the <h2> here and append it to this.node
 	label: this.poolHeading
 	this.node.prepend(label)
     }
