@@ -17,7 +17,7 @@ export default class Round {
 	_lastClickTs = 0;
 
 	constructor(readonly number: number, readonly _board: Board, readonly _bonusPool: BonusPool) {
-		this._pool = new Pool();
+		this._pool = new Pool(`Round #${this.number} Routes`);
 		this.node = this._pool.node;
 
 		this._endButton.textContent = `End round #${this.number}`;

@@ -9,6 +9,12 @@ const MAX_BONUSES = 3;
 export default class Pool {
 	node: HTMLElement = html.node("div", {className:"pool"});
 	_dices: HTMLDice[] = [];
+	poolHeading: HTMLHeadingElement = html.node("h2", {className:"heading"});
+
+	constructor(label: string) {
+	label: this.poolHeading
+	this.node.prepend(label)
+    }
 
 	get remaining() {
 		return this._dices.filter(d => d.mandatory && !d.disabled && !d.blocked);
@@ -59,7 +65,7 @@ export class BonusPool extends Pool {
 	_locked = false;
 
 	constructor() {
-		super();
+		super("Special Routes");
 		this.node.classList.add("bonus");
 
 		["cross-road-road-rail-road", "cross-road-rail-rail-rail", "cross-road",
