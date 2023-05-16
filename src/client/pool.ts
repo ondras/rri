@@ -9,11 +9,11 @@ const MAX_BONUSES = 3;
 export default class Pool {
 	node: HTMLElement = html.node("div", {className:"pool"});
 	_dices: HTMLDice[] = [];
-	poolHeading: HTMLHeadingElement = html.node("h2", {className:"heading"});
 
 	constructor(label: string) {
-	label: this.poolHeading
-	this.node.prepend(label)
+		let heading = html.node("h2", {className:"heading"});
+		heading.append(label);
+		this.node.append(heading);
     }
 
 	get remaining() {

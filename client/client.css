@@ -156,6 +156,12 @@ button:disabled {
   padding: 8px 0;
   border-bottom: 1px solid #000;
 }
+#game .pool h2 {
+  font-size: inherit;
+  width: calc(var(--tile-size) * 1px);
+  margin: 0;
+  align-self: center;
+}
 #game .pool .dice {
   border: 1px solid #000;
   border-radius: 6px;

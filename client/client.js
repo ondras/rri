@@ -1651,9 +1651,12 @@ class HTMLDice extends Dice {
 
 const MAX_BONUSES = 3;
 class Pool {
-    constructor() {
+    constructor(label) {
         this.node = node("div", { className: "pool" });
         this._dices = [];
+        let heading = node("h2", { className: "heading" });
+        heading.append(label);
+        this.node.append(heading);
     }
     get remaining() {
         return this._dices.filter(d => d.mandatory && !d.disabled && !d.blocked);
@@ -1698,7 +1701,7 @@ class Pool {
 }
 class BonusPool extends Pool {
     constructor() {
-        super();
+        super("Special Routes");
         this._used = 0;
         this._locked = false;
         this.node.classList.add("bonus");
@@ -1766,7 +1769,7 @@ class Round {
         this._endButton = node("button");
         this._placedDice = new Map();
         this._lastClickTs = 0;
-        this._pool = new Pool();
+        this._pool = new Pool(`Round #${this.number} Routes`);
         this.node = this._pool.node;
         this._endButton.textContent = `End round #${this.number}`;
         /**
