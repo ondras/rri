@@ -16,7 +16,7 @@ Please report any bugs found to the [issue tracker](https://github.com/ondras/rr
 
 ## How to play
 
-Familiarize yourself with [game rules](https://www.dropbox.com/s/pu4yifwuhfivwmg/RRI_BLUE_Rulebook-EN_v02_Web.pdf) first. Rules for the [forests expansion](#forests-expansion) follow.
+Familiarize yourself with [game rules](https://cdn.1j1ju.com/medias/9c/f7/6c-railroad-ink-deep-blue-edition-rulebook.pdf) first. Rules for the [forests expansion](#forests-expansion) follow.
 
 Playing the game is very straightforward; you pick pieces by clicking/touching the dice pool and you place them by clicking/touching the game board afterwards. To **rotate** a tile, place it and then touch it again. To **remove** a tile, double-click/double-touch it.
 
