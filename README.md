@@ -5,7 +5,7 @@
 This is a web-based version of the [Railroad Ink Board Game](https://boardgamegeek.com/boardgame/245654/railroad-ink-deep-blue-edition).
 Implemented features:
 
-  - base game, lakes expansion
+  - base game, lakes expansion, river expansion
   - playable and installable on mobile devices
   - online multiplayer
   - score visualization

@@ -329,6 +329,219 @@ export default class CanvasDrawContext implements DrawContext {
 		ctx.stroke(strokePath);
 	}
 
+	river(edge: Direction, length: number) {
+	const ctx = this._ctx;
+	let banks = this.getRiverBanks(edge, length);
+
+	this.styleLake();
+
+	ctx.beginPath();
+	banks[0].forEach((p, i) => i ? ctx.lineTo(...p) : ctx.moveTo(...p));
+	banks[1].reverse().forEach(p => ctx.lineTo(...p));
+	ctx.closePath();
+	ctx.fill();
+
+	this.styleLine();
+
+	banks.forEach(bank => {
+		ctx.beginPath();
+		bank.forEach((p, i) => i ? ctx.lineTo(...p) : ctx.moveTo(...p));
+		ctx.stroke();
+	});
+}
+
+getRiverBanks(edge: Direction, length: number): Point[][] {
+	let pxLength = length * TILE;
+	let start = toAbs(STARTS[edge]);
+	let vec = TO_CENTER[edge];
+
+	let steps = 60;
+	let wave = 1;
+	let waves = 2.0;
+	let half = ROAD_WIDTH / 2;
+
+	let banks: Point[][] = [[], []];
+
+	for (let i=0; i<=steps; i++) {
+		let d = pxLength * i / steps;
+		let x = start[0] + vec[0] * d;
+		let y = start[1] + vec[1] * d;
+
+		let wobble = 0;
+
+		if (edge == N || edge == S) {
+			wobble = Math.sin(y / TILE * Math.PI * 2 * waves) * wave;
+			banks[0].push([x - half + wobble, y]);
+			banks[1].push([x + half + wobble, y]);
+		} else {
+			wobble = Math.sin(x / TILE * Math.PI * 2 * waves) * wave;
+			banks[0].push([x, y - half + wobble]);
+			banks[1].push([x, y + half + wobble]);
+		}
+	}
+
+	return banks;
+}
+
+riverArc(quadrant: Direction) {
+	const ctx = this._ctx;
+	let banks = this.getRiverArcBanks(quadrant);
+
+	this.styleLake();
+
+	ctx.beginPath();
+	banks[0].forEach((p, i) => i ? ctx.lineTo(...p) : ctx.moveTo(...p));
+	[...banks[1]].reverse().forEach(p => ctx.lineTo(...p));
+	ctx.closePath();
+	ctx.fill();
+
+	this.styleLine();
+
+	banks.forEach(bank => {
+		ctx.beginPath();
+		bank.forEach((p, i) => i ? ctx.lineTo(...p) : ctx.moveTo(...p));
+		ctx.stroke();
+	});
+}
+
+getRiverArcBanks(quadrant: Direction): Point[][] {
+	let stepsLine = 24;
+	let stepsArc = 60;
+
+	let waveLine = 1;
+	let lineWaves = 1;
+
+	function getSide(diff: number): Point[] {
+		diff *= ROAD_WIDTH / 2;
+
+		let start: Point = [0, 0];
+		let end: Point = [0, 0];
+
+		switch (quadrant) {
+			case N:
+				start[0] = end[1] = TILE / 2 + diff;
+				break;
+
+			case E:
+				start[0] = TILE / 2 - diff;
+				end[0] = TILE;
+				end[1] = TILE / 2 + diff;
+				break;
+
+			case S:
+				start[0] = TILE / 2 - diff;
+				start[1] = TILE;
+				end[0] = TILE;
+				end[1] = TILE / 2 - diff;
+				break;
+
+			case W:
+				end[1] = TILE / 2 - diff;
+				start[0] = TILE / 2 + diff;
+				start[1] = TILE;
+				break;
+		}
+
+		let corner: Point = [start[0], end[1]];
+		let radius = RADIUS + diff;
+
+		let inVec: Point = [
+			start[0] - corner[0],
+			start[1] - corner[1]
+		];
+
+		let outVec: Point = [
+			end[0] - corner[0],
+			end[1] - corner[1]
+		];
+
+		let inLen = Math.sqrt(inVec[0]*inVec[0] + inVec[1]*inVec[1]) || 1;
+		let outLen = Math.sqrt(outVec[0]*outVec[0] + outVec[1]*outVec[1]) || 1;
+
+		inVec = [inVec[0] / inLen, inVec[1] / inLen];
+		outVec = [outVec[0] / outLen, outVec[1] / outLen];
+
+		let t1: Point = [
+			corner[0] + inVec[0] * radius,
+			corner[1] + inVec[1] * radius
+		];
+
+		let t2: Point = [
+			corner[0] + outVec[0] * radius,
+			corner[1] + outVec[1] * radius
+		];
+
+		let center: Point = [
+			corner[0] + inVec[0] * radius + outVec[0] * radius,
+			corner[1] + inVec[1] * radius + outVec[1] * radius
+		];
+
+		let points: Point[] = [];
+
+		addWavyLine(points, start, t1, stepsLine, waveLine, lineWaves);
+		addArc(points, center, t1, t2, stepsArc);
+		addWavyLine(points, t2, end, stepsLine, waveLine, lineWaves);
+
+		return points;
+	}
+
+	function addWavyLine(points: Point[], a: Point, b: Point, steps: number, wave: number, waves: number) {
+		let dx = b[0] - a[0];
+		let dy = b[1] - a[1];
+		let len = Math.sqrt(dx*dx + dy*dy) || 1;
+
+		let nx = -dy / len;
+		let ny = dx / len;
+
+		for (let i=0; i<=steps; i++) {
+			if (points.length && !i) { continue; }
+
+			let t = i / steps;
+			let x = a[0] + dx * t;
+			let y = a[1] + dy * t;
+			let wobble = -Math.sin(t * Math.PI * waves) * wave;
+
+			points.push([
+				x + nx * wobble,
+				y + ny * wobble
+			]);
+		}
+	}
+
+	function addArc(points: Point[], center: Point, start: Point, end: Point, steps: number) {
+		let a0 = Math.atan2(start[1] - center[1], start[0] - center[0]);
+		let a1 = Math.atan2(end[1] - center[1], end[0] - center[0]);
+		let radius = Math.sqrt(
+			(start[0] - center[0]) * (start[0] - center[0]) +
+			(start[1] - center[1]) * (start[1] - center[1])
+		);
+
+		let delta = a1 - a0;
+
+		if (delta > Math.PI) {
+			delta -= Math.PI * 2;
+		}
+
+		if (delta < -Math.PI) {
+			delta += Math.PI * 2;
+		}
+
+		for (let i=0; i<=steps; i++) {
+			if (points.length && !i) { continue; }
+
+			let t = i / steps;
+			let a = a0 + delta * t;
+
+			points.push([
+				center[0] + Math.cos(a) * radius,
+				center[1] + Math.sin(a) * radius
+			]);
+		}
+	}
+
+	return [getSide(-1), getSide(+1)];
+}
+
 	forest() {
 		const ctx = this._ctx;
 		ctx.lineWidth = LINE_WIDTH;
