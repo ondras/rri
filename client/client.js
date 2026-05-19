@@ -59,6 +59,7 @@ const RAIL = 1;
 const ROAD = 2;
 const LAKE = 3;
 const FOREST = 4;
+const RIVER = 5;
 
 const repo$1 = {};
 const partials = {
@@ -394,6 +395,56 @@ const partials = {
         render(ctx) {
             ctx.forest();
         }
+    },
+    "river-i": {
+        edges: [
+            { type: RIVER, connects: [S] },
+            { type: NONE, connects: [] },
+            { type: RIVER, connects: [N] },
+            { type: NONE, connects: [] }
+        ],
+        render(ctx) {
+            ctx.river(N, 0.5);
+            ctx.river(S, 0.5);
+        }
+    },
+    "river-l": {
+        edges: [
+            { type: RIVER, connects: [E] },
+            { type: RIVER, connects: [N] },
+            { type: NONE, connects: [] },
+            { type: NONE, connects: [] }
+        ],
+        render(ctx) {
+            ctx.riverArc(E);
+        }
+    },
+    "river-road-bridge": {
+        edges: [
+            { type: RIVER, connects: [S] },
+            { type: ROAD, connects: [W] },
+            { type: RIVER, connects: [N] },
+            { type: ROAD, connects: [E] }
+        ],
+        render(ctx) {
+            ctx.river(N, 0.5);
+            ctx.river(S, 0.5);
+            ctx.road(E, 0.5);
+            ctx.road(W, 0.5);
+        }
+    },
+    "river-rail-bridge": {
+        edges: [
+            { type: RIVER, connects: [S] },
+            { type: RAIL, connects: [W] },
+            { type: RIVER, connects: [N] },
+            { type: RAIL, connects: [E] }
+        ],
+        render(ctx) {
+            ctx.river(N, 0.35);
+            ctx.river(S, 0.35);
+            ctx.rail(E, 1);
+        }
     }
 };
 function get$1(id) {
@@ -450,6 +501,13 @@ class Tile {
         let errors = 0;
         neighborEdges.forEach((nEdge, dir) => {
             let ourEdge = this.getEdge(dir).type;
+            if (ourEdge == RIVER) {
+                connections++;
+                if (nEdge != NONE && nEdge != RIVER) {
+                    errors++;
+                }
+                return;
+            }
             if (ourEdge == LAKE || ourEdge == FOREST) {
                 connections++;
                 return;
@@ -598,7 +656,7 @@ function isDeadend(deadend, cells) {
         return false;
     }
     let edge = tile.getEdge(deadend.direction).type;
-    if (edge != RAIL && edge != ROAD) {
+    if (edge != RAIL && edge != ROAD && edge != RIVER) {
         return false;
     }
     let neighbor = getNeighbor(cell, deadend.direction, cells);
@@ -666,6 +724,39 @@ function getLakes(cells) {
     }
     return sizes;
 }
+function getRiverBonus(river, cells) {
+    let borders = 0;
+    river.forEach(cell => {
+        const tile = cell.tile;
+        if (!tile) {
+            return;
+        }
+        all.forEach(direction => {
+            if (tile.getEdge(direction).type != RIVER) {
+                return;
+            }
+            if (getNeighbor(cell, direction, cells).border) {
+                borders++;
+            }
+        });
+    });
+    return (borders >= 2 ? 3 : 0);
+}
+function getBestRiver(cells) {
+    let rivers = cells.filter(cell => cell.tile && !cell.border && all.some(d => { var _a; return ((_a = cell.tile) === null || _a === void 0 ? void 0 : _a.getEdge(d).type) == RIVER; }));
+    let best = [];
+    let bestScore = 0;
+    while (rivers.length) {
+        let river = getSubgraph(rivers[0], cells);
+        let score = river.length + getRiverBonus(river, cells);
+        if (score > bestScore) {
+            best = river;
+            bestScore = score;
+        }
+        river.forEach(cell => rivers.splice(rivers.indexOf(cell), 1));
+    }
+    return best;
+}
 function getForests(cells) {
     function isRailRoad(cell) {
         if (cell.border || !cell.tile) {
@@ -687,11 +778,14 @@ function getForests(cells) {
     return cells.filter(isRailRoad).filter(hasForestNeighbor);
 }
 function get$2(cells) {
+    let river = getBestRiver(cells);
     return {
         exits: getExits(cells),
         center: getCenterCount(cells),
         rail: getLongest(RAIL, cells),
         road: getLongest(ROAD, cells),
+        river,
+        riverBonus: getRiverBonus(river, cells),
         deadends: getDeadends(cells),
         lakes: getLakes(cells),
         forests: getForests(cells)
@@ -713,7 +807,9 @@ function sum(score) {
         + score.center
         - score.deadends.length
         + lakeScore
-        + score.forests.length;
+        + score.forests.length
+        + score.river.length
+        + score.riverBonus;
 }
 
 const BOARD = 7;
@@ -1197,6 +1293,173 @@ class CanvasDrawContext {
         this.styleLine();
         ctx.stroke(strokePath);
     }
+    river(edge, length) {
+        const ctx = this._ctx;
+        let banks = this.getRiverBanks(edge, length);
+        this.styleLake();
+        ctx.beginPath();
+        banks[0].forEach((p, i) => i ? ctx.lineTo(...p) : ctx.moveTo(...p));
+        banks[1].reverse().forEach(p => ctx.lineTo(...p));
+        ctx.closePath();
+        ctx.fill();
+        this.styleLine();
+        banks.forEach(bank => {
+            ctx.beginPath();
+            bank.forEach((p, i) => i ? ctx.lineTo(...p) : ctx.moveTo(...p));
+            ctx.stroke();
+        });
+    }
+    getRiverBanks(edge, length) {
+        let pxLength = length * TILE;
+        let start = toAbs(STARTS[edge]);
+        let vec = TO_CENTER[edge];
+        let steps = 60;
+        let wave = 1;
+        let waves = 2.0;
+        let half = ROAD_WIDTH / 2;
+        let banks = [[], []];
+        for (let i = 0; i <= steps; i++) {
+            let d = pxLength * i / steps;
+            let x = start[0] + vec[0] * d;
+            let y = start[1] + vec[1] * d;
+            let wobble = 0;
+            if (edge == N || edge == S) {
+                wobble = Math.sin(y / TILE * Math.PI * 2 * waves) * wave;
+                banks[0].push([x - half + wobble, y]);
+                banks[1].push([x + half + wobble, y]);
+            }
+            else {
+                wobble = Math.sin(x / TILE * Math.PI * 2 * waves) * wave;
+                banks[0].push([x, y - half + wobble]);
+                banks[1].push([x, y + half + wobble]);
+            }
+        }
+        return banks;
+    }
+    riverArc(quadrant) {
+        const ctx = this._ctx;
+        let banks = this.getRiverArcBanks(quadrant);
+        this.styleLake();
+        ctx.beginPath();
+        banks[0].forEach((p, i) => i ? ctx.lineTo(...p) : ctx.moveTo(...p));
+        [...banks[1]].reverse().forEach(p => ctx.lineTo(...p));
+        ctx.closePath();
+        ctx.fill();
+        this.styleLine();
+        banks.forEach(bank => {
+            ctx.beginPath();
+            bank.forEach((p, i) => i ? ctx.lineTo(...p) : ctx.moveTo(...p));
+            ctx.stroke();
+        });
+    }
+    getRiverArcBanks(quadrant) {
+        let stepsLine = 24;
+        let stepsArc = 60;
+        let waveLine = 1;
+        let lineWaves = 1;
+        function getSide(diff) {
+            diff *= ROAD_WIDTH / 2;
+            let start = [0, 0];
+            let end = [0, 0];
+            switch (quadrant) {
+                case N:
+                    start[0] = end[1] = TILE / 2 + diff;
+                    break;
+                case E:
+                    start[0] = TILE / 2 - diff;
+                    end[0] = TILE;
+                    end[1] = TILE / 2 + diff;
+                    break;
+                case S:
+                    start[0] = TILE / 2 - diff;
+                    start[1] = TILE;
+                    end[0] = TILE;
+                    end[1] = TILE / 2 - diff;
+                    break;
+                case W:
+                    end[1] = TILE / 2 - diff;
+                    start[0] = TILE / 2 + diff;
+                    start[1] = TILE;
+                    break;
+            }
+            let corner = [start[0], end[1]];
+            let radius = RADIUS + diff;
+            let inVec = [
+                start[0] - corner[0],
+                start[1] - corner[1]
+            ];
+            let outVec = [
+                end[0] - corner[0],
+                end[1] - corner[1]
+            ];
+            let inLen = Math.sqrt(inVec[0] * inVec[0] + inVec[1] * inVec[1]) || 1;
+            let outLen = Math.sqrt(outVec[0] * outVec[0] + outVec[1] * outVec[1]) || 1;
+            inVec = [inVec[0] / inLen, inVec[1] / inLen];
+            outVec = [outVec[0] / outLen, outVec[1] / outLen];
+            let t1 = [
+                corner[0] + inVec[0] * radius,
+                corner[1] + inVec[1] * radius
+            ];
+            let t2 = [
+                corner[0] + outVec[0] * radius,
+                corner[1] + outVec[1] * radius
+            ];
+            let center = [
+                corner[0] + inVec[0] * radius + outVec[0] * radius,
+                corner[1] + inVec[1] * radius + outVec[1] * radius
+            ];
+            let points = [];
+            addWavyLine(points, start, t1, stepsLine, waveLine, lineWaves);
+            addArc(points, center, t1, t2, stepsArc);
+            addWavyLine(points, t2, end, stepsLine, waveLine, lineWaves);
+            return points;
+        }
+        function addWavyLine(points, a, b, steps, wave, waves) {
+            let dx = b[0] - a[0];
+            let dy = b[1] - a[1];
+            let len = Math.sqrt(dx * dx + dy * dy) || 1;
+            let nx = -dy / len;
+            let ny = dx / len;
+            for (let i = 0; i <= steps; i++) {
+                if (points.length && !i) {
+                    continue;
+                }
+                let t = i / steps;
+                let x = a[0] + dx * t;
+                let y = a[1] + dy * t;
+                let wobble = -Math.sin(t * Math.PI * waves) * wave;
+                points.push([
+                    x + nx * wobble,
+                    y + ny * wobble
+                ]);
+            }
+        }
+        function addArc(points, center, start, end, steps) {
+            let a0 = Math.atan2(start[1] - center[1], start[0] - center[0]);
+            let a1 = Math.atan2(end[1] - center[1], end[0] - center[0]);
+            let radius = Math.sqrt((start[0] - center[0]) * (start[0] - center[0]) +
+                (start[1] - center[1]) * (start[1] - center[1]));
+            let delta = a1 - a0;
+            if (delta > Math.PI) {
+                delta -= Math.PI * 2;
+            }
+            if (delta < -Math.PI) {
+                delta += Math.PI * 2;
+            }
+            for (let i = 0; i <= steps; i++) {
+                if (points.length && !i) {
+                    continue;
+                }
+                let t = i / steps;
+                let a = a0 + delta * t;
+                points.push([
+                    center[0] + Math.cos(a) * radius,
+                    center[1] + Math.sin(a) * radius
+                ]);
+            }
+        }
+        return [getSide(-1), getSide(+1)];
+    }
     forest() {
         const ctx = this._ctx;
         ctx.lineWidth = LINE_WIDTH;
@@ -1404,6 +1667,8 @@ class BoardCanvas extends Board {
         this._drawPolyline(score.rail);
         ctx.strokeStyle = "rgba(0, 0, 255, 0.5)";
         this._drawPolyline(score.road);
+        ctx.strokeStyle = "rgba(255, 0, 0, 0.5)";
+        this._drawPolyline(score.river);
         ctx.font = "14px sans-serif";
         ctx.fillStyle = "red";
         score.deadends.forEach(deadend => {
@@ -1560,6 +1825,7 @@ function showBoard(board) {
 const ROUNDS = {
     "normal": 7,
     "lake": 6,
+    "river": 6,
     "forest": 7,
     "demo": 1
 };
@@ -1575,6 +1841,12 @@ function createDice(Ctor, type, round) {
                 ...createDice(Ctor, "normal", round),
                 new Ctor("lake", randomType(DICE_LAKE)),
                 new Ctor("lake", randomType(DICE_LAKE))
+            ];
+        case "river":
+            return [
+                ...createDice(Ctor, "normal", round),
+                new Ctor("river", randomType(DICE_RIVER)),
+                new Ctor("river", randomType(DICE_RIVER))
             ];
         case "forest":
             if (round == 1) {
@@ -1602,11 +1874,12 @@ function createDice(Ctor, type, round) {
 const DEMO = [
     "bridge", "rail-i", "road-i", "rail-road-l", "rail-road-i", "rail-t", "road-l", "rail-l", "road-t",
     "lake-1", "lake-2", "lake-3", "lake-4", "lake-rail", "lake-road", "lake-rail-road",
-    "forest"
+    "forest", "river-i", "river-l", "river-road-bridge", "river-rail-bridge",
 ];
 const DICE_REGULAR_1 = ["road-i", "rail-i", "road-l", "rail-l", "road-t", "rail-t"];
 const DICE_REGULAR_2 = ["bridge", "bridge", "rail-road-i", "rail-road-i", "rail-road-l", "rail-road-l"];
 const DICE_LAKE = ["lake-1", "lake-2", "lake-3", "lake-rail", "lake-road", "lake-rail-road"];
+const DICE_RIVER = ["river-i", "river-l", "river-l", "river-l", "river-road-bridge", "river-rail-bridge"];
 
 class Dice {
     constructor(_type, _sid) {
@@ -1927,11 +2200,12 @@ function buildTable() {
     table.appendChild(node("tbody"));
     table.tHead.insertRow().insertCell();
     const body = table.tBodies[0];
-    ["Connected exits", "Longest road", "Longest rail", "Center tiles", "Dead ends", "Smallest lake", "Forest views"].forEach(label => {
+    ["Connected exits", "Longest road", "Longest rail", "Center tiles", "Dead ends", "Smallest lake", "Forest views", "Best river"].forEach(label => {
         body.insertRow().insertCell().textContent = label;
     });
     body.rows[body.rows.length - 1].hidden = true;
     body.rows[body.rows.length - 2].hidden = true;
+    body.rows[body.rows.length - 3].hidden = true;
     table.appendChild(node("tfoot"));
     table.tFoot.insertRow().insertCell().textContent = "Score";
     return table;
@@ -1973,6 +2247,15 @@ function addColumn(table, score, name = "", active = false) {
     }
     else {
         forestRow.insertCell();
+    }
+    let riverRow = body.rows[7];
+    let riverScore = score.river.length + score.riverBonus;
+    if (riverScore > 0) {
+        riverRow.insertCell().textContent = (score.riverBonus ? `${score.river.length}+${score.riverBonus} = ${riverScore}` : riverScore.toString());
+        riverRow.hidden = false;
+    }
+    else {
+        riverRow.insertCell();
     }
     let total = sum(score);
     const totalRow = table.tFoot.rows[0];
@@ -2165,6 +2448,7 @@ class MultiGame extends Game {
         setup.querySelector("[name=create-normal]").addEventListener("click", _ => this._joinOrCreate("normal"));
         setup.querySelector("[name=create-lake]").addEventListener("click", _ => this._joinOrCreate("lake"));
         setup.querySelector("[name=create-forest]").addEventListener("click", _ => this._joinOrCreate("forest"));
+        setup.querySelector("[name=create-river]").addEventListener("click", _ => this._joinOrCreate("river"));
         const lobby = this._nodes["lobby"];
         lobby.querySelector("button").addEventListener("click", _ => this._rpc.call("start-game", []));
     }
@@ -2455,6 +2739,7 @@ function onClick(name, cb) {
 function init() {
     onClick("start-normal", () => goGame("normal"));
     onClick("start-lake", () => goGame("lake"));
+    onClick("start-river", () => goGame("river"));
     onClick("start-forest", () => goGame("forest"));
     onClick("start-multi", () => goGame("multi"));
     onClick("again", () => goIntro());

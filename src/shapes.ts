@@ -1,6 +1,6 @@
 import { get as getTransform, all as allTransforms } from "./transform.js";
 import { N, E, S, W, all as allDirections } from "./direction.js";
-import { Edge, NONE, RAIL, ROAD, LAKE, FOREST } from "./edge.js";
+import { Edge, NONE, RAIL, ROAD, LAKE, FOREST, RIVER } from "./edge.js";
 import DrawContext from "./draw-context.js";
 
 
@@ -396,6 +396,64 @@ const partials: {[id:string]: PartialShape} = {
 
 		render(ctx: DrawContext) {
 			ctx.forest();
+		}
+	},
+
+	"river-i": {
+		edges: [
+			{type:RIVER, connects: [S]},
+			{type:NONE, connects: []},
+			{type:RIVER, connects: [N]},
+			{type:NONE, connects: []}
+		],
+
+		render(ctx: DrawContext) {
+			ctx.river(N, 0.5);
+			ctx.river(S, 0.5);
+		}
+	},
+
+	"river-l": {
+		edges: [
+			{type:RIVER, connects: [E]},
+			{type:RIVER, connects: [N]},
+			{type:NONE, connects: []},
+			{type:NONE, connects: []}
+		],
+
+		render(ctx: DrawContext) {
+			ctx.riverArc(E);
+		}
+	},
+
+	"river-road-bridge": {
+		edges: [
+			{type:RIVER, connects: [S]},
+			{type:ROAD, connects: [W]},
+			{type:RIVER, connects: [N]},
+			{type:ROAD, connects: [E]}
+		],
+
+		render(ctx: DrawContext) {
+			ctx.river(N, 0.5);
+			ctx.river(S, 0.5);
+			ctx.road(E, 0.5);
+			ctx.road(W, 0.5);
+		}
+	},
+
+	"river-rail-bridge": {
+		edges: [
+			{type:RIVER, connects: [S]},
+			{type:RAIL, connects: [W]},
+			{type:RIVER, connects: [N]},
+			{type:RAIL, connects: [E]}
+		],
+
+		render(ctx: DrawContext) {
+			ctx.river(N, 0.35);
+			ctx.river(S, 0.35);
+			ctx.rail(E, 1);
 		}
 	}
 };

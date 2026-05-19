@@ -39,6 +39,7 @@ function onClick(name: string, cb: () => void | Promise<void>) {
 function init() {
 	onClick("start-normal", () => goGame("normal"));
 	onClick("start-lake", () => goGame("lake"));
+	onClick("start-river", () => goGame("river"));
 	onClick("start-forest", () => goGame("forest"));
 	onClick("start-multi", () => goGame("multi"));
 	onClick("again", () => goIntro());

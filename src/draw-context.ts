@@ -7,6 +7,8 @@ export default interface DrawContext {
 	redGlow(e: Direction): void;
 	rail(e: Direction, l: number): void;
 	road(e: Direction, l: number): void;
+	river(e: Direction, l: number): void;
+	riverArc(e: Direction): void;
 	railCross(): void;
 	station(): void;
 	arc(e: Direction, diff: number): void;

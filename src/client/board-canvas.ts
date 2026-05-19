@@ -161,6 +161,9 @@ export default class BoardCanvas extends Board {
 		ctx.strokeStyle = "rgba(0, 0, 255, 0.5)";
 		this._drawPolyline(score.road);
 
+		ctx.strokeStyle = "rgba(255, 0, 0, 0.5)";
+		this._drawPolyline(score.river);
+
 		ctx.font = "14px sans-serif";
 		ctx.fillStyle = "red";
 

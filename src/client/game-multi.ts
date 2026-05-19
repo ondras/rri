@@ -60,6 +60,7 @@ export default class MultiGame extends Game {
 		(setup.querySelector("[name=create-normal]") as HTMLElement).addEventListener("click", _ => this._joinOrCreate("normal"));
 		(setup.querySelector("[name=create-lake]") as HTMLElement).addEventListener("click", _ => this._joinOrCreate("lake"));
 		(setup.querySelector("[name=create-forest]") as HTMLElement).addEventListener("click", _ => this._joinOrCreate("forest"));
+		(setup.querySelector("[name=create-river]") as HTMLElement).addEventListener("click", _ => this._joinOrCreate("river"));
 
 		const lobby = this._nodes["lobby"];
 		(lobby.querySelector("button") as HTMLElement).addEventListener("click", _ => this._rpc.call("start-game", []));
