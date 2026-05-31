@@ -225,35 +225,29 @@ function getLakes(cells: CellRepo) {
 	return sizes;
 }
 
-function getRiverBonus(river: Cell[], cells: CellRepo) {
-	let borders = 0;
+function isRiverCell(cell: Cell) {
+	if (cell.border || !cell.tile) { return false; }
 
-	river.forEach(cell => {
-		const tile = cell.tile;
-		if (!tile) { return; }
-
-		allDirections.forEach(direction => {
-			if (tile.getEdge(direction).type != RIVER) { return; }
-			if (getNeighbor(cell, direction, cells).border) { borders++; }
-		});
+	return allDirections.some(direction => {
+		return cell.tile?.getEdge(direction).type == RIVER;
 	});
-
-	return (borders >= 2 ? 3 : 0);
 }
 
-function getRiverNeighbors(cell: Cell, cells: CellRepo, riverCells: Set<Cell>) {
+function getRiverNeighborsOnly(cell: Cell, cells: CellRepo, allowed?: Set<Cell>) {
 	let result: Cell[] = [];
-	const tile = cell.tile;
-	if (!tile) { return result; }
+
+	if (!cell.tile) { return result; }
 
 	allDirections.forEach(direction => {
-		if (tile.getEdge(direction).type != RIVER) { return; }
+		if (cell.tile!.getEdge(direction).type != RIVER) { return; }
 
 		let neighbor = getNeighbor(cell, direction, cells);
-		if (neighbor.border || !neighbor.tile || !riverCells.has(neighbor)) { return; }
+		if (neighbor.border || !neighbor.tile) { return; }
+		if (allowed && !allowed.has(neighbor)) { return; }
 
-		let neighborEdge = clamp(direction+2);
-		if (neighbor.tile.getEdge(neighborEdge).type != RIVER) { return; }
+		let opposite = clamp(direction + 2);
+
+		if (neighbor.tile.getEdge(opposite).type != RIVER) { return; }
 
 		result.push(neighbor);
 	});
@@ -261,17 +255,25 @@ function getRiverNeighbors(cell: Cell, cells: CellRepo, riverCells: Set<Cell>) {
 	return result;
 }
 
-function getRiverBorderCount(cell: Cell, cells: CellRepo) {
-	let count = 0;
-	const tile = cell.tile;
-	if (!tile) { return count; }
+function extractRiver(start: Cell, cells: CellRepo, remaining: Set<Cell>) {
+	let result: Cell[] = [];
+	let queue: Cell[] = [start];
 
-	allDirections.forEach(direction => {
-		if (tile.getEdge(direction).type != RIVER) { return; }
-		if (getNeighbor(cell, direction, cells).border) { count++; }
-	});
+	remaining.delete(start);
 
-	return count;
+	while (queue.length) {
+		let cell = queue.shift() as Cell;
+		result.push(cell);
+
+		getRiverNeighborsOnly(cell, cells).forEach(neighbor => {
+			if (!remaining.has(neighbor)) { return; }
+
+			remaining.delete(neighbor);
+			queue.push(neighbor);
+		});
+	}
+
+	return result;
 }
 
 function orderRiver(river: Cell[], cells: CellRepo) {
@@ -280,12 +282,12 @@ function orderRiver(river: Cell[], cells: CellRepo) {
 	let riverCells = new Set(river);
 
 	let endpoints = river.filter(cell => {
-		let neighbors = getRiverNeighbors(cell, cells, riverCells);
-		let borders = getRiverBorderCount(cell, cells);
-		return neighbors.length + borders <= 1;
+		let neighbors: Cell[] = getRiverNeighborsOnly(cell, cells, riverCells);
+		return neighbors.length <= 1;
 	});
 
 	let start = endpoints[0] || river[0];
+
 	let result: Cell[] = [];
 	let visited = new Set<Cell>();
 	let current: Cell | null = start;
@@ -295,35 +297,51 @@ function orderRiver(river: Cell[], cells: CellRepo) {
 		result.push(current);
 		visited.add(current);
 
-		let neighbors: Cell[] = getRiverNeighbors(current, cells, riverCells)
-			.filter(cell => cell != previous && !visited.has(cell));
+		let neighbors: Cell[] = getRiverNeighborsOnly(current, cells, riverCells)
+			.filter(neighbor => neighbor != previous && !visited.has(neighbor));
 
 		previous = current;
 		current = neighbors[0] || null;
 	}
 
-	river.forEach(cell => {
-		if (!visited.has(cell)) {
-			result.push(cell);
-		}
-	});
-
 	return result;
 }
 
+function getRiverBonus(river: Cell[], cells: CellRepo) {
+	let borders = 0;
+
+	river.forEach(cell => {
+		if (!cell.tile) { return; }
+
+		allDirections.forEach(direction => {
+			if (cell.tile!.getEdge(direction).type != RIVER) { return; }
+
+			let neighbor = getNeighbor(cell, direction, cells);
+
+			if (neighbor.border) {
+				borders++;
+			}
+		});
+	});
+
+	return borders >= 2 ? 3 : 0;
+}
+
 function getBestRiver(cells: CellRepo) {
-	let rivers = cells.filter(cell => cell.tile && !cell.border && allDirections.some(d => cell.tile?.getEdge(d).type == RIVER));
+	let remaining = new Set(cells.filter(isRiverCell));
+
 	let best: Cell[] = [];
 	let bestScore = 0;
 
-	while (rivers.length) {
-		let river = getSubgraph(rivers[0], cells);
+	while (remaining.size) {
+		let start = remaining.values().next().value as Cell;
+		let river = extractRiver(start, cells, remaining);
 		let score = river.length + getRiverBonus(river, cells);
+
 		if (score > bestScore) {
 			best = river;
 			bestScore = score;
 		}
-		river.forEach(cell => rivers.splice(rivers.indexOf(cell), 1));
 	}
 
 	return orderRiver(best, cells);
