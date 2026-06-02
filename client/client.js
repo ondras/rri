@@ -724,38 +724,112 @@ function getLakes(cells) {
     }
     return sizes;
 }
+function isRiverCell(cell) {
+    if (cell.border || !cell.tile) {
+        return false;
+    }
+    return all.some(direction => {
+        var _a;
+        return ((_a = cell.tile) === null || _a === void 0 ? void 0 : _a.getEdge(direction).type) == RIVER;
+    });
+}
+function getRiverNeighborsOnly(cell, cells, allowed) {
+    let result = [];
+    if (!cell.tile) {
+        return result;
+    }
+    all.forEach(direction => {
+        if (cell.tile.getEdge(direction).type != RIVER) {
+            return;
+        }
+        let neighbor = getNeighbor(cell, direction, cells);
+        if (neighbor.border || !neighbor.tile) {
+            return;
+        }
+        if (allowed && !allowed.has(neighbor)) {
+            return;
+        }
+        let opposite = clamp(direction + 2);
+        if (neighbor.tile.getEdge(opposite).type != RIVER) {
+            return;
+        }
+        result.push(neighbor);
+    });
+    return result;
+}
+function extractRiver(start, cells, remaining) {
+    let result = [];
+    let queue = [start];
+    remaining.delete(start);
+    while (queue.length) {
+        let cell = queue.shift();
+        result.push(cell);
+        getRiverNeighborsOnly(cell, cells).forEach(neighbor => {
+            if (!remaining.has(neighbor)) {
+                return;
+            }
+            remaining.delete(neighbor);
+            queue.push(neighbor);
+        });
+    }
+    return result;
+}
+function orderRiver(river, cells) {
+    if (river.length < 2) {
+        return river;
+    }
+    let riverCells = new Set(river);
+    let endpoints = river.filter(cell => {
+        let neighbors = getRiverNeighborsOnly(cell, cells, riverCells);
+        return neighbors.length <= 1;
+    });
+    let start = endpoints[0] || river[0];
+    let result = [];
+    let visited = new Set();
+    let current = start;
+    let previous = null;
+    while (current && !visited.has(current)) {
+        result.push(current);
+        visited.add(current);
+        let neighbors = getRiverNeighborsOnly(current, cells, riverCells)
+            .filter(neighbor => neighbor != previous && !visited.has(neighbor));
+        previous = current;
+        current = neighbors[0] || null;
+    }
+    return result;
+}
 function getRiverBonus(river, cells) {
     let borders = 0;
     river.forEach(cell => {
-        const tile = cell.tile;
-        if (!tile) {
+        if (!cell.tile) {
             return;
         }
         all.forEach(direction => {
-            if (tile.getEdge(direction).type != RIVER) {
+            if (cell.tile.getEdge(direction).type != RIVER) {
                 return;
             }
-            if (getNeighbor(cell, direction, cells).border) {
+            let neighbor = getNeighbor(cell, direction, cells);
+            if (neighbor.border) {
                 borders++;
             }
         });
     });
-    return (borders >= 2 ? 3 : 0);
+    return borders >= 2 ? 3 : 0;
 }
 function getBestRiver(cells) {
-    let rivers = cells.filter(cell => cell.tile && !cell.border && all.some(d => { var _a; return ((_a = cell.tile) === null || _a === void 0 ? void 0 : _a.getEdge(d).type) == RIVER; }));
+    let remaining = new Set(cells.filter(isRiverCell));
     let best = [];
     let bestScore = 0;
-    while (rivers.length) {
-        let river = getSubgraph(rivers[0], cells);
+    while (remaining.size) {
+        let start = remaining.values().next().value;
+        let river = extractRiver(start, cells, remaining);
         let score = river.length + getRiverBonus(river, cells);
         if (score > bestScore) {
             best = river;
             bestScore = score;
         }
-        river.forEach(cell => rivers.splice(rivers.indexOf(cell), 1));
     }
-    return best;
+    return orderRiver(best, cells);
 }
 function getForests(cells) {
     function isRailRoad(cell) {
@@ -807,9 +881,9 @@ function sum(score) {
         + score.center
         - score.deadends.length
         + lakeScore
-        + score.forests.length
         + score.river.length
-        + score.riverBonus;
+        + score.riverBonus
+        + score.forests.length;
 }
 
 const BOARD = 7;
