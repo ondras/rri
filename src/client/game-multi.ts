@@ -1,7 +1,6 @@
 import { GameType } from "../rules.js";
 import Board, { SerializedBoard } from "../board.js";
 import { DiceData } from "../dice.js";
-import { sum as sumScore } from "../score.js";
 
 import Game from "./game.js";
 import JsonRpc from "./json-rpc.js";
@@ -13,13 +12,17 @@ import * as scoreTable from "./score-table.js";
 import * as conf from "./conf.js";
 import * as boardManager from "./board-manager.js";
 
+const waitNode = document.querySelector("#live-score .wait") as HTMLElement;
+
 type GameState = "" | "starting" | "playing";
 interface Player {
 	name: string;
 	roundEnded: boolean;
 	board: SerializedBoard;
 }
+
 interface Response {
+	type: GameType;
 	state: GameState;
 	round: number;
 	dice: DiceData[];
@@ -42,8 +45,6 @@ export default class MultiGame extends Game {
 		game: "",
 		player: ""
 	};
-	_wait = html.node("p", {className:"wait", hidden:true});
-	_currentScore = html.node("span");
 
 	constructor(board: Board) {
 		super(board);
@@ -61,6 +62,7 @@ export default class MultiGame extends Game {
 		(setup.querySelector("[name=create-lake]") as HTMLElement).addEventListener("click", _ => this._joinOrCreate("lake"));
 		(setup.querySelector("[name=create-forest]") as HTMLElement).addEventListener("click", _ => this._joinOrCreate("forest"));
 		(setup.querySelector("[name=create-river]") as HTMLElement).addEventListener("click", _ => this._joinOrCreate("river"));
+		(setup.querySelector("[name=create-lava]") as HTMLElement).addEventListener("click", _ => this._joinOrCreate("lava"));
 
 		const lobby = this._nodes["lobby"];
 		(lobby.querySelector("button") as HTMLElement).addEventListener("click", _ => this._rpc.call("start-game", []));
@@ -187,6 +189,11 @@ export default class MultiGame extends Game {
 
 	async _sync() {
 		const response: Response = await this._rpc.call("game-info", []);
+
+		document.body.dataset.mode = response.type;
+		this._bonusPool.setup(response.type);
+		this._board.setup(response.type);
+
 		switch (response.state) {
 			case "starting": this._updateLobby(response.players); break;
 			case "playing": this._updateRound(response); break;
@@ -217,11 +224,9 @@ export default class MultiGame extends Game {
 	_updateRound(response: Response) {
 		let waiting = response.players.filter(p => !p.roundEnded).length;
 		let suffix = (waiting>1 ? "s" : "");
-		this._wait.textContent = `Waiting for ${waiting} player${suffix} to end round. `;
-		this._wait.appendChild(this._currentScore);
 
 		const ended = response.players.filter(p => p.name == this._progress.player)[0].roundEnded;
-		this._wait.hidden = !ended;
+		waitNode.textContent = (ended ? `Waiting for ${waiting} player${suffix} to end round. ` : "");
 
 		const round = this._progress.round;
 
@@ -240,7 +245,6 @@ export default class MultiGame extends Game {
 		this._node.innerHTML = "";
 		this._node.appendChild(this._bonusPool.node);
 		this._node.appendChild(round.node);
-		this._node.appendChild(this._wait);
 
 		let dice = response.dice.map(data => HTMLDice.fromJSON(data));
 		let promise = round.play(dice);
@@ -253,14 +257,6 @@ export default class MultiGame extends Game {
 				bonusPool: this._bonusPool.toJSON()
 			}
 			this._rpc.call("end-round", state);
-
-			let button = html.node("button", {}, "Show my current score");
-			button.addEventListener("click", _ => {
-				let s = this._board.getScore();
-				this._currentScore.innerHTML = `My current score is <strong>${sumScore(s)}<strong>.`;
-			});
-			this._currentScore.innerHTML = "";
-			this._currentScore.appendChild(button);
 		}
 	}
 
@@ -300,6 +296,7 @@ class MultiplayerRound extends Round {
 	end() {
 		this._endButton.disabled = true;
 		this._pool.remaining.forEach(d => this._pool.disable(d));
+		this._pool.onClick = this._bonusPool.onClick = this._board.onClick = () => {};
 	}
 
 	_end() {
@@ -325,14 +322,14 @@ function openWebSocket(url: string): Promise<WebSocket> {
 	});
 }
 
-function save(key: string, value: string | null) {
+export function save(key: string, value: string | null) {
 	key = `rri-${key}`;
 	try {
 		(value === null ? localStorage.removeItem(key) : localStorage.setItem(key, value));
 	} catch (e) { console.warn(e); }
 }
 
-function load(key: string) {
+export function load(key: string) {
 	try {
 		return localStorage.getItem(`rri-${key}`);
 	} catch (e) {

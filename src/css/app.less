@@ -8,11 +8,18 @@ h1, h2 {
 body {
 	font-family: sans-serif;
 	margin: 0;
-	background-color: #def;
+	background-color: #f5f5f5;
+	transition: background-color 300ms;
 	min-width: var(--board-width);
 
+	&[data-mode=normal] { background-color: #edeae4; }
+	&[data-mode=lake]   { background-color: #ebf5ff; }
+	&[data-mode=river]  { background-color: #ebf5ff; }
+	&[data-mode=forest] { background-color: #f5ffeb; }
+	&[data-mode=lava]   { background-color: #fff5eb; }
+
 	&[data-stage=intro] {
-		#game, #outro, #score { display: none; }
+		#game, #outro, #score, #live-score { display: none; }
 	}
 
 	&[data-stage=game] {
@@ -20,9 +27,19 @@ body {
 	}
 
 	&[data-stage=outro] {
-		#intro, #game, h1 { display: none; }
+		#intro, #game, h1, #live-score { display: none; }
 	}
 }
+
+#live-score {
+	text-align: center;
+	margin: 8px 0 0;
+
+	.score { font-weight: bold; }
+}
+
+body:not([data-live-score=on]) #live-score .score { display: none; }
+body:not([data-live-score=on]) .anticipated { display: none; }
 
 main {
 	display: flex;

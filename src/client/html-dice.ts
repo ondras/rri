@@ -15,7 +15,9 @@ export default class HTMLDice extends Dice {
 		super(_type, _sid);
 
 		if (this._type == "lake") { this.node.classList.add("lake"); }
+		if (this._type == "river") { this.node.classList.add("river"); }
 		if (this._type == "forest") { this.node.classList.add("forest"); }
+		if (this._type == "lava" || this._type == "volcano") { this.node.classList.add("lava"); }
 
 		this._tile = new HTMLTile(this._sid, "0");
 		this.node.appendChild(this._tile.node);
@@ -23,6 +25,7 @@ export default class HTMLDice extends Dice {
 
 	get tile() { return this._tile; }
 	get mandatory() { return this._type == "plain" || this._type == "forest"; }
+	get repeatable() { return this._type == "volcano"; }
 }
 
 ["blocked", "pending", "disabled"].forEach(prop => {

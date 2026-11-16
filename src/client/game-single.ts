@@ -15,7 +15,12 @@ export default class SingleGame extends Game {
 	async play() {
 		super.play();
 		this._node.innerHTML = "";
+
+		this._bonusPool.setup(this._type);
+
 		this._node.appendChild(this._bonusPool.node);
+
+		this._board.setup(this._type);
 
 		let num = 1;
 		while (num <= ROUNDS[this._type]) {

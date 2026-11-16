@@ -6,14 +6,18 @@ import Pool, { BonusPool } from "./pool.js";
 import * as html from "./html.js";
 import { DBLCLICK } from "./conf.js";
 import HTMLDice from "./html-dice.js";
+import { sum } from "../score.js";
 
+const scoreNode = document.querySelector("#live-score .score") as HTMLElement;
 
 export default class Round {
 	node: HTMLElement;
 	_pending: HTMLDice | null = null;
 	_pool: Pool;
 	_endButton: HTMLButtonElement = html.node("button");
+	_baseScore = 0;
 	_placedDice = new Map<Cell, HTMLDice>();
+	_replacedTiles = new Map<Cell, {tile: Tile, round: number}>();
 	_lastClickTs = 0;
 
 	constructor(readonly number: number, readonly _board: Board, readonly _bonusPool: BonusPool) {
@@ -47,11 +51,12 @@ export default class Round {
 		this._pool.onClick = dice => this._onPoolClick(dice);
 		this._bonusPool.onClick = dice => this._onPoolClick(dice);
 		this._board.onClick = cell => this._onBoardClick(cell);
-
+		
+		this._baseScore = sum(this._board.getScore());
 		this._syncEnd();
 		this._bonusPool.unlock();
 
-		return new Promise(resolve => {
+		return new Promise<void>(resolve => {
 			this._endButton.addEventListener("click", _ => {
 				let valid = this._validatePlacement();
 				if (!valid) {
@@ -82,6 +87,9 @@ export default class Round {
 		} else {
 			this._pending = dice;
 			let available = this._board.getAvailableCells(dice.tile);
+			if (dice._type == "lava" && this._pool.lavaRequiredBlocked) {
+				available = available.concat(this._board.getOverwritableCells(dice.tile, this.number));
+			}
 			this._board.signal(available);
 			this._pool.pending(dice);
 			this._bonusPool.pending(dice);
@@ -105,7 +113,14 @@ export default class Round {
 		if (!dice) { return; }
 
 		this._placedDice.delete(cell);
-		this._board.place(null, cell.x, cell.y, 0);
+
+		let replaced = this._replacedTiles.get(cell);
+		if (replaced) {
+			this._board.place(replaced.tile, cell.x, cell.y, replaced.round);
+			this._replacedTiles.delete(cell);
+		} else {
+			this._board.place(null, cell.x, cell.y, 0);
+		}
 
 		this._pool.enable(dice);
 		this._bonusPool.enable(dice);
@@ -118,7 +133,7 @@ export default class Round {
 
 		let tile = this._pending.tile;
 		let available = this._board.getAvailableCells(tile);
-		if (!available.includes(cell)) { return false; }
+		if (!available.includes(cell)) { return this._tryToOverwrite(cell); }
 
 		const x = cell.x;
 		const y = cell.y;
@@ -136,6 +151,37 @@ export default class Round {
 		this._syncEnd();
 	}
 
+	_tryToOverwrite(cell: Cell) {
+		if (!this._pending || this._pending._type != "lava") { return false; }
+		if (!this._pool.lavaRequiredBlocked) { return false; }
+
+		let overwritable = this._board.getOverwritableCells(this._pending.tile, this.number);
+		if (!overwritable.includes(cell)) { return false; }
+
+		let oldTile = cell.tile as Tile;
+		let oldRound = cell.round;
+		const x = cell.x;
+		const y = cell.y;
+
+		this._board.place(null, x, y, 0);
+		this._board.placeBest(this._pending.tile.clone(), x, y, this.number);
+		this._board.signal([]);
+
+		this._replacedTiles.set(cell, {tile: oldTile, round: oldRound});
+
+		this._pool.pending(null);
+		this._bonusPool.pending(null);
+
+		this._pool.disable(this._pending);
+		this._bonusPool.disable(this._pending);
+
+		this._placedDice.set(cell, this._pending);
+		this._pending = null;
+		this._syncEnd();
+
+		return true;
+	}
+
 	_tryToCycle(cell: Cell) {
 		if (!this._placedDice.has(cell)) { return; }
 
@@ -146,6 +192,10 @@ export default class Round {
 	_syncEnd() {
 		this._pool.sync(this._board);
 		this._endButton.disabled = (this._pool.remaining.length > 0);
+
+		let total = sum(this._board.getScore());
+		let diff = total - this._baseScore;
+		scoreNode.textContent = `Current score: ${total} (${diff >= 0 ? "+" : ""}${diff})`;
 	}
 
 	_validatePlacement() {
@@ -168,8 +218,7 @@ export default class Round {
 			// try re-placing any of the items back
 			let placed = todo.some((item, index) => {
 				let cell = item.cell;
-				let neighbors = this._board.getNeighborEdges(cell.x, cell.y);
-				if (item.tile.fitsNeighbors(neighbors)) {
+				if (this._board.fits(item.tile, cell.x, cell.y)) {
 					this._board.place(item.tile, cell.x, cell.y, this.number);
 					todo.splice(index, 1);
 					return true;

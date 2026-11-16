@@ -17,18 +17,39 @@ export default class Pool {
     }
 
 	get remaining() {
-		return this._dices.filter(d => d.mandatory && !d.disabled && !d.blocked);
+		let result = this._dices.filter(d => d.mandatory && !d.disabled && !d.blocked);
+
+		let lava = this._dices.filter(d => d._type == "lava");
+		let lavaPlaced = lava.some(d => d.disabled);
+
+		if (lava.length && !lavaPlaced) {
+			result.push(lava.filter(d => !d.disabled && !d.blocked)[0] || lava[0]);
+		}
+
+		return result;
+	}
+
+	get lavaRequiredBlocked() {
+		let lava = this._dices.filter(d => d._type == "lava");
+		let lavaPlaced = lava.some(d => d.disabled);
+
+		if (!lava.length || lavaPlaced) { return false; }
+
+		return lava.every(d => d.blocked);
 	}
 
 	handleEvent(e: Event) {
 		let target = e.currentTarget as HTMLElement;
 		let dice = this._dices.filter(dice => dice.node == target)[0];
-		if (!dice || dice.disabled || dice.blocked) { return; }
+
+		if (!dice || dice.disabled) { return; }
+		if (dice.blocked && !(dice._type == "lava" && this.lavaRequiredBlocked)) { return; }
+
 		this.onClick(dice);
 	}
 
 	add(dice: HTMLDice) {
-		this.node.appendChild(dice.node);
+		this.node.insertBefore(dice.node, this.node.querySelector("button"));
 
 		dice.node.addEventListener(DOWN_EVENT, this);
 		this._dices.push(dice);
@@ -57,6 +78,11 @@ export default class Pool {
 			let cells = board.getAvailableCells(dice.tile);
 			dice.blocked = (cells.length == 0);
 		});
+
+		let forced = this.lavaRequiredBlocked;
+		this._dices.forEach(dice => {
+			dice.node.classList.toggle("forced", dice._type == "lava" && forced);
+		});
 	}
 }
 
@@ -74,14 +100,27 @@ export class BonusPool extends Pool {
 		});
 	}
 
+	setup(type: string) {
+		if (type != "lava") { return; }
+		if (this._dices.some(dice => dice._type == "volcano")) { return; }
+
+		this.add(new HTMLDice("volcano", "volcano"));
+	}
+
 	handleEvent(e: Event) {
-		if (this._locked || this._used == MAX_BONUSES) { return; }
-		super.handleEvent(e);
+		let target = e.currentTarget as HTMLElement;
+		let dice = this._dices.filter(dice => dice.node == target)[0];
+
+		if (!dice || !dice.repeatable) {
+			if (this._locked || this._used == MAX_BONUSES) { return; }
+		}
+
+	super.handleEvent(e);
 	}
 
 	disable(dice: HTMLDice) {
 		let disabled = super.disable(dice);
-		if (disabled) { // only if disabled, i.e. the tile was ours
+		if (disabled && !dice.repeatable) { // only if disabled, i.e. the tile was ours
 			this._used++;
 			this._locked = true;
 		}
@@ -90,19 +129,20 @@ export class BonusPool extends Pool {
 
 	enable(dice: HTMLDice) {
 		let enabled = super.enable(dice);
-		if (enabled) {
+		if (enabled && !dice.repeatable) {
 			this._used--;
-			this.unlock();
+			this._locked = false;
 		}
 		return enabled;
 	}
 
 	unlock() {
 		this._locked = false;
+		this._dices.filter(dice => dice.repeatable).forEach(dice => this.enable(dice));
 	}
 
 	toJSON() {
-		return this._dices.filter(d => d.disabled).map(d => this._dices.indexOf(d));
+		return this._dices.filter(d => d.disabled && !d.repeatable).map(d => this._dices.indexOf(d));
 	}
 
 	fromJSON(indices: number[]) {
