@@ -98,6 +98,7 @@ export default class Game {
 
 	getInfo(options: InfoOptions) {
 		return {
+			type: this._type,
 			dice: this._dice.map(dice => dice.toJSON()),
 			state: this.state,
 			round: this._round,

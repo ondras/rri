@@ -1,9 +1,8 @@
 import Tile, { TileData } from "./tile.js";
 import { clamp, all as allDirections, Vector } from "./direction.js";
-import { NONE } from "./edge.js";
 import { Score, get as getScore } from "./score.js";
 import CellRepo, { Cell } from "./cell-repo.js";
-import { LAKE } from "./edge.js";
+import { NONE, LAKE, LAVA, ROAD, RAIL, FOREST, RIVER, EdgeType } from "./edge.js";
 
 interface CellData {
 	x: number;
@@ -13,6 +12,22 @@ interface CellData {
 }
 
 export type SerializedBoard = CellData[];
+
+function hasEdge(tile: Tile, type: EdgeType) {
+	return allDirections.some(dir => tile.getEdge(dir).type == type);
+}
+
+function touches(tile: Tile, neighborEdges: EdgeType[], type: EdgeType) {
+	return allDirections.some(dir => {
+		return tile.getEdge(dir).type == type && neighborEdges[dir] == type;
+	});
+}
+
+export function isRoute(tile: Tile) {
+	let route = hasEdge(tile, ROAD) || hasEdge(tile, RAIL);
+	let expansion = hasEdge(tile, LAVA) || hasEdge(tile, LAKE) || hasEdge(tile, FOREST) || hasEdge(tile, RIVER);
+	return route && !expansion;
+}
 
 export default class Board {
 	node: HTMLElement | null;
@@ -24,11 +39,59 @@ export default class Board {
 		this._placeInitialTiles();
 	}
 
-	_build(): HTMLElement | null { return null; };
+		_build(): HTMLElement | null { return null; };
 	signal(_cells: Cell[]) {};
+	anticipate(_cells: Cell[]) {};
 	showScore(_score: Score) {}
 	onClick(_cell: Cell) {}
-	getScore() { return getScore(this._cells); }
+
+	getScore() {
+		let added: Cell[] = [];
+		let pending = this._getSurroundedCells();
+
+		while (pending.length) { // anticipate _surroundLakes; no place() => no tiles are drawn
+			pending.forEach(cell => {
+				cell.tile = new Tile("lake-4", "0");
+				added.push(cell);
+			});
+			pending = this._getSurroundedCells();
+		}
+
+		let score = getScore(this._cells);
+		added.forEach(cell => cell.tile = null);
+
+		this.anticipate(added);
+		return score;
+	}
+
+	fits(tile: Tile, x: number, y: number) {
+		let neighborEdges = this.getNeighborEdges(x, y);
+		return this._fits(tile, neighborEdges);
+	}
+
+	_fits(tile: Tile, neighborEdges: EdgeType[]) {
+		if (tile._data.sid == "volcano") {
+			return this._fitsExpansionRules(tile, neighborEdges);
+		}
+
+		return tile.fitsNeighbors(neighborEdges) && this._fitsExpansionRules(tile, neighborEdges);
+	}
+
+	_fitsExpansionRules(tile: Tile, neighborEdges: EdgeType[]) {
+		if (!hasEdge(tile, LAVA)) { return true; }
+
+		if (tile._data.sid == "volcano") {
+			return !neighborEdges.includes(LAVA);
+		}
+
+		return touches(tile, neighborEdges, LAVA);
+	}
+
+	setup(type: string) {
+		switch (type) {
+			case "lava": this._setupLava(); break;
+		}
+	}
 
 	fromJSON(cells: SerializedBoard) {
 		const Tile = this._tileCtor;
@@ -109,6 +172,20 @@ export default class Board {
 		});
 	}
 
+	getOverwritableCells(tile: Tile, round: number) {
+		return this._cells.filter(cell => {
+			if (cell.border || !cell.tile || cell.round == round) { return false; }
+			if (!isRoute(cell.tile)) { return false; }
+
+			let backupTile = cell.tile;
+			cell.tile = null; // bypass place(); nothing is rendered
+			let fits = this._getTransforms(tile, cell.x, cell.y).length > 0;
+			cell.tile = backupTile;
+
+			return fits;
+		});
+	}
+
 	_getTransforms(tile: Tile, x: number, y: number) {
 		let neighborEdges = this.getNeighborEdges(x, y);
 		let clone = tile.clone();
@@ -123,10 +200,19 @@ export default class Board {
 
 		return tile.getTransforms().filter(t => {
 			clone.transform = t;
-			return clone.fitsNeighbors(neighborEdges);
+			return this._fits(clone, neighborEdges);
 		}).sort(compare);
 	}
 
+	_setupLava() {
+		const Tile = this._tileCtor;
+
+		let cell = this._cells.at(4, 4);
+		if (cell.tile) { return; }
+
+		this.place(new Tile("volcano", "0"), 4, 4, 0);
+		this.commit(0);
+	}
 
 	_placeInitialTiles() {
 		const Tile = this._tileCtor;
@@ -167,15 +253,18 @@ export default class Board {
 		this.commit(0);
 	}
 
-	_surroundLakes(round: number) {
-		const Tile = this._tileCtor;
-
-		const isSurrounded = (cell: Cell) => {
+	_getSurroundedCells() {
+		return this._cells.filter(cell => {
 			if (cell.tile || cell.border) { return false; }
 			let neighborEdges = this.getNeighborEdges(cell.x, cell.y);
 			return neighborEdges.filter(e => e == LAKE).length >= 3;
-		}
-		let surrounded = this._cells.filter(isSurrounded);
+		});
+	}
+
+	_surroundLakes(round: number) {
+		const Tile = this._tileCtor;
+
+		let surrounded = this._getSurroundedCells();
 
 		surrounded.forEach(cell => {
 			let tile = new Tile("lake-4", "0");

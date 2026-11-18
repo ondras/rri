@@ -60,6 +60,7 @@ const ROAD = 2;
 const LAKE = 3;
 const FOREST = 4;
 const RIVER = 5;
+const LAVA = 6;
 
 const repo$1 = {};
 const partials = {
@@ -445,7 +446,77 @@ const partials = {
             ctx.river(S, 0.35);
             ctx.rail(E, 1);
         }
-    }
+    },
+    "lava-l": {
+        edges: [
+            { type: LAVA, connects: [E] },
+            { type: LAVA, connects: [N] },
+            { type: NONE, connects: [] },
+            { type: NONE, connects: [] }
+        ],
+        render(ctx) {
+            ctx.lava([[0, 0], [1, 0], [1, 1]]);
+        }
+    },
+    "lava-i": {
+        edges: [
+            { type: LAVA, connects: [S] },
+            { type: NONE, connects: [] },
+            { type: LAVA, connects: [N] },
+            { type: NONE, connects: [] }
+        ],
+        render(ctx) {
+            ctx.lava([[0, 0], [1, 0], [0.65, 0.5], [1, 1], [0, 1], [0.35, 0.5]]);
+        }
+    },
+    "lava-t": {
+        edges: [
+            { type: LAVA, connects: [E, S] },
+            { type: LAVA, connects: [N, S] },
+            { type: LAVA, connects: [N, E] },
+            { type: NONE, connects: [] }
+        ],
+        render(ctx) {
+            ctx.lava([[0, 0], [1, 0], [1, 1], [0, 1], [0.5, 0.5]]);
+        }
+    },
+    "lava-road": {
+        edges: [
+            { type: LAVA, connects: [] },
+            { type: ROAD, connects: [W] },
+            { type: NONE, connects: [] },
+            { type: ROAD, connects: [E] }
+        ],
+        render(ctx) {
+            ctx.lava([[0, 0], [1, 0], [0.5, 0.28]]);
+            ctx.road(E, 0.5);
+            ctx.road(W, 0.5);
+        }
+    },
+    "lava-rail": {
+        edges: [
+            { type: LAVA, connects: [] },
+            { type: RAIL, connects: [W] },
+            { type: NONE, connects: [] },
+            { type: RAIL, connects: [E] }
+        ],
+        render(ctx) {
+            ctx.lava([[0, 0], [1, 0], [0.5, 0.28]]);
+            ctx.rail(E, 1);
+        }
+    },
+    "volcano": {
+        edges: [
+            { type: LAVA, connects: [E, S, W] },
+            { type: LAVA, connects: [N, S, W] },
+            { type: LAVA, connects: [N, E, W] },
+            { type: LAVA, connects: [N, E, S] }
+        ],
+        render(ctx) {
+            ctx.lava([[0, 0], [1, 0], [1, 1], [0, 1]]);
+            ctx.volcano();
+        }
+    },
 };
 function get$1(id) {
     if (!(id in repo$1)) {
@@ -508,11 +579,11 @@ class Tile {
                 }
                 return;
             }
-            if (ourEdge == LAKE || ourEdge == FOREST) {
+            if (ourEdge == LAKE || ourEdge == FOREST || ourEdge == LAVA) {
                 connections++;
                 return;
             }
-            if (nEdge == NONE || ourEdge == NONE || nEdge == FOREST) {
+            if (nEdge == NONE || ourEdge == NONE || nEdge == FOREST || nEdge == LAKE) {
                 return;
             }
             if (nEdge == ourEdge) {
@@ -656,7 +727,7 @@ function isDeadend(deadend, cells) {
         return false;
     }
     let edge = tile.getEdge(deadend.direction).type;
-    if (edge != RAIL && edge != ROAD && edge != RIVER) {
+    if (edge != RAIL && edge != ROAD && edge != RIVER && edge != LAVA) {
         return false;
     }
     let neighbor = getNeighbor(cell, deadend.direction, cells);
@@ -679,7 +750,7 @@ function getDeadends(cells) {
     });
     return deadends;
 }
-function extractLake(lakeCells, allCells) {
+function extractLake(lakeCells, allCells, type = LAKE) {
     let pending = [lakeCells.shift()];
     let processed = [];
     while (pending.length) {
@@ -689,14 +760,14 @@ function extractLake(lakeCells, allCells) {
         if (!tile) {
             continue;
         }
-        all.filter(d => tile.getEdge(d).type == LAKE).forEach(d => {
+        all.filter(d => tile.getEdge(d).type == type).forEach(d => {
             let neighbor = getNeighbor(current, d, allCells);
             if (!neighbor.tile) {
                 return;
             }
             let neighborEdge = clamp(d + 2);
             let neighborEdgeType = neighbor.tile.getEdge(neighborEdge).type;
-            if (neighborEdgeType != LAKE) {
+            if (neighborEdgeType != type) {
                 return;
             }
             let index = lakeCells.indexOf(neighbor);
@@ -723,6 +794,34 @@ function getLakes(cells) {
         sizes.push(extractLake(lakeCells, cells).length);
     }
     return sizes;
+}
+function hasOpenLava(cell, cells) {
+    const tile = cell.tile;
+    if (!tile) {
+        return false;
+    }
+    return all.some(direction => {
+        return tile.getEdge(direction).type == LAVA && isDeadend({ cell, direction }, cells);
+    });
+}
+function getLavas(cells) {
+    function isLava(cell) {
+        if (!cell.tile) {
+            return;
+        }
+        let tile = cell.tile;
+        return all.some(d => tile.getEdge(d).type == LAVA);
+    }
+    let lavaCells = cells.filter(isLava);
+    let lavas = [];
+    while (lavaCells.length) {
+        let lava = extractLake(lavaCells, cells, LAVA);
+        lavas.push({
+            size: lava.length,
+            closed: !lava.some(cell => hasOpenLava(cell, cells))
+        });
+    }
+    return lavas;
 }
 function isRiverCell(cell) {
     if (cell.border || !cell.tile) {
@@ -862,7 +961,8 @@ function get$2(cells) {
         riverBonus: getRiverBonus(river, cells),
         deadends: getDeadends(cells),
         lakes: getLakes(cells),
-        forests: getForests(cells)
+        forests: getForests(cells),
+        lava: getLavas(cells)
     };
 }
 function mapExits(score) {
@@ -870,6 +970,11 @@ function mapExits(score) {
 }
 function sumLakes(score) {
     return (score.lakes.length > 0 ? score.lakes.sort((a, b) => a - b)[0] : 0);
+}
+function sumLava(score) {
+    let closed = score.lava.filter(lava => lava.closed).length;
+    let largest = score.lava.reduce((max, lava) => Math.max(max, lava.size), 0);
+    return largest + 5 * closed;
 }
 function sum(score) {
     let exits = mapExits(score);
@@ -883,7 +988,8 @@ function sum(score) {
         + lakeScore
         + score.river.length
         + score.riverBonus
-        + score.forests.length;
+        + score.forests.length
+        + sumLava(score);
 }
 
 const BOARD = 7;
@@ -925,6 +1031,19 @@ class CellRepo {
     }
 }
 
+function hasEdge(tile, type) {
+    return all.some(dir => tile.getEdge(dir).type == type);
+}
+function touches(tile, neighborEdges, type) {
+    return all.some(dir => {
+        return tile.getEdge(dir).type == type && neighborEdges[dir] == type;
+    });
+}
+function isRoute(tile) {
+    let route = hasEdge(tile, ROAD) || hasEdge(tile, RAIL);
+    let expansion = hasEdge(tile, LAVA) || hasEdge(tile, LAKE) || hasEdge(tile, FOREST) || hasEdge(tile, RIVER);
+    return route && !expansion;
+}
 class Board {
     constructor(_tileCtor = Tile) {
         this._tileCtor = _tileCtor;
@@ -937,9 +1056,51 @@ class Board {
     ;
     signal(_cells) { }
     ;
+    anticipate(_cells) { }
+    ;
     showScore(_score) { }
     onClick(_cell) { }
-    getScore() { return get$2(this._cells); }
+    getScore() {
+        let added = [];
+        let pending = this._getSurroundedCells();
+        while (pending.length) { // anticipate _surroundLakes; no place() => no tiles are drawn
+            pending.forEach(cell => {
+                cell.tile = new Tile("lake-4", "0");
+                added.push(cell);
+            });
+            pending = this._getSurroundedCells();
+        }
+        let score = get$2(this._cells);
+        added.forEach(cell => cell.tile = null);
+        this.anticipate(added);
+        return score;
+    }
+    fits(tile, x, y) {
+        let neighborEdges = this.getNeighborEdges(x, y);
+        return this._fits(tile, neighborEdges);
+    }
+    _fits(tile, neighborEdges) {
+        if (tile._data.sid == "volcano") {
+            return this._fitsExpansionRules(tile, neighborEdges);
+        }
+        return tile.fitsNeighbors(neighborEdges) && this._fitsExpansionRules(tile, neighborEdges);
+    }
+    _fitsExpansionRules(tile, neighborEdges) {
+        if (!hasEdge(tile, LAVA)) {
+            return true;
+        }
+        if (tile._data.sid == "volcano") {
+            return !neighborEdges.includes(LAVA);
+        }
+        return touches(tile, neighborEdges, LAVA);
+    }
+    setup(type) {
+        switch (type) {
+            case "lava":
+                this._setupLava();
+                break;
+        }
+    }
     fromJSON(cells) {
         const Tile = this._tileCtor;
         this._cells.forEach(cell => {
@@ -1019,6 +1180,21 @@ class Board {
             return (transforms.length > 0);
         });
     }
+    getOverwritableCells(tile, round) {
+        return this._cells.filter(cell => {
+            if (cell.border || !cell.tile || cell.round == round) {
+                return false;
+            }
+            if (!isRoute(cell.tile)) {
+                return false;
+            }
+            let backupTile = cell.tile;
+            cell.tile = null; // bypass place(); nothing is rendered
+            let fits = this._getTransforms(tile, cell.x, cell.y).length > 0;
+            cell.tile = backupTile;
+            return fits;
+        });
+    }
     _getTransforms(tile, x, y) {
         let neighborEdges = this.getNeighborEdges(x, y);
         let clone = tile.clone();
@@ -1031,8 +1207,17 @@ class Board {
         }
         return tile.getTransforms().filter(t => {
             clone.transform = t;
-            return clone.fitsNeighbors(neighborEdges);
+            return this._fits(clone, neighborEdges);
         }).sort(compare);
+    }
+    _setupLava() {
+        const Tile = this._tileCtor;
+        let cell = this._cells.at(4, 4);
+        if (cell.tile) {
+            return;
+        }
+        this.place(new Tile("volcano", "0"), 4, 4, 0);
+        this.commit(0);
     }
     _placeInitialTiles() {
         const Tile = this._tileCtor;
@@ -1074,16 +1259,18 @@ class Board {
         });
         this.commit(0);
     }
-    _surroundLakes(round) {
-        const Tile = this._tileCtor;
-        const isSurrounded = (cell) => {
+    _getSurroundedCells() {
+        return this._cells.filter(cell => {
             if (cell.tile || cell.border) {
                 return false;
             }
             let neighborEdges = this.getNeighborEdges(cell.x, cell.y);
             return neighborEdges.filter(e => e == LAKE).length >= 3;
-        };
-        let surrounded = this._cells.filter(isSurrounded);
+        });
+    }
+    _surroundLakes(round) {
+        const Tile = this._tileCtor;
+        let surrounded = this._getSurroundedCells();
         surrounded.forEach(cell => {
             let tile = new Tile("lake-4", "0");
             this.place(tile, cell.x, cell.y, round);
@@ -1119,14 +1306,6 @@ const DPR = devicePixelRatio;
 function toAbs(p) {
     return p.map($ => $ * TILE);
 }
-function computeControlPoint(p1, p2) {
-    if (p1[0] == p2[0]) {
-        return [1 - p1[0], 0.5];
-    }
-    else {
-        return [0.5, 1 - p1[1]];
-    }
-}
 function createLakeCanvas() {
     const N = 4;
     const PX = 2;
@@ -1145,6 +1324,83 @@ function createLakeCanvas() {
     return canvas;
 }
 const lakeCanvas = createLakeCanvas();
+function createLavaCanvas() {
+    const N = 4;
+    const PX = 2;
+    const canvas = node("canvas");
+    canvas.width = canvas.height = N * PX;
+    const ctx = canvas.getContext("2d");
+    for (let i = 0; i < N; i++) {
+        for (let j = 0; j < N; j++) {
+            const H = 10 + ~~(Math.random() * 35);
+            const S = 100;
+            const V = 30 + ~~(Math.random() * 50);
+            ctx.fillStyle = `hsl(${H}, ${S}%, ${V}%)`;
+            ctx.fillRect(i * PX, j * PX, PX, PX);
+        }
+    }
+    return canvas;
+}
+const lavaCanvas = createLavaCanvas();
+const WAVE = TILE / 28;
+const WAVELENGTH = TILE / 5.6; // half wave
+function createBubbles() {
+    let bubbles = [];
+    for (let i = 0; i < 16; i++) { // x, y, radius
+        bubbles.push([Math.random(), Math.random(), 1 + Math.random()]);
+    }
+    return bubbles;
+}
+const BUBBLES = createBubbles();
+const ERUPTION = [
+    [0.44, 0.41, 0.47, 0.32, 0.31, 0.23],
+    [0.50, 0.41, 0.46, 0.26, 0.64, 0.10],
+    [0.54, 0.39, 0.61, 0.26, 0.68, 0.29]
+];
+function isBorder(p1, p2) {
+    return (p1[0] == p2[0] && (p1[0] == 0 || p1[0] == 1))
+        || (p1[1] == p2[1] && (p1[1] == 0 || p1[1] == 1));
+}
+function wavyShore(shore) {
+    const first = shore[0];
+    const last = shore[shore.length - 1];
+    const mid = (shore.length > 2 ? shore[1] : null);
+    // quadratic through the middle point; without one this degenerates to a straight line
+    const cp = (mid
+        ? [2 * mid[0] - (first[0] + last[0]) / 2, 2 * mid[1] - (first[1] + last[1]) / 2]
+        : [(first[0] + last[0]) / 2, (first[1] + last[1]) / 2]);
+    function at(t) {
+        const s = 1 - t;
+        return [
+            s * s * first[0] + 2 * s * t * cp[0] + t * t * last[0],
+            s * s * first[1] + 2 * s * t * cp[1] + t * t * last[1]
+        ];
+    }
+    function tangent(t) {
+        const s = 1 - t;
+        return [
+            2 * s * (cp[0] - first[0]) + 2 * t * (last[0] - cp[0]),
+            2 * s * (cp[1] - first[1]) + 2 * t * (last[1] - cp[1])
+        ];
+    }
+    let length = 0;
+    for (let i = 1; i < shore.length; i++) {
+        length += Math.sqrt((shore[i][0] - shore[i - 1][0]) ** 2 + (shore[i][1] - shore[i - 1][1]) ** 2);
+    }
+    // an odd number of half waves vanishes at both ends and mirrors around the middle
+    const halfWaves = Math.round((length / WAVELENGTH - 1) / 2) * 2 + 1;
+    const steps = halfWaves * 8;
+    let points = [];
+    for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const p = at(t);
+        const d = tangent(t);
+        const len = Math.sqrt(d[0] ** 2 + d[1] ** 2) || 1;
+        const wobble = Math.sin(t * Math.PI * halfWaves) * WAVE;
+        points.push([p[0] + d[1] / len * wobble, p[1] - d[0] / len * wobble]);
+    }
+    return points;
+}
 class CanvasDrawContext {
     constructor(canvas) {
         canvas.width = canvas.height = TILE * DPR;
@@ -1173,6 +1429,10 @@ class CanvasDrawContext {
     styleLake() {
         const ctx = this._ctx;
         ctx.fillStyle = ctx.createPattern(lakeCanvas, "repeat");
+    }
+    styleLava() {
+        const ctx = this._ctx;
+        ctx.fillStyle = ctx.createPattern(lavaCanvas, "repeat");
     }
     station() {
         const ctx = this._ctx;
@@ -1328,44 +1588,85 @@ class CanvasDrawContext {
         ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
         ctx.fill();
     }
-    lake(points) {
-        points.push(points[0]); // implicitly closed
-        const ctx = this._ctx;
+    _shorePaths(points) {
+        const closed = [...points, points[0]]; // implicitly closed
         const fillPath = new Path2D();
         const strokePath = new Path2D();
-        for (let i = 0; i < points.length; i++) {
-            const point = points[i];
-            const absPoint = toAbs(point);
-            if (i == 0) {
-                fillPath.moveTo(...absPoint);
-                strokePath.moveTo(...absPoint);
-                continue;
+        fillPath.moveTo(...toAbs(closed[0]));
+        let shore = [];
+        const drawShore = () => {
+            if (!shore.length) {
+                return;
             }
-            const prevPoint = points[i - 1];
-            if (point[0] == 0.5) { // arc
-                let nextPoint = points[i + 1];
-                let cp = computeControlPoint(prevPoint, nextPoint);
-                cp = toAbs(cp);
-                nextPoint = toAbs(nextPoint);
-                fillPath.quadraticCurveTo(cp[0], cp[1], ...nextPoint);
-                strokePath.quadraticCurveTo(cp[0], cp[1], ...nextPoint);
-                i++;
+            wavyShore(shore.map(toAbs)).forEach((p, i) => {
+                fillPath.lineTo(...p);
+                i ? strokePath.lineTo(...p) : strokePath.moveTo(...p);
+            });
+            shore = [];
+        };
+        for (let i = 1; i < closed.length; i++) {
+            if (isBorder(closed[i - 1], closed[i])) { // tile edge: straight, not outlined
+                drawShore();
+                fillPath.lineTo(...toAbs(closed[i]));
             }
-            else { // straight line
-                fillPath.lineTo(...absPoint);
-                // only diagonals are stroked
-                if (point[0] == prevPoint[0] || point[1] == prevPoint[1]) {
-                    strokePath.moveTo(...absPoint);
-                }
-                else {
-                    strokePath.lineTo(...absPoint);
-                }
+            else { // shore: collect, consecutive segments form one curve
+                shore.length || shore.push(closed[i - 1]);
+                shore.push(closed[i]);
             }
         }
+        drawShore();
+        return { fillPath, strokePath };
+    }
+    lake(points) {
+        const ctx = this._ctx;
+        const { fillPath, strokePath } = this._shorePaths(points);
         this.styleLake();
         ctx.fill(fillPath);
         this.styleLine();
         ctx.stroke(strokePath);
+    }
+    lava(points) {
+        const ctx = this._ctx;
+        const { fillPath, strokePath } = this._shorePaths(points);
+        this.styleLava();
+        ctx.fill(fillPath);
+        ctx.save();
+        ctx.clip(fillPath);
+        ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+        BUBBLES.forEach(bubble => {
+            ctx.beginPath();
+            ctx.arc(bubble[0] * TILE, bubble[1] * TILE, bubble[2], 0, Math.PI * 2);
+            ctx.fill();
+        });
+        ctx.restore();
+        this.styleLine();
+        ctx.stroke(strokePath);
+    }
+    volcano() {
+        const ctx = this._ctx;
+        const u = (f) => f * TILE;
+        this.styleLine();
+        ctx.lineWidth = LINE_WIDTH * 1.25;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.strokeStyle = "#000";
+        // cone: steep concave flanks, notched crater rim, sagging base
+        ctx.beginPath();
+        ctx.moveTo(u(0.17), u(0.80));
+        ctx.quadraticCurveTo(u(0.40), u(0.61), u(0.41), u(0.42));
+        ctx.quadraticCurveTo(u(0.50), u(0.50), u(0.59), u(0.42));
+        ctx.quadraticCurveTo(u(0.60), u(0.61), u(0.83), u(0.80));
+        ctx.quadraticCurveTo(u(0.50), u(0.91), u(0.17), u(0.80));
+        ctx.stroke();
+        // eruption, springing from the crater notch
+        ERUPTION.forEach(arc => {
+            ctx.beginPath();
+            ctx.moveTo(u(arc[0]), u(arc[1]));
+            ctx.quadraticCurveTo(u(arc[2]), u(arc[3]), u(arc[4]), u(arc[5]));
+            ctx.stroke();
+        });
+        ctx.lineCap = "butt";
+        ctx.lineJoin = "miter";
     }
     river(edge, length) {
         const ctx = this._ctx;
@@ -1648,6 +1949,7 @@ class BoardCanvas extends Board {
     constructor() {
         super(HTMLTile);
         this._signals = [];
+        this._anticipated = [];
         this.node.addEventListener(DOWN_EVENT, this);
     }
     handleEvent(e) {
@@ -1677,7 +1979,11 @@ class BoardCanvas extends Board {
         }
     }
     place(tile, x, y, round) {
+        let baked = !tile && this._cells.at(x, y).tile && !this._pendingCells.some(cell => cell.x == x && cell.y == y);
         super.place(tile, x, y, round);
+        if (baked) {
+            this._repaint();
+        }
         let index = this._pendingCells.findIndex(cell => cell.x == x && cell.y == y);
         if (index > -1) {
             this._pendingCells[index].node.remove();
@@ -1696,31 +2002,41 @@ class BoardCanvas extends Board {
     }
     commit(round) {
         super.commit(round);
-        const ctx = this._ctx;
-        ctx.save();
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
         this._pendingCells.forEach(cell => {
-            let pxx = cellToPx(cell.x) * DPR$1;
-            let pxy = cellToPx(cell.y) * DPR$1;
-            ctx.drawImage(cell.tile.createCanvas(), pxx, pxy);
+            this._drawCell(cell.tile, cell.x, cell.y, cell.round);
             cell.node.remove();
         });
+        this._pendingCells = [];
+    }
+    _drawCell(tile, x, y, round) {
+        const ctx = this._ctx;
+        const pxx = cellToPx(x);
+        const pxy = cellToPx(y);
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.drawImage(tile.createCanvas(), pxx * DPR$1, pxy * DPR$1);
         ctx.restore();
-        ctx.font = bodyStyle.getPropertyValue("--round-font");
+        if (!round) {
+            return;
+        }
         const size = Number(bodyStyle.getPropertyValue("--round-size"));
-        const bg = bodyStyle.getPropertyValue("--round-bg");
-        this._pendingCells.forEach(cell => {
-            if (!cell.round) {
+        ctx.font = bodyStyle.getPropertyValue("--round-font");
+        ctx.fillStyle = bodyStyle.getPropertyValue("--round-bg");
+        ctx.fillRect(pxx + TILE - size, pxy, size, size);
+        ctx.fillStyle = "#000";
+        ctx.fillText(round.toString(), pxx + TILE - size / 2, pxy + size / 2);
+    }
+    _repaint() {
+        this._drawGrid();
+        this._cells.forEach(cell => {
+            if (!cell.tile) {
                 return;
             }
-            const pxx = cellToPx(cell.x) + TILE;
-            const pxy = cellToPx(cell.y);
-            ctx.fillStyle = bg;
-            ctx.fillRect(pxx - size, pxy, size, size);
-            ctx.fillStyle = "#000";
-            ctx.fillText(cell.round.toString(), pxx - size / 2, pxy + size / 2);
+            if (this._pendingCells.some(pending => pending.x == cell.x && pending.y == cell.y)) {
+                return;
+            }
+            this._drawCell(cell.tile, cell.x, cell.y, cell.round);
         });
-        this._pendingCells = [];
     }
     signal(cells) {
         this._signals.forEach(signal => signal.remove());
@@ -1732,6 +2048,16 @@ class BoardCanvas extends Board {
             signal.style.top = `${pxy}px`;
             this.node.appendChild(signal);
             return signal;
+        });
+    }
+    anticipate(cells) {
+        this._anticipated.forEach(node => node.remove());
+        this._anticipated = cells.map(cell => {
+            let node$1 = node("div", { className: "anticipated" });
+            node$1.style.left = `${cellToPx(cell.x)}px`;
+            node$1.style.top = `${cellToPx(cell.y)}px`;
+            this.node.appendChild(node$1);
+            return node$1;
         });
     }
     showScore(score) {
@@ -1809,6 +2135,7 @@ class BoardCanvas extends Board {
                 break;
         }
         ctx.lineWidth = lineWidth;
+        ctx.strokeStyle = "#000";
         start = BTILE + BORDER;
         length = BOARD * TILE + (BOARD - 1) * THIN;
         for (let i = 0; i < BOARD - 1; i++) {
@@ -1901,6 +2228,7 @@ const ROUNDS = {
     "lake": 6,
     "river": 6,
     "forest": 7,
+    "lava": 6,
     "demo": 1
 };
 function randomType(types) {
@@ -1921,6 +2249,12 @@ function createDice(Ctor, type, round) {
                 ...createDice(Ctor, "normal", round),
                 new Ctor("river", randomType(DICE_RIVER)),
                 new Ctor("river", randomType(DICE_RIVER))
+            ];
+        case "lava":
+            return [
+                ...createDice(Ctor, "normal", round),
+                new Ctor("lava", randomType(DICE_LAVA)),
+                new Ctor("lava", randomType(DICE_LAVA))
             ];
         case "forest":
             if (round == 1) {
@@ -1954,6 +2288,7 @@ const DICE_REGULAR_1 = ["road-i", "rail-i", "road-l", "rail-l", "road-t", "rail-
 const DICE_REGULAR_2 = ["bridge", "bridge", "rail-road-i", "rail-road-i", "rail-road-l", "rail-road-l"];
 const DICE_LAKE = ["lake-1", "lake-2", "lake-3", "lake-rail", "lake-road", "lake-rail-road"];
 const DICE_RIVER = ["river-i", "river-l", "river-l", "river-l", "river-road-bridge", "river-rail-bridge"];
+const DICE_LAVA = ["lava-l", "lava-l", "lava-i", "lava-t", "lava-road", "lava-rail"];
 
 class Dice {
     constructor(_type, _sid) {
@@ -1980,14 +2315,21 @@ class HTMLDice extends Dice {
         if (this._type == "lake") {
             this.node.classList.add("lake");
         }
+        if (this._type == "river") {
+            this.node.classList.add("river");
+        }
         if (this._type == "forest") {
             this.node.classList.add("forest");
+        }
+        if (this._type == "lava" || this._type == "volcano") {
+            this.node.classList.add("lava");
         }
         this._tile = new HTMLTile(this._sid, "0");
         this.node.appendChild(this._tile.node);
     }
     get tile() { return this._tile; }
     get mandatory() { return this._type == "plain" || this._type == "forest"; }
+    get repeatable() { return this._type == "volcano"; }
 }
 ["blocked", "pending", "disabled"].forEach(prop => {
     Object.defineProperty(Dice.prototype, prop, {
@@ -2006,18 +2348,35 @@ class Pool {
         this.node.append(heading);
     }
     get remaining() {
-        return this._dices.filter(d => d.mandatory && !d.disabled && !d.blocked);
+        let result = this._dices.filter(d => d.mandatory && !d.disabled && !d.blocked);
+        let lava = this._dices.filter(d => d._type == "lava");
+        let lavaPlaced = lava.some(d => d.disabled);
+        if (lava.length && !lavaPlaced) {
+            result.push(lava.filter(d => !d.disabled && !d.blocked)[0] || lava[0]);
+        }
+        return result;
+    }
+    get lavaRequiredBlocked() {
+        let lava = this._dices.filter(d => d._type == "lava");
+        let lavaPlaced = lava.some(d => d.disabled);
+        if (!lava.length || lavaPlaced) {
+            return false;
+        }
+        return lava.every(d => d.blocked);
     }
     handleEvent(e) {
         let target = e.currentTarget;
         let dice = this._dices.filter(dice => dice.node == target)[0];
-        if (!dice || dice.disabled || dice.blocked) {
+        if (!dice || dice.disabled) {
+            return;
+        }
+        if (dice.blocked && !(dice._type == "lava" && this.lavaRequiredBlocked)) {
             return;
         }
         this.onClick(dice);
     }
     add(dice) {
-        this.node.appendChild(dice.node);
+        this.node.insertBefore(dice.node, this.node.querySelector("button"));
         dice.node.addEventListener(DOWN_EVENT, this);
         this._dices.push(dice);
     }
@@ -2044,6 +2403,10 @@ class Pool {
             let cells = board.getAvailableCells(dice.tile);
             dice.blocked = (cells.length == 0);
         });
+        let forced = this.lavaRequiredBlocked;
+        this._dices.forEach(dice => {
+            dice.node.classList.toggle("forced", dice._type == "lava" && forced);
+        });
     }
 }
 class BonusPool extends Pool {
@@ -2057,15 +2420,28 @@ class BonusPool extends Pool {
             this.add(new HTMLDice("plain", sid));
         });
     }
-    handleEvent(e) {
-        if (this._locked || this._used == MAX_BONUSES) {
+    setup(type) {
+        if (type != "lava") {
             return;
+        }
+        if (this._dices.some(dice => dice._type == "volcano")) {
+            return;
+        }
+        this.add(new HTMLDice("volcano", "volcano"));
+    }
+    handleEvent(e) {
+        let target = e.currentTarget;
+        let dice = this._dices.filter(dice => dice.node == target)[0];
+        if (!dice || !dice.repeatable) {
+            if (this._locked || this._used == MAX_BONUSES) {
+                return;
+            }
         }
         super.handleEvent(e);
     }
     disable(dice) {
         let disabled = super.disable(dice);
-        if (disabled) { // only if disabled, i.e. the tile was ours
+        if (disabled && !dice.repeatable) { // only if disabled, i.e. the tile was ours
             this._used++;
             this._locked = true;
         }
@@ -2073,17 +2449,18 @@ class BonusPool extends Pool {
     }
     enable(dice) {
         let enabled = super.enable(dice);
-        if (enabled) {
+        if (enabled && !dice.repeatable) {
             this._used--;
-            this.unlock();
+            this._locked = false;
         }
         return enabled;
     }
     unlock() {
         this._locked = false;
+        this._dices.filter(dice => dice.repeatable).forEach(dice => this.enable(dice));
     }
     toJSON() {
-        return this._dices.filter(d => d.disabled).map(d => this._dices.indexOf(d));
+        return this._dices.filter(d => d.disabled && !d.repeatable).map(d => this._dices.indexOf(d));
     }
     fromJSON(indices) {
         this._locked = false;
@@ -2092,6 +2469,8 @@ class BonusPool extends Pool {
 }
 
 const dataset = document.body.dataset;
+const waitNode = document.querySelector("#live-score .wait");
+const scoreNode = document.querySelector("#live-score .score");
 class Game {
     constructor(_board) {
         this._board = _board;
@@ -2100,6 +2479,8 @@ class Game {
     }
     async play() {
         dataset.stage = "game";
+        waitNode.textContent = "";
+        scoreNode.textContent = "";
         return true;
     }
     _outro() {
@@ -2107,6 +2488,7 @@ class Game {
     }
 }
 
+const scoreNode$1 = document.querySelector("#live-score .score");
 class Round {
     constructor(number, _board, _bonusPool) {
         this.number = number;
@@ -2114,7 +2496,9 @@ class Round {
         this._bonusPool = _bonusPool;
         this._pending = null;
         this._endButton = node("button");
+        this._baseScore = 0;
         this._placedDice = new Map();
+        this._replacedTiles = new Map();
         this._lastClickTs = 0;
         this._pool = new Pool(`Round #${this.number} Routes`);
         this.node = this._pool.node;
@@ -2143,6 +2527,7 @@ class Round {
         this._pool.onClick = dice => this._onPoolClick(dice);
         this._bonusPool.onClick = dice => this._onPoolClick(dice);
         this._board.onClick = cell => this._onBoardClick(cell);
+        this._baseScore = sum(this._board.getScore());
         this._syncEnd();
         this._bonusPool.unlock();
         return new Promise(resolve => {
@@ -2174,6 +2559,9 @@ class Round {
         else {
             this._pending = dice;
             let available = this._board.getAvailableCells(dice.tile);
+            if (dice._type == "lava" && this._pool.lavaRequiredBlocked) {
+                available = available.concat(this._board.getOverwritableCells(dice.tile, this.number));
+            }
             this._board.signal(available);
             this._pool.pending(dice);
             this._bonusPool.pending(dice);
@@ -2198,7 +2586,14 @@ class Round {
             return;
         }
         this._placedDice.delete(cell);
-        this._board.place(null, cell.x, cell.y, 0);
+        let replaced = this._replacedTiles.get(cell);
+        if (replaced) {
+            this._board.place(replaced.tile, cell.x, cell.y, replaced.round);
+            this._replacedTiles.delete(cell);
+        }
+        else {
+            this._board.place(null, cell.x, cell.y, 0);
+        }
         this._pool.enable(dice);
         this._bonusPool.enable(dice);
         this._syncEnd();
@@ -2210,7 +2605,7 @@ class Round {
         let tile = this._pending.tile;
         let available = this._board.getAvailableCells(tile);
         if (!available.includes(cell)) {
-            return false;
+            return this._tryToOverwrite(cell);
         }
         const x = cell.x;
         const y = cell.y;
@@ -2224,6 +2619,34 @@ class Round {
         this._pending = null;
         this._syncEnd();
     }
+    _tryToOverwrite(cell) {
+        if (!this._pending || this._pending._type != "lava") {
+            return false;
+        }
+        if (!this._pool.lavaRequiredBlocked) {
+            return false;
+        }
+        let overwritable = this._board.getOverwritableCells(this._pending.tile, this.number);
+        if (!overwritable.includes(cell)) {
+            return false;
+        }
+        let oldTile = cell.tile;
+        let oldRound = cell.round;
+        const x = cell.x;
+        const y = cell.y;
+        this._board.place(null, x, y, 0);
+        this._board.placeBest(this._pending.tile.clone(), x, y, this.number);
+        this._board.signal([]);
+        this._replacedTiles.set(cell, { tile: oldTile, round: oldRound });
+        this._pool.pending(null);
+        this._bonusPool.pending(null);
+        this._pool.disable(this._pending);
+        this._bonusPool.disable(this._pending);
+        this._placedDice.set(cell, this._pending);
+        this._pending = null;
+        this._syncEnd();
+        return true;
+    }
     _tryToCycle(cell) {
         if (!this._placedDice.has(cell)) {
             return;
@@ -2234,6 +2657,9 @@ class Round {
     _syncEnd() {
         this._pool.sync(this._board);
         this._endButton.disabled = (this._pool.remaining.length > 0);
+        let total = sum(this._board.getScore());
+        let diff = total - this._baseScore;
+        scoreNode$1.textContent = `Current score: ${total} (${diff >= 0 ? "+" : ""}${diff})`;
     }
     _validatePlacement() {
         // retrieve a list of placed tiles (and their cells); empty the board in the process
@@ -2249,8 +2675,7 @@ class Round {
             // try re-placing any of the items back
             let placed = todo.some((item, index) => {
                 let cell = item.cell;
-                let neighbors = this._board.getNeighborEdges(cell.x, cell.y);
-                if (item.tile.fitsNeighbors(neighbors)) {
+                if (this._board.fits(item.tile, cell.x, cell.y)) {
                     this._board.place(item.tile, cell.x, cell.y, this.number);
                     todo.splice(index, 1);
                     return true;
@@ -2274,12 +2699,13 @@ function buildTable() {
     table.appendChild(node("tbody"));
     table.tHead.insertRow().insertCell();
     const body = table.tBodies[0];
-    ["Connected exits", "Longest road", "Longest rail", "Center tiles", "Dead ends", "Smallest lake", "Forest views", "Best river"].forEach(label => {
+    ["Connected exits", "Longest road", "Longest rail", "Center tiles", "Dead ends", "Smallest lake", "Forest views", "Best river", "Lava lakes"].forEach(label => {
         body.insertRow().insertCell().textContent = label;
     });
     body.rows[body.rows.length - 1].hidden = true;
     body.rows[body.rows.length - 2].hidden = true;
     body.rows[body.rows.length - 3].hidden = true;
+    body.rows[body.rows.length - 4].hidden = true;
     table.appendChild(node("tfoot"));
     table.tFoot.insertRow().insertCell().textContent = "Score";
     return table;
@@ -2331,6 +2757,17 @@ function addColumn(table, score, name = "", active = false) {
     else {
         riverRow.insertCell();
     }
+    let lavaRow = body.rows[8];
+    let lavaScore = sumLava(score);
+    if (lavaScore > 0) {
+        let closed = score.lava.filter(lava => lava.closed).length;
+        let largest = score.lava.reduce((max, lava) => Math.max(max, lava.size), 0);
+        lavaRow.insertCell().textContent = (closed ? `${largest}+${5 * closed} = ${lavaScore}` : lavaScore.toString());
+        lavaRow.hidden = false;
+    }
+    else {
+        lavaRow.insertCell();
+    }
     let total = sum(score);
     const totalRow = table.tFoot.rows[0];
     totalRow.insertCell().textContent = total.toString();
@@ -2371,7 +2808,9 @@ class SingleGame extends Game {
     async play() {
         super.play();
         this._node.innerHTML = "";
+        this._bonusPool.setup(this._type);
         this._node.appendChild(this._bonusPool.node);
+        this._board.setup(this._type);
         let num = 1;
         while (num <= ROUNDS[this._type]) {
             let round = new Round(num, this._board, this._bonusPool);
@@ -2500,6 +2939,7 @@ class JsonRpc {
     }
 }
 
+const waitNode$1 = document.querySelector("#live-score .wait");
 class MultiGame extends Game {
     constructor(board) {
         super(board);
@@ -2509,8 +2949,6 @@ class MultiGame extends Game {
             game: "",
             player: ""
         };
-        this._wait = node("p", { className: "wait", hidden: true });
-        this._currentScore = node("span");
         const template = document.querySelector("template");
         ["setup", "lobby"].forEach(id => {
             let node = template.content.querySelector(`#multi-${id}`);
@@ -2523,6 +2961,7 @@ class MultiGame extends Game {
         setup.querySelector("[name=create-lake]").addEventListener("click", _ => this._joinOrCreate("lake"));
         setup.querySelector("[name=create-forest]").addEventListener("click", _ => this._joinOrCreate("forest"));
         setup.querySelector("[name=create-river]").addEventListener("click", _ => this._joinOrCreate("river"));
+        setup.querySelector("[name=create-lava]").addEventListener("click", _ => this._joinOrCreate("lava"));
         const lobby = this._nodes["lobby"];
         lobby.querySelector("button").addEventListener("click", _ => this._rpc.call("start-game", []));
     }
@@ -2640,6 +3079,9 @@ class MultiGame extends Game {
     }
     async _sync() {
         const response = await this._rpc.call("game-info", []);
+        document.body.dataset.mode = response.type;
+        this._bonusPool.setup(response.type);
+        this._board.setup(response.type);
         switch (response.state) {
             case "starting":
                 this._updateLobby(response.players);
@@ -2669,10 +3111,8 @@ class MultiGame extends Game {
     _updateRound(response) {
         let waiting = response.players.filter(p => !p.roundEnded).length;
         let suffix = (waiting > 1 ? "s" : "");
-        this._wait.textContent = `Waiting for ${waiting} player${suffix} to end round. `;
-        this._wait.appendChild(this._currentScore);
         const ended = response.players.filter(p => p.name == this._progress.player)[0].roundEnded;
-        this._wait.hidden = !ended;
+        waitNode$1.textContent = (ended ? `Waiting for ${waiting} player${suffix} to end round. ` : "");
         const round = this._progress.round;
         if (round && round.number == response.round) {
             ended && round.end();
@@ -2688,7 +3128,6 @@ class MultiGame extends Game {
         this._node.innerHTML = "";
         this._node.appendChild(this._bonusPool.node);
         this._node.appendChild(round.node);
-        this._node.appendChild(this._wait);
         let dice = response.dice.map(data => HTMLDice.fromJSON(data));
         let promise = round.play(dice);
         if (ended) {
@@ -2701,13 +3140,6 @@ class MultiGame extends Game {
                 bonusPool: this._bonusPool.toJSON()
             };
             this._rpc.call("end-round", state);
-            let button = node("button", {}, "Show my current score");
-            button.addEventListener("click", _ => {
-                let s = this._board.getScore();
-                this._currentScore.innerHTML = `My current score is <strong>${sum(s)}<strong>.`;
-            });
-            this._currentScore.innerHTML = "";
-            this._currentScore.appendChild(button);
         }
     }
     _showScore(players) {
@@ -2743,6 +3175,7 @@ class MultiplayerRound extends Round {
     end() {
         this._endButton.disabled = true;
         this._pool.remaining.forEach(d => this._pool.disable(d));
+        this._pool.onClick = this._bonusPool.onClick = this._board.onClick = () => { };
     }
     _end() {
         super._end();
@@ -2797,10 +3230,14 @@ function download() {
 }
 function goIntro() {
     dataset$1.stage = "intro";
+    delete dataset$1.mode;
     board = new BoardCanvas();
     showBoard(board);
 }
 async function goGame(type) {
+    if (type != "multi") {
+        dataset$1.mode = type;
+    }
     const game = (type == "multi" ? new MultiGame(board) : new SingleGame(board, type));
     let played = await game.play();
     if (!played) {
@@ -2810,11 +3247,20 @@ async function goGame(type) {
 function onClick(name, cb) {
     document.querySelector(`[name=${name}]`).addEventListener("click", cb);
 }
+function toggleLiveScore(on) {
+    dataset$1.liveScore = (on ? "on" : "off");
+    save("live-score", on ? "1" : null);
+}
 function init() {
+    const liveScore = document.querySelector("[name=live-score]");
+    liveScore.checked = (load("live-score") == "1");
+    liveScore.addEventListener("change", _ => toggleLiveScore(liveScore.checked));
+    toggleLiveScore(liveScore.checked);
     onClick("start-normal", () => goGame("normal"));
     onClick("start-lake", () => goGame("lake"));
     onClick("start-river", () => goGame("river"));
     onClick("start-forest", () => goGame("forest"));
+    onClick("start-lava", () => goGame("lava"));
     onClick("start-multi", () => goGame("multi"));
     onClick("again", () => goIntro());
     onClick("download", () => download());

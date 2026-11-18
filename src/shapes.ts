@@ -1,6 +1,6 @@
 import { get as getTransform, all as allTransforms } from "./transform.js";
 import { N, E, S, W, all as allDirections } from "./direction.js";
-import { Edge, NONE, RAIL, ROAD, LAKE, FOREST, RIVER } from "./edge.js";
+import { Edge, NONE, RAIL, ROAD, LAKE, FOREST, RIVER, LAVA } from "./edge.js";
 import DrawContext from "./draw-context.js";
 
 
@@ -455,7 +455,88 @@ const partials: {[id:string]: PartialShape} = {
 			ctx.river(S, 0.35);
 			ctx.rail(E, 1);
 		}
-	}
+	},
+	"lava-l": {
+		edges: [
+			{type:LAVA, connects: [E]},
+			{type:LAVA, connects: [N]},
+			{type:NONE, connects: []},
+			{type:NONE, connects: []}
+		],
+
+		render(ctx: DrawContext) {
+			ctx.lava([[0, 0], [1, 0], [1, 1]]);
+		}
+	},
+
+	"lava-i": {
+		edges: [
+			{type:LAVA, connects: [S]},
+			{type:NONE, connects: []},
+			{type:LAVA, connects: [N]},
+			{type:NONE, connects: []}
+		],
+
+		render(ctx: DrawContext) {
+			ctx.lava([[0, 0], [1, 0], [0.65, 0.5], [1, 1], [0, 1], [0.35, 0.5]]);
+		}
+	},
+
+	"lava-t": {
+		edges: [
+			{type:LAVA, connects: [E, S]},
+			{type:LAVA, connects: [N, S]},
+			{type:LAVA, connects: [N, E]},
+			{type:NONE, connects: []}
+		],
+
+		render(ctx: DrawContext) {
+			ctx.lava([[0, 0], [1, 0], [1, 1], [0, 1], [0.5, 0.5]]);
+		}
+	},
+
+	"lava-road": {
+		edges: [
+			{type:LAVA, connects: []},
+			{type:ROAD, connects: [W]},
+			{type:NONE, connects: []},
+			{type:ROAD, connects: [E]}
+		],
+
+		render(ctx: DrawContext) {
+			ctx.lava([[0, 0], [1, 0], [0.5, 0.28]]);
+			ctx.road(E, 0.5);
+			ctx.road(W, 0.5);
+		}
+	},
+
+	"lava-rail": {
+		edges: [
+			{type:LAVA, connects: []},
+			{type:RAIL, connects: [W]},
+			{type:NONE, connects: []},
+			{type:RAIL, connects: [E]}
+		],
+
+		render(ctx: DrawContext) {
+			ctx.lava([[0, 0], [1, 0], [0.5, 0.28]]);
+			ctx.rail(E, 1);
+		}
+	},
+
+	"volcano": {
+		edges: [
+			{type:LAVA, connects: [E, S, W]},
+			{type:LAVA, connects: [N, S, W]},
+			{type:LAVA, connects: [N, E, W]},
+			{type:LAVA, connects: [N, E, S]}
+		],
+
+		render(ctx: DrawContext) {
+			ctx.lava([[0, 0], [1, 0], [1, 1], [0, 1]]);
+			ctx.volcano();
+		}
+	},
 };
 
 export function get(id: string) {

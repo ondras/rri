@@ -3,7 +3,7 @@ div.board {
 
 	canvas { display: block; }
 
-	.cell, .signal {
+	.cell, .signal, .anticipated {
 		position: absolute;
 		width: calc(var(--tile-size) * 1px);
 		height: calc(var(--tile-size) * 1px);
@@ -11,5 +11,9 @@ div.board {
 
 	.signal {
 		.-signal(lime);
+	}
+
+	.anticipated {
+		background-color: hsla(220, 100%, 80%, 0.35);
 	}
 }

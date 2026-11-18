@@ -1,6 +1,6 @@
 import CellRepo, { Cell } from "./cell-repo.js";
 import { Direction, clamp, all as allDirections, Vector } from "./direction.js";
-import { NONE, ROAD, RAIL, LAKE, FOREST, RIVER, EdgeType } from "./edge.js";
+import { NONE, ROAD, RAIL, LAKE, FOREST, RIVER, LAVA, EdgeType } from "./edge.js";
 
 
 export interface Score {
@@ -13,6 +13,12 @@ export interface Score {
 	riverBonus: number;
 	lakes: number[];
 	forests: Cell[];
+	lava: Lava[];
+}
+
+interface Lava {
+	size: number;
+	closed: boolean;
 }
 
 interface Deadend {
@@ -157,7 +163,7 @@ function isDeadend(deadend: Deadend, cells: CellRepo) {
 	if (!tile) { return false; }
 
 	let edge = tile.getEdge(deadend.direction).type;
-	if (edge != RAIL && edge != ROAD && edge != RIVER) { return false; }
+	if (edge != RAIL && edge != ROAD && edge != RIVER && edge != LAVA) { return false; }
 
 	let neighbor = getNeighbor(cell, deadend.direction, cells);
 	if (neighbor.border) { return false; }
@@ -180,7 +186,7 @@ function getDeadends(cells: CellRepo) {
 	return deadends;
 }
 
-function extractLake(lakeCells: Cell[], allCells: CellRepo) {
+function extractLake(lakeCells: Cell[], allCells: CellRepo, type: EdgeType = LAKE) {
 	let pending = [lakeCells.shift()];
 	let processed: Cell[] = [];
 
@@ -191,13 +197,13 @@ function extractLake(lakeCells: Cell[], allCells: CellRepo) {
 		const tile = current.tile;
 		if (!tile) { continue; }
 
-		allDirections.filter(d => tile.getEdge(d).type == LAKE).forEach(d => {
+		allDirections.filter(d => tile.getEdge(d).type == type).forEach(d => {
 			let neighbor = getNeighbor(current, d, allCells);
 			if (!neighbor.tile) { return; }
 
 			let neighborEdge = clamp(d+2);
 			let neighborEdgeType = neighbor.tile.getEdge(neighborEdge).type;
-			if (neighborEdgeType != LAKE) { return; }
+			if (neighborEdgeType != type) { return; }
 
 			let index = lakeCells.indexOf(neighbor);
 			if (index == -1) { return; }
@@ -223,6 +229,35 @@ function getLakes(cells: CellRepo) {
 	}
 
 	return sizes;
+}
+
+function hasOpenLava(cell: Cell, cells: CellRepo) {
+	const tile = cell.tile;
+	if (!tile) { return false; }
+
+	return allDirections.some(direction => {
+		return tile.getEdge(direction).type == LAVA && isDeadend({cell, direction}, cells);
+	});
+}
+
+function getLavas(cells: CellRepo) {
+	function isLava(cell: Cell) {
+		if (!cell.tile) { return; }
+		let tile = cell.tile;
+		return allDirections.some(d => tile.getEdge(d).type == LAVA);
+	}
+	let lavaCells = cells.filter(isLava);
+
+	let lavas: Lava[] = [];
+	while (lavaCells.length) {
+		let lava = extractLake(lavaCells, cells, LAVA);
+		lavas.push({
+			size: lava.length,
+			closed: !lava.some(cell => hasOpenLava(cell, cells))
+		});
+	}
+
+	return lavas;
 }
 
 function isRiverCell(cell: Cell) {
@@ -379,7 +414,8 @@ export function get(cells: CellRepo): Score {
 		riverBonus: getRiverBonus(river, cells),
 		deadends: getDeadends(cells),
 		lakes: getLakes(cells),
-		forests: getForests(cells)
+		forests: getForests(cells),
+		lava: getLavas(cells)
 	}
 }
 
@@ -389,6 +425,12 @@ export function mapExits(score: Score) {
 
 export function sumLakes(score: Score) {
 	return (score.lakes.length > 0 ? score.lakes.sort((a, b) => a-b)[0] : 0);
+}
+
+export function sumLava(score: Score) {
+	let closed = score.lava.filter(lava => lava.closed).length;
+	let largest = score.lava.reduce((max, lava) => Math.max(max, lava.size), 0);
+	return largest + 5*closed;
 }
 
 export function sum(score: Score) {
@@ -404,5 +446,6 @@ export function sum(score: Score) {
 		+ lakeScore
 		+ score.river.length
 		+ score.riverBonus
-		+ score.forests.length;
+		+ score.forests.length
+		+ sumLava(score);
 }

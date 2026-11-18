@@ -12,24 +12,48 @@
 		}
 
 		.dice {
+			position: relative;
 			border: 1px solid #000;
 			border-radius: 6px;
 			background-color: #fff;
 			overflow: hidden;
 
 			&.lake { background-color: rgba(100, 200, 255, 0.2); }
+			&.river { background-color: rgba(100, 200, 255, 0.12); }
 			&.forest { background-color: rgba(200, 255, 100, 0.2); }
+			&.lava { background-color: rgba(255, 100, 50, 0.2); }
 
-			&.pending {
-				.-signal(lime);
+			&.disabled { opacity: 0.4; }
+
+			&.pending::after,
+			&.blocked::after {
+				content: "";
+				position: absolute;
+				left: 0;
+				top: 0;
+				right: 0;
+				bottom: 0;
+				pointer-events: none;
 			}
 
-			&.blocked {
-				.-signal(red);
+				&.pending::after {
+					.-signal(lime);
 			}
 
-			&.disabled {
-				opacity: 0.4;
+				&.blocked::after {
+					.-signal(red);
+			}
+
+				&.blocked.pending::after {
+					.-signal(lime);
+			}
+
+				&.lava.forced::after {
+					.-signal(gold);
+			}
+
+				&.lava.forced.pending::after {
+					.-signal(lime);
 			}
 
 			+ .dice { margin-left: 8px; }
@@ -54,7 +78,4 @@
 		.-menu;
 	}
 
-	.wait {
-		text-align: center;
-	}
 }

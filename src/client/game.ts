@@ -2,6 +2,8 @@ import Board from "../board.js";
 import { BonusPool } from "./pool.js";
 
 const dataset = document.body.dataset;
+const waitNode = document.querySelector("#live-score .wait") as HTMLElement;
+const scoreNode = document.querySelector("#live-score .score") as HTMLElement;
 
 export default class Game {
 	_node = document.querySelector("#game") as HTMLElement;
@@ -10,7 +12,9 @@ export default class Game {
 	constructor(readonly _board:Board) {}
 
 	async play(): Promise<boolean> {
-		dataset.stage = "game";
+		dataset.stage = "game"
+		waitNode.textContent = "";
+		scoreNode.textContent = "";
 		return true;
 	}
 

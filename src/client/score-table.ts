@@ -1,4 +1,4 @@
-import { Score, mapExits, sumLakes, sum } from "../score.js";
+import { Score, mapExits, sumLakes, sumLava, sum } from "../score.js";
 
 import * as html from "./html.js";
 
@@ -11,13 +11,14 @@ function buildTable() {
 	table.tHead!.insertRow().insertCell();
 
 	const body = table.tBodies[0];
-	["Connected exits", "Longest road", "Longest rail", "Center tiles", "Dead ends", "Smallest lake", "Forest views", "Best river"].forEach(label => {
+	["Connected exits", "Longest road", "Longest rail", "Center tiles", "Dead ends", "Smallest lake", "Forest views", "Best river", "Lava lakes"].forEach(label => {
 		body.insertRow().insertCell().textContent = label;
 	});
 
 	body.rows[body.rows.length-1].hidden = true;
 	body.rows[body.rows.length-2].hidden = true;
 	body.rows[body.rows.length-3].hidden = true;
+	body.rows[body.rows.length-4].hidden = true;
 
 	table.appendChild(html.node("tfoot"));
 	table.tFoot!.insertRow().insertCell().textContent = "Score";
@@ -73,6 +74,17 @@ function addColumn(table: HTMLTableElement, score: Score, name="", active=false)
 		riverRow.hidden = false;
 	} else {
 		riverRow.insertCell();
+	}
+
+	let lavaRow = body.rows[8];
+	let lavaScore = sumLava(score);
+	if (lavaScore > 0) {
+		let closed = score.lava.filter(lava => lava.closed).length;
+		let largest = score.lava.reduce((max, lava) => Math.max(max, lava.size), 0);
+		lavaRow.insertCell().textContent = (closed ? `${largest}+${5*closed} = ${lavaScore}` : lavaScore.toString());
+		lavaRow.hidden = false;
+	} else {
+		lavaRow.insertCell();
 	}
 
 	let total = sum(score);

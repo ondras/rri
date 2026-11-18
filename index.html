@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width" />
-		<meta name="theme-color" content="#def" />
+		<meta name="theme-color" content="#f5f5f5" />
 
 		<link rel="manifest" href="manifest.webmanifest" />
 		<link rel="stylesheet" href="client/client.css" />
@@ -23,11 +23,13 @@
 					<li><button name="start-lake">Play with lakes</button></li>
 					<li><button name="start-river">Play with rivers</button></li>
 					<li><button name="start-forest">Play with forests</button></li>
+					<li><button name="start-lava">Play with lava</button></li>
 					<li><button name="start-multi">Multiplayer</button></li>
 				</ul>
 			</section>
 
 			<section id="game"></section>
+			<p id="live-score"><span class="wait"></span><span class="score"></span></p>
 
 			<section id="outro">
 				<h2>Game over</h2>
@@ -44,6 +46,7 @@
 				<li><a target="_blank" href="https://www.horribleguild.com/railroad-ink-deep-blue/">Railroad Ink</a> &copy; Horrible Games</li>
 				<li><a target="_blank" href="https://github.com/ondras/rri/">Instructions &amp; Source</a></li>
 				<li><a target="_blank" href="https://cdn.1j1ju.com/medias/9c/f7/6c-railroad-ink-deep-blue-edition-rulebook.pdf">Official rules</a></li>
+				<li><label><input type="checkbox" name="live-score" /> Live score</label></li>
 			</ul>
 		</footer>
 
@@ -67,6 +70,7 @@
 					<li><button name="create-lake">Create game with lakes</button></li>
 					<li><button name="create-river">Create game with rivers</button></li>
 					<li><button name="create-forest">Create game with forests</button></li>
+					<li><button name="create-lava">Create game with lava</button></li>
 				</ul>
 			</div>
 			<div id="multi-lobby">

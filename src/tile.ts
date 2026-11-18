@@ -1,7 +1,7 @@
 import { get as getTransform } from "./transform.js";
 import { get as getShape } from "./shapes.js";
 import { Direction } from "./direction.js";
-import { Edge, EdgeType, NONE, LAKE, FOREST, RIVER } from "./edge.js";
+import { Edge, EdgeType, NONE, LAKE, FOREST, RIVER, LAVA } from "./edge.js";
 
 
 export interface TileData {
@@ -50,12 +50,12 @@ export default class Tile {
 				return;
 			}
 
-			if (ourEdge == LAKE || ourEdge == FOREST) {
+			if (ourEdge == LAKE || ourEdge == FOREST || ourEdge == LAVA) {
 				connections++;
 				return;
 			}
 
-			if (nEdge == NONE || ourEdge == NONE || nEdge == FOREST) { return; }
+			if (nEdge == NONE || ourEdge == NONE || nEdge == FOREST || nEdge == LAKE) { return; }
 			if (nEdge == ourEdge) {
 				connections++;
 			} else {

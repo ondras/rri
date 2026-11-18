@@ -5,10 +5,10 @@
 This is a web-based version of the [Railroad Ink Board Game](https://boardgamegeek.com/boardgame/245654/railroad-ink-deep-blue-edition).
 Implemented features:
 
-  - base game, lakes expansion, river expansion
+  - base game, lakes expansion, river expansion, lava expansion
   - playable and installable on mobile devices
   - online multiplayer
-  - score visualization
+  - score visualization, including an optional live score during play
   - works offline
   - saving the game board as an image
 
@@ -16,7 +16,8 @@ Please report any bugs found to the [issue tracker](https://github.com/ondras/rr
 
 ## How to play
 
-Familiarize yourself with [game rules](https://cdn.1j1ju.com/medias/9c/f7/6c-railroad-ink-deep-blue-edition-rulebook.pdf) first. Rules for the [forests expansion](#forests-expansion) follow.
+Familiarize yourself with [game rules](https://cdn.1j1ju.com/medias/9c/f7/6c-railroad-ink-deep-blue-edition-rulebook.pdf) first. 
+Rules for the [forests](#forests-expansion) and [lava](#lava-expansion) expansions follow.
 
 Playing the game is very straightforward; you pick pieces by clicking/touching the dice pool and you place them by clicking/touching the game board afterwards. To **rotate** a tile, place it and then touch it again. To **remove** a tile, double-click/double-touch it.
 
@@ -45,3 +46,15 @@ Rules (created by [Niklas Thomas](https://boardgamegeek.com/thread/2392579/railr
 - Edges of forest spaces never counts as errors
 - Each Route adjacent (not diagonal) or connected to at least one forst space is worth 1 point at the end of the game.
 
+## *Lava* expansion
+
+*"Volcanoes are erupting, but route building goes on!"*
+
+The lava expansion from the [Blazing Red edition](https://horribleguild.com/us/product/railroad-ink-blazing-red/); see its rulebook for the full rules.
+
+- The game lasts 6 rounds; two lava dice are rolled in addition to the four regular ones, and at least one of them must be placed
+- A volcano occupies the central space from the start; once per round you may draw one more, on any free space that is not adjacent to existing lava
+- New lava must always be placed adjacent to existing lava
+- If no legal space is left next to an open lava lake, you may overwrite one of your own earlier route pieces instead — the piece to be replaced is highlighted
+- Open lava lake edges count as errors at the end of the game
+- You score 5 points per closed lava lake, plus 1 point per space covered by your largest lava lake

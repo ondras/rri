@@ -42,6 +42,7 @@ export default class BoardCanvas extends Board {
 	_ctx!: CanvasRenderingContext2D;
 	_pendingCells!: PendingCell[];
 	_signals = [] as HTMLElement[];
+	_anticipated = [] as HTMLElement[];
 	node!: HTMLElement;
 
 	constructor() {
@@ -80,7 +81,11 @@ export default class BoardCanvas extends Board {
 	}
 
 	place(tile: HTMLTile, x: number, y: number, round: number) {
+		let baked = !tile && this._cells.at(x, y).tile && !this._pendingCells.some(cell => cell.x == x && cell.y == y);
+		
 		super.place(tile, x, y, round);
+
+		if (baked) { this._repaint(); }
 
 		let index = this._pendingCells.findIndex(cell => cell.x == x && cell.y == y);
 		if (index > -1) {
@@ -104,36 +109,42 @@ export default class BoardCanvas extends Board {
 	commit(round: number) {
 		super.commit(round);
 
-		const ctx = this._ctx;
-
-		ctx.save();
-		ctx.setTransform(1, 0, 0, 1, 0, 0);
-
 		this._pendingCells.forEach(cell => {
-			let pxx = cellToPx(cell.x) * DPR;
-			let pxy = cellToPx(cell.y) * DPR;
-			ctx.drawImage(cell.tile.createCanvas(), pxx, pxy);
+			this._drawCell(cell.tile, cell.x, cell.y, cell.round);
 			cell.node.remove();
 		});
 
+		this._pendingCells = [];
+	}
+
+	_drawCell(tile: HTMLTile, x: number, y: number, round: number) {
+		const ctx = this._ctx;
+		const pxx = cellToPx(x);
+		const pxy = cellToPx(y);
+
+		ctx.save();
+		ctx.setTransform(1, 0, 0, 1, 0, 0);
+		ctx.drawImage(tile.createCanvas(), pxx*DPR, pxy*DPR);
 		ctx.restore();
 
-		ctx.font = bodyStyle.getPropertyValue("--round-font");
+		if (!round) { return; }
+
 		const size = Number(bodyStyle.getPropertyValue("--round-size"));
-		const bg = bodyStyle.getPropertyValue("--round-bg");
-		this._pendingCells.forEach(cell => {
-			if (!cell.round) { return; }
-			const pxx = cellToPx(cell.x) + TILE;
-			const pxy = cellToPx(cell.y);
+		ctx.font = bodyStyle.getPropertyValue("--round-font");
+		ctx.fillStyle = bodyStyle.getPropertyValue("--round-bg");
+		ctx.fillRect(pxx + TILE - size, pxy, size, size);
+		ctx.fillStyle = "#000";
+		ctx.fillText(round.toString(), pxx + TILE - size/2, pxy + size/2);
+	}
 
-			ctx.fillStyle = bg;
-			ctx.fillRect(pxx - size, pxy, size, size);
+	_repaint() {
+		this._drawGrid();
 
-			ctx.fillStyle = "#000";
-			ctx.fillText(cell.round.toString(), pxx - size/2, pxy + size/2);
+		this._cells.forEach(cell => {
+			if (!cell.tile) { return; }
+			if (this._pendingCells.some(pending => pending.x == cell.x && pending.y == cell.y)) { return; }
+			this._drawCell(cell.tile as HTMLTile, cell.x, cell.y, cell.round);
 		});
-
-		this._pendingCells = [];
 	}
 
 	signal(cells: Cell[]) {
@@ -147,6 +158,18 @@ export default class BoardCanvas extends Board {
 			signal.style.top = `${pxy}px`;
 			this.node.appendChild(signal);
 			return signal;
+		});
+	}
+
+	anticipate(cells: Cell[]) {
+		this._anticipated.forEach(node => node.remove());
+
+		this._anticipated = cells.map(cell => {
+			let node = html.node("div", {className:"anticipated"});
+			node.style.left = `${cellToPx(cell.x)}px`;
+			node.style.top = `${cellToPx(cell.y)}px`;
+			this.node.appendChild(node);
+			return node;
 		});
 	}
 
@@ -245,6 +268,7 @@ export default class BoardCanvas extends Board {
 			break;
 		}
 		ctx.lineWidth = lineWidth;
+		ctx.strokeStyle = "#000";
 
 		start = BTILE + BORDER;
 		length = BOARD*TILE + (BOARD-1)*THIN;
